@@ -57,7 +57,7 @@ Sometimes you need -pthread instead of -lpthread
 
 Command to build 64 bit chat example server from the /Source directory:
 
-    g++ -m64 -g -lpthread -I./ "../Samples/Chat Example/Chat Example Server.cpp" *.cpp
+    g++ -m64 -g -lpthread -I./include/RakNet "../Samples/Chat Example/Chat Example Server.cpp" src/*.cpp
 
 Command to build NATCompleteServer from the Samples/NATCompleteServer directory:
 

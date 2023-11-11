@@ -62,7 +62,11 @@ int main()
 // 	peer1Addr.FromString("127.0.0.1");
 
 	unsigned short fowardPort;
+#ifdef _WIN32
 	SOCKET forwardingSocket;
+#else
+	int forwardingSocket;
+#endif
 	if (!udpForwarder.StartForwarding(peer0Addr,peer1Addr, timeoutOnNoDataMS, "127.0.0.1", sd1.socketFamily, &fowardPort, &forwardingSocket))
 	{
 		printf("Socket error\n");
