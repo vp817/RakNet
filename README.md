@@ -213,18 +213,16 @@ You should then be able to create a project in eclipse, and import cygwin/home/K
 
 Native client
 -----------------------------------------
-Solution: RakNet_NativeClient_VS2010. See Samples\nacl_sdk\RakNet_NativeClient_VS2010\HowToSetup.txt for detailed instructions on setup.
+See Samples\nacl_sdk\RakNet_NativeClient_VS2010\HowToSetup.txt for detailed instructions on setup.
 
 Windows Phone 8
 -----------------------------------------
-Example solution: RakNet_WinPhone8_VS2012.
 Add to your project DependentExtensions\WinPhone8\ThreadEmulation.cpp
 Add DependentExtensions\WinPhone8\ to your include paths
 Define _CRT_SECURE_NO_WARNINGS and WINDOWS_PHONE_8
 
 Windows Store 8
 -----------------------------------------
-Example solution: RakNet_WindowsStore8_VS2012.sln
 Add to your project DependentExtensions\WinPhone8\ThreadEmulation.cpp
 Add DependentExtensions\WinPhone8\ and DependentExtensions\WinRT to your include paths
 TCP is not supported, only UDP (RakPeer).
@@ -242,10 +240,3 @@ _RAKNET_SUPPORT_NatTypeDetectionServer=0
 _RAKNET_SUPPORT_UDPProxyServer=0
 _RAKNET_SUPPORT_UDPProxyCoordinator=0
 _RAKNET_SUPPORT_UDPForwarder=0
-
-
-Unreal engine
------------------------------------------
-See https://udn.epicgames.com/lists/showpost.php?list=unprog3&id=37697&lessthan=&show=20
-
-
