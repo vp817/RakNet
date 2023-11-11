@@ -16,29 +16,9 @@ C# support
 
 See Help\swigtutorial.html
 
-Upgrading from version 3
-------------------------------------------
-
-See 3.x_to_4.x_upgrade.txt
-
-Windows users (Visual Studio 2008 and 2010)
+Windows users (VC6, VC8)
 -----------------------------------------
-Load RakNet_VS2008.sln and convert if necessary.
-
-After the project conversion, if you encounter error MSB4006,
-follow the steps below to fix it:
-
-1. Open project properties
-2. Click on "Common Properties"
-3. Click on "Framework and References"
-4. Look under "Build Properties"
-5. Change the "Copy Local" flag from "True" to "False"
-
-For other compiler issues, please see Help/compilersetup.html
-
-Windows users (VC6)
------------------------------------------
-Not supported, but you can get by if you directly include the source.
+You can get by if you directly include the source.
 
 CYGWIN users
 -----------------------------------------
