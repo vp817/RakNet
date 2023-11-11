@@ -3,12 +3,12 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
 
-#if defined(_WIN32) && !defined(__GNUC__)  &&!defined(__GCCXML__)
+#if defined(_WIN32) && !defined(__GNUC__) && !defined(__GCCXML__)
 
 #include "gettimeofday.h"
 
@@ -17,17 +17,17 @@
 #include "WindowsIncludes.h"
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000Ui64
 #else
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
 #endif
 
 int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
 #if defined(WINDOWS_PHONE_8) || defined(WINDOWS_STORE_RT)
-	// _tzset not supported
-	(void) tv;
-	(void) tz;
+  // _tzset not supported
+  (void)tv;
+  (void)tz;
 #else
 
   FILETIME ft;
@@ -43,7 +43,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
     tmpres |= ft.dwLowDateTime;
 
     /*converting file time to unix epoch*/
-    tmpres /= 10;  /*convert into microseconds*/
+    tmpres /= 10; /*convert into microseconds*/
     tmpres -= DELTA_EPOCH_IN_MICROSECS;
     tv->tv_sec = (long)(tmpres / 1000000UL);
     tv->tv_usec = (long)(tmpres % 1000000UL);
@@ -66,4 +66,3 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 }
 
 #endif
-

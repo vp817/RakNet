@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -11,8 +11,6 @@
 /// \file
 /// \brief A simple class to encode and decode known strings based on a lookup table.  Similar to the StringCompressor class.
 ///
-
-
 
 #ifndef __STRING_TABLE_H
 #define __STRING_TABLE_H
@@ -39,7 +37,7 @@ struct StrAndBool
 
 namespace RakNet
 {
-	int RAK_DLL_EXPORT StrAndBoolComp( char *const &key, const StrAndBool &data );
+	int RAK_DLL_EXPORT StrAndBoolComp(char *const &key, const StrAndBool &data);
 
 	/// \details This is an even more efficient alternative to StringCompressor in that it writes a single byte from a lookup table and only does compression.<BR>
 	/// if the string does not already exist in the table.<BR>
@@ -50,14 +48,13 @@ namespace RakNet
 	class RAK_DLL_EXPORT StringTable
 	{
 	public:
-
-		// Destructor	
+		// Destructor
 		~StringTable();
 
 		/// static function because only static functions can access static members
 		/// The RakPeer constructor adds a reference to this class, so don't call this until an instance of RakPeer exists, or unless you call AddReference yourself.
 		/// \return the unique instance of the StringTable
-		static StringTable* Instance(void);
+		static StringTable *Instance(void);
 
 		/// Add a string to the string table.
 		/// \param[in] str The string to add to the string table
@@ -67,16 +64,16 @@ namespace RakNet
 		/// Writes input to output, compressed.  Takes care of the null terminator for you.
 		/// Relies on the StringCompressor class, which is automatically reference counted in the constructor and destructor in RakPeer.  You can call the reference counting functions yourself if you wish too.
 		/// \param[in] input Pointer to an ASCII string
-		/// \param[in] maxCharsToWrite The size of \a input 
+		/// \param[in] maxCharsToWrite The size of \a input
 		/// \param[out] output The bitstream to write the compressed string to
-		void EncodeString( const char *input, int maxCharsToWrite, RakNet::BitStream *output );
+		void EncodeString(const char *input, int maxCharsToWrite, RakNet::BitStream *output);
 
 		/// Writes input to output, uncompressed.  Takes care of the null terminator for you.
 		/// Relies on the StringCompressor class, which is automatically reference counted in the constructor and destructor in RakPeer.  You can call the reference counting functions yourself if you wish too.
 		/// \param[out] output A block of bytes to receive the output
 		/// \param[in] maxCharsToWrite Size, in bytes, of \a output .  A NULL terminator will always be appended to the output string.  If the maxCharsToWrite is not large enough, the string will be truncated.
 		/// \param[in] input The bitstream containing the compressed string
-		bool DecodeString( char *output, int maxCharsToWrite, RakNet::BitStream *input );
+		bool DecodeString(char *output, int maxCharsToWrite, RakNet::BitStream *input);
 
 		/// Used so I can allocate and deallocate this singleton at runtime
 		static void AddReference(void);
@@ -84,7 +81,7 @@ namespace RakNet
 		/// Used so I can allocate and deallocate this singleton at runtime
 		static void RemoveReference(void);
 
-		/// Private Constructor	
+		/// Private Constructor
 		StringTable();
 
 	protected:
@@ -99,6 +96,5 @@ namespace RakNet
 		DataStructures::OrderedList<char *, StrAndBool, StrAndBoolComp> orderedStringList;
 	};
 }
-
 
 #endif

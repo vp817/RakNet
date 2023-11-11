@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -14,7 +14,7 @@
 ///
 
 #ifndef __MULTILIST_H
-#define __MULTILIST_H 
+#define __MULTILIST_H
 
 #include "RakAssert.h"
 #include <string.h> // memmove
@@ -22,11 +22,10 @@
 #include "RakMemoryOverride.h"
 #include "NativeTypes.h"
 
-
 #ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
-#pragma warning( disable : 4512 ) // warning C4512: assignment operator could not be generated
+#pragma warning(push)
+#pragma warning(disable : 4127) // warning C4127: conditional expression is constant
+#pragma warning(disable : 4512) // warning C4512: assignment operator could not be generated
 #endif
 
 /// What algorithm to use to store the data for the Multilist
@@ -51,40 +50,41 @@ namespace DataStructures
 	/// Can be used with Multilist::ForEach
 	/// Assuming the Multilist holds pointers, will delete those pointers
 	template <class templateType>
-	void DeletePtr_RakNet(templateType &ptr, const char *file, unsigned int line ) {RakNet::OP_DELETE(ptr, file, line);}
+	void DeletePtr_RakNet(templateType &ptr, const char *file, unsigned int line) { RakNet::OP_DELETE(ptr, file, line); }
 
 	/// Can be used with Multilist::ForEach
 	/// Assuming the Multilist holds pointers, will delete those pointers
 	template <class templateType>
-	void DeletePtr(templateType &ptr) {delete ptr;}
+	void DeletePtr(templateType &ptr) { delete ptr; }
 
 	/// The following is invalid.
 	/// bool operator<( const MyClass *myClass, const int &inputKey ) {return myClass->value < inputKey;}
 	/// At least one type has to be a reference to a class
 	/// MLKeyRef is a helper class to turn a native type into a class, so you can compare that native type against a pointer to a different class
-	/// Used for he Multilist, when _DataType != _KeyType 
-	template < class templateType >
+	/// Used for he Multilist, when _DataType != _KeyType
+	template <class templateType>
 	class MLKeyRef
 	{
 	public:
-		MLKeyRef(const templateType& input) : val(input) {}
-		const templateType &Get(void) const {return val;}
-		bool operator<( const templateType &right ) {return val < right;}
-		bool operator>( const templateType &right ) {return val > right;}
-		bool operator==( const templateType &right ) {return val == right;}
+		MLKeyRef(const templateType &input) : val(input) {}
+		const templateType &Get(void) const { return val; }
+		bool operator<(const templateType &right) { return val < right; }
+		bool operator>(const templateType &right) { return val > right; }
+		bool operator==(const templateType &right) { return val == right; }
+
 	protected:
 		const templateType &val;
 	};
 
-	/// For the Multilist, when _DataType != _KeyType, you must define the comparison operators between the key and the data
-	/// This is non-trivial due to the need to use MLKeyRef in case the type held is a pointer to a structure or class and the key type is not a class
-	/// For convenience, this macro will implement the comparison operators under the following conditions
-	/// 1. _DataType is a pointer to a class or structure
-	/// 2. The key is a member variable of _DataType
-	#define DEFINE_MULTILIST_PTR_TO_MEMBER_COMPARISONS( _CLASS_NAME_, _KEY_TYPE_, _MEMBER_VARIABLE_NAME_ ) \
-	bool operator<( const DataStructures::MLKeyRef<_KEY_TYPE_> &inputKey, const _CLASS_NAME_ *cls ) {return inputKey.Get() < cls->_MEMBER_VARIABLE_NAME_;} \
-	bool operator>( const DataStructures::MLKeyRef<_KEY_TYPE_> &inputKey, const _CLASS_NAME_ *cls ) {return inputKey.Get() > cls->_MEMBER_VARIABLE_NAME_;} \
-	bool operator==( const DataStructures::MLKeyRef<_KEY_TYPE_> &inputKey, const _CLASS_NAME_ *cls ) {return inputKey.Get() == cls->_MEMBER_VARIABLE_NAME_;}
+/// For the Multilist, when _DataType != _KeyType, you must define the comparison operators between the key and the data
+/// This is non-trivial due to the need to use MLKeyRef in case the type held is a pointer to a structure or class and the key type is not a class
+/// For convenience, this macro will implement the comparison operators under the following conditions
+/// 1. _DataType is a pointer to a class or structure
+/// 2. The key is a member variable of _DataType
+#define DEFINE_MULTILIST_PTR_TO_MEMBER_COMPARISONS(_CLASS_NAME_, _KEY_TYPE_, _MEMBER_VARIABLE_NAME_)                                                       \
+	bool operator<(const DataStructures::MLKeyRef<_KEY_TYPE_> &inputKey, const _CLASS_NAME_ *cls) { return inputKey.Get() < cls->_MEMBER_VARIABLE_NAME_; } \
+	bool operator>(const DataStructures::MLKeyRef<_KEY_TYPE_> &inputKey, const _CLASS_NAME_ *cls) { return inputKey.Get() > cls->_MEMBER_VARIABLE_NAME_; } \
+	bool operator==(const DataStructures::MLKeyRef<_KEY_TYPE_> &inputKey, const _CLASS_NAME_ *cls) { return inputKey.Get() == cls->_MEMBER_VARIABLE_NAME_; }
 
 	typedef uint32_t DefaultIndexType;
 
@@ -93,47 +93,47 @@ namespace DataStructures
 	/// \param[in] _DataType What type of data this list holds.
 	/// \param[in] _KeyType If a function takes a key to sort on, what type of key this is. The comparison operator between _DataType and _KeyType must be defined
 	/// \param[in] _IndexType What variable type to use for indices
-	template <const MultilistType _MultilistType, class _DataType, class _KeyType=_DataType, class _IndexType=DefaultIndexType>
+	template <const MultilistType _MultilistType, class _DataType, class _KeyType = _DataType, class _IndexType = DefaultIndexType>
 	class RAK_DLL_EXPORT Multilist
 	{
 	public:
 		Multilist();
 		~Multilist();
-		Multilist( const Multilist& source );
-		Multilist& operator= ( const Multilist& source );
-		_DataType& operator[] ( const _IndexType position ) const;
+		Multilist(const Multilist &source);
+		Multilist &operator=(const Multilist &source);
+		_DataType &operator[](const _IndexType position) const;
 		/// Unordered list, stack is LIFO
 		/// QUEUE is FIFO
 		/// Ordered list is inserted in order
-		void Push(const _DataType &d, const char *file=__FILE__, unsigned int line=__LINE__ );
-		void Push(const _DataType &d, const _KeyType &key, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Push(const _DataType &d, const char *file = __FILE__, unsigned int line = __LINE__);
+		void Push(const _DataType &d, const _KeyType &key, const char *file = __FILE__, unsigned int line = __LINE__);
 
 		/// \brief Gets or removes and gets an element from the list, according to the same rules as Push().
 		/// Ordered list is LIFO for the purposes of Pop and Peek.
-		_DataType &Pop(const char *file=__FILE__, unsigned int line=__LINE__);
+		_DataType &Pop(const char *file = __FILE__, unsigned int line = __LINE__);
 		_DataType &Peek(void) const;
 
 		/// \brief Same as Push(), except FIFO and LIFO are reversed.
 		/// Ordered list still inserts in order.
-		void PushOpposite(const _DataType &d, const char *file=__FILE__, unsigned int line=__LINE__ );
-		void PushOpposite(const _DataType &d, const _KeyType &key, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void PushOpposite(const _DataType &d, const char *file = __FILE__, unsigned int line = __LINE__);
+		void PushOpposite(const _DataType &d, const _KeyType &key, const char *file = __FILE__, unsigned int line = __LINE__);
 
 		/// \brief Same as Pop() and Peek(), except FIFO and LIFO are reversed.
-		_DataType &PopOpposite(const char *file=__FILE__, unsigned int line=__LINE__);
+		_DataType &PopOpposite(const char *file = __FILE__, unsigned int line = __LINE__);
 		_DataType &PeekOpposite(void) const;
 
-		/// \brief Stack,Queue: Inserts at index indicated, elements are shifted. 
+		/// \brief Stack,Queue: Inserts at index indicated, elements are shifted.
 		/// Ordered list: Inserts, position is ignored
-		void InsertAtIndex(const _DataType &d, _IndexType index, const char *file=__FILE__, unsigned int line=__LINE__);	
-		
+		void InsertAtIndex(const _DataType &d, _IndexType index, const char *file = __FILE__, unsigned int line = __LINE__);
+
 		/// \brief Unordered list, removes at index indicated, swaps last element with that element.
 		/// Otherwise, array is shifted left to overwrite removed element
-		/// \details Index[0] returns the same as Pop() for a queue. 
+		/// \details Index[0] returns the same as Pop() for a queue.
 		/// Same as PopOpposite() for the list and ordered list
-		void RemoveAtIndex(_IndexType position, const char *file=__FILE__, unsigned int line=__LINE__);
+		void RemoveAtIndex(_IndexType position, const char *file = __FILE__, unsigned int line = __LINE__);
 
 		/// \brief Find the index of \a key, and remove at that index.
-		bool RemoveAtKey(_KeyType key, bool assertIfDoesNotExist, const char *file=__FILE__, unsigned int line=__LINE__);
+		bool RemoveAtKey(_KeyType key, bool assertIfDoesNotExist, const char *file = __FILE__, unsigned int line = __LINE__);
 
 		/// \brief Finds the index of \a key. Return -1 if the key is not found.
 		_IndexType GetIndexOf(_KeyType key) const;
@@ -147,7 +147,7 @@ namespace DataStructures
 
 		/// \brief Iterate over the list, calling the function pointer on each element.
 		void ForEach(void (*func)(_DataType &item, const char *file, unsigned int line), const char *file, unsigned int line);
-		void ForEach(void (*func)(_DataType &item));	
+		void ForEach(void (*func)(_DataType &item));
 
 		/// \brief Returns if the list is empty.
 		bool IsEmpty(void) const;
@@ -155,24 +155,24 @@ namespace DataStructures
 		/// \brief Returns the number of elements used in the list.
 		_IndexType GetSize(void) const;
 
-		/// \brief Empties the list. The list is not deallocated if it is small, 
+		/// \brief Empties the list. The list is not deallocated if it is small,
 		/// unless \a deallocateSmallBlocks is true
-		void Clear( bool deallocateSmallBlocks=true, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Clear(bool deallocateSmallBlocks = true, const char *file = __FILE__, unsigned int line = __LINE__);
 
 		/// \brief Empties the list, first calling RakNet::OP_Delete on all items.
 		/// \details The list is not deallocated if it is small, unless \a deallocateSmallBlocks is true
-		void ClearPointers( bool deallocateSmallBlocks=true, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void ClearPointers(bool deallocateSmallBlocks = true, const char *file = __FILE__, unsigned int line = __LINE__);
 
 		/// \brief Empty one item from the list, first calling RakNet::OP_Delete on that item.
-		void ClearPointer( _KeyType key, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void ClearPointer(_KeyType key, const char *file = __FILE__, unsigned int line = __LINE__);
 
-		/// \brief Reverses the elements in the list, and flips the sort order 
+		/// \brief Reverses the elements in the list, and flips the sort order
 		/// returned by GetSortOrder() if IsSorted() returns true at the time the function is called
 		void ReverseList(void);
 
 		/// \brief Reallocates the list to a larger size.
 		/// If \a size is smaller than the value returned by GetSize(), the call does nothing.
-		void Reallocate(_IndexType size, const char *file=__FILE__, unsigned int line=__LINE__);
+		void Reallocate(_IndexType size, const char *file = __FILE__, unsigned int line = __LINE__);
 
 		/// \brief Sorts the list unless it is an ordered list, in which it does nothing as the list is assumed to already be sorted.
 		/// \details However, if \a force is true, it will also resort the ordered list, useful if the comparison operator between _KeyType and _DataType would now return different results
@@ -191,7 +191,7 @@ namespace DataStructures
 		bool GetSortOrder(void) const;
 
 		/// \brief Returns true if the list is currently believed to be in a sorted state.
-		/// \details Doesn't actually check for sortedness, just if Sort() 
+		/// \details Doesn't actually check for sortedness, just if Sort()
 		/// was recently called, or MultilistType is ML_ORDERED_LIST
 		bool IsSorted(void) const;
 
@@ -206,11 +206,11 @@ namespace DataStructures
 		/// \brief Returns the intersection of two lists.
 		/// Intersection is items common to both lists.
 		static void FindIntersection(
-			Multilist& source1,
-			Multilist& source2, 
-			Multilist& intersection,
-			Multilist& uniqueToSource1,
-			Multilist& uniqueToSource2);
+			Multilist &source1,
+			Multilist &source2,
+			Multilist &intersection,
+			Multilist &uniqueToSource1,
+			Multilist &uniqueToSource2);
 
 	protected:
 		void ReallocateIfNeeded(const char *file, unsigned int line);
@@ -223,15 +223,15 @@ namespace DataStructures
 		void DeleteShiftArrayLeft(_IndexType index);
 		void QSortAscending(_IndexType left, _IndexType right);
 		void QSortDescending(_IndexType left, _IndexType right);
-		void CopySource( const Multilist& source );
+		void CopySource(const Multilist &source);
 
 		/// An array of user values
-		_DataType* data;
-		
-		/// Number of elements in the list 		
+		_DataType *data;
+
+		/// Number of elements in the list
 		_IndexType dataSize;
-		
-		/// Size of \a array 		
+
+		/// Size of \a array
 		_IndexType allocationSize;
 
 		/// Array index for the head of the queue
@@ -260,39 +260,39 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Multilist()
 	{
-		data=0;
-		dataSize=0;
-		allocationSize=0;
-		ascendingSort=true;
-		sortState=ML_UNSORTED;
-		queueHead=0;
-		queueTail=0;
-		preallocationSize=0;
+		data = 0;
+		dataSize = 0;
+		allocationSize = 0;
+		ascendingSort = true;
+		sortState = ML_UNSORTED;
+		queueHead = 0;
+		queueTail = 0;
+		preallocationSize = 0;
 
-		if (_MultilistType==ML_ORDERED_LIST)
-			sortState=ML_SORTED_ASCENDING;
+		if (_MultilistType == ML_ORDERED_LIST)
+			sortState = ML_SORTED_ASCENDING;
 		else
-			sortState=ML_UNSORTED;
+			sortState = ML_UNSORTED;
 
-		if (_MultilistType==ML_VARIABLE_DURING_RUNTIME)
-			variableMultilistType=ML_UNORDERED_LIST;
+		if (_MultilistType == ML_VARIABLE_DURING_RUNTIME)
+			variableMultilistType = ML_UNORDERED_LIST;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::~Multilist()
 	{
-		if (data!=0)
+		if (data != 0)
 			RakNet::OP_DELETE_ARRAY(data, _FILE_AND_LINE_);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Multilist( const Multilist& source )
+	Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Multilist(const Multilist &source)
 	{
 		CopySource(source);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	Multilist<_MultilistType, _DataType, _KeyType, _IndexType>& Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::operator= ( const Multilist& source )
+	Multilist<_MultilistType, _DataType, _KeyType, _IndexType> &Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::operator=(const Multilist &source)
 	{
 		Clear(true);
 		CopySource(source);
@@ -300,93 +300,93 @@ namespace DataStructures
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::CopySource( const Multilist& source )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::CopySource(const Multilist &source)
 	{
-		dataSize=source.GetSize();
-		ascendingSort=source.ascendingSort;
-		sortState=source.sortState;
-		queueHead=0;
-		queueTail=dataSize;
-		preallocationSize=source.preallocationSize;
-		variableMultilistType=source.variableMultilistType;
-		if (source.data==0)
+		dataSize = source.GetSize();
+		ascendingSort = source.ascendingSort;
+		sortState = source.sortState;
+		queueHead = 0;
+		queueTail = dataSize;
+		preallocationSize = source.preallocationSize;
+		variableMultilistType = source.variableMultilistType;
+		if (source.data == 0)
 		{
-			data=0;
-			allocationSize=0;
+			data = 0;
+			allocationSize = 0;
 		}
 		else
 		{
-			allocationSize=dataSize;
-			data = RakNet::OP_NEW_ARRAY<_DataType>(dataSize,_FILE_AND_LINE_);
+			allocationSize = dataSize;
+			data = RakNet::OP_NEW_ARRAY<_DataType>(dataSize, _FILE_AND_LINE_);
 			_IndexType i;
-			for (i=0; i < dataSize; i++)
-				data[i]=source[i];
+			for (i = 0; i < dataSize; i++)
+				data[i] = source[i];
 		}
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	_DataType& Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::operator[] ( const _IndexType position ) const
+	_DataType &Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::operator[](const _IndexType position) const
 	{
-		RakAssert(position<GetSize());
+		RakAssert(position < GetSize());
 
-		if (GetMultilistType()==ML_QUEUE)
+		if (GetMultilistType() == ML_QUEUE)
 		{
-			if ( queueHead + position >= allocationSize )
-				return data[ queueHead + position - allocationSize ];
+			if (queueHead + position >= allocationSize)
+				return data[queueHead + position - allocationSize];
 			else
-				return data[ queueHead + position ];
+				return data[queueHead + position];
 		}
-		
+
 		return data[position];
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Push(const _DataType &d, const char *file, unsigned int line )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Push(const _DataType &d, const char *file, unsigned int line)
 	{
-		Push(d,d,file,line);
+		Push(d, d, file, line);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Push(const _DataType &d, const _KeyType &key, const char *file, unsigned int line )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Push(const _DataType &d, const _KeyType &key, const char *file, unsigned int line)
 	{
-		ReallocateIfNeeded(file,line);
+		ReallocateIfNeeded(file, line);
 
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK)
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK)
 		{
-			data[dataSize]=d;
+			data[dataSize] = d;
 			dataSize++;
 		}
-		else if (GetMultilistType()==ML_QUEUE)
+		else if (GetMultilistType() == ML_QUEUE)
 		{
 			data[queueTail++] = d;
 
-			if ( queueTail == allocationSize )
+			if (queueTail == allocationSize)
 				queueTail = 0;
 			dataSize++;
 		}
 		else
 		{
-			RakAssert(GetMultilistType()==ML_ORDERED_LIST);
-			InsertInOrderedList(d,key);
+			RakAssert(GetMultilistType() == ML_ORDERED_LIST);
+			InsertInOrderedList(d, key);
 		}
 
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK || GetMultilistType()==ML_QUEUE)
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK || GetMultilistType() == ML_QUEUE)
 		{
 			// Break sort if no longer sorted
-			if (sortState!=ML_UNSORTED && dataSize>1)
+			if (sortState != ML_UNSORTED && dataSize > 1)
 			{
 				if (ascendingSort)
 				{
-					if ( MLKeyRef<_KeyType>(key) < operator[](dataSize-2) )
-						sortState=ML_UNSORTED;
+					if (MLKeyRef<_KeyType>(key) < operator[](dataSize - 2))
+						sortState = ML_UNSORTED;
 				}
 				else
 				{
-					if ( MLKeyRef<_KeyType>(key) > operator[](dataSize-2) )
-						sortState=ML_UNSORTED;
+					if (MLKeyRef<_KeyType>(key) > operator[](dataSize - 2))
+						sortState = ML_UNSORTED;
 				}
 
-				sortState=ML_UNSORTED;
+				sortState = ML_UNSORTED;
 			}
 		}
 	}
@@ -394,90 +394,90 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	_DataType &Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Pop(const char *file, unsigned int line)
 	{
-		RakAssert(IsEmpty()==false);
-		DeallocateIfNeeded(file,line);
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK || GetMultilistType()==ML_ORDERED_LIST)
+		RakAssert(IsEmpty() == false);
+		DeallocateIfNeeded(file, line);
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK || GetMultilistType() == ML_ORDERED_LIST)
 		{
 			dataSize--;
 			return data[dataSize];
 		}
 		else
 		{
-			RakAssert(GetMultilistType()==ML_QUEUE);
+			RakAssert(GetMultilistType() == ML_QUEUE);
 
-			if ( ++queueHead == allocationSize )
+			if (++queueHead == allocationSize)
 				queueHead = 0;
 
-			if ( queueHead == 0 )
-				return data[ allocationSize -1 ];
+			if (queueHead == 0)
+				return data[allocationSize - 1];
 
 			dataSize--;
-			return data[ queueHead -1 ];
+			return data[queueHead - 1];
 		}
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	_DataType &Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Peek(void) const
 	{
-		RakAssert(IsEmpty()==false);
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK || GetMultilistType()==ML_ORDERED_LIST)
+		RakAssert(IsEmpty() == false);
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK || GetMultilistType() == ML_ORDERED_LIST)
 		{
-			return data[dataSize-1];
+			return data[dataSize - 1];
 		}
 		else
 		{
-			RakAssert(GetMultilistType()==ML_QUEUE);
-			return data[ queueHead ];
+			RakAssert(GetMultilistType() == ML_QUEUE);
+			return data[queueHead];
 		}
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::PushOpposite(const _DataType &d, const char *file, unsigned int line )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::PushOpposite(const _DataType &d, const char *file, unsigned int line)
 	{
-		PushOpposite(d,d,file,line);
+		PushOpposite(d, d, file, line);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::PushOpposite(const _DataType &d, const _KeyType &key, const char *file, unsigned int line )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::PushOpposite(const _DataType &d, const _KeyType &key, const char *file, unsigned int line)
 	{
-		ReallocateIfNeeded(file,line);
+		ReallocateIfNeeded(file, line);
 
 		// Unordered list Push at back
-		if (GetMultilistType()==ML_UNORDERED_LIST)
+		if (GetMultilistType() == ML_UNORDERED_LIST)
 		{
-			data[dataSize]=d;
+			data[dataSize] = d;
 			dataSize++;
 		}
-		else if (GetMultilistType()==ML_STACK)
+		else if (GetMultilistType() == ML_STACK)
 		{
 			// Stack push at front of the list, instead of back as normal
-			InsertAtIndex(d,0,file,line);
+			InsertAtIndex(d, 0, file, line);
 		}
-		else if (GetMultilistType()==ML_QUEUE)
+		else if (GetMultilistType() == ML_QUEUE)
 		{
 			// Queue push at front of the list, instead of back as normal
-			InsertAtIndex(d,0,file,line);
+			InsertAtIndex(d, 0, file, line);
 		}
 		else
 		{
-			RakAssert(GetMultilistType()==ML_ORDERED_LIST);
-			InsertInOrderedList(d,key);
+			RakAssert(GetMultilistType() == ML_ORDERED_LIST);
+			InsertInOrderedList(d, key);
 		}
 
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK || GetMultilistType()==ML_QUEUE)
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK || GetMultilistType() == ML_QUEUE)
 		{
 			// Break sort if no longer sorted
-			if (sortState!=ML_UNSORTED && dataSize>1)
+			if (sortState != ML_UNSORTED && dataSize > 1)
 			{
 				if (ascendingSort)
 				{
-					if ( MLKeyRef<_KeyType>(key) > operator[](1) )
-						sortState=ML_UNSORTED;
+					if (MLKeyRef<_KeyType>(key) > operator[](1))
+						sortState = ML_UNSORTED;
 				}
 				else
 				{
-					if ( MLKeyRef<_KeyType>(key) < operator[](1) )
-						sortState=ML_UNSORTED;
+					if (MLKeyRef<_KeyType>(key) < operator[](1))
+						sortState = ML_UNSORTED;
 				}
 			}
 		}
@@ -486,28 +486,28 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	_DataType &Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::PopOpposite(const char *file, unsigned int line)
 	{
-		RakAssert(IsEmpty()==false);
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK || GetMultilistType()==ML_ORDERED_LIST)
+		RakAssert(IsEmpty() == false);
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK || GetMultilistType() == ML_ORDERED_LIST)
 		{
 			// Copy leftmost to end
-			ReallocateIfNeeded(file,line);
-			data[dataSize]=data[0];
+			ReallocateIfNeeded(file, line);
+			data[dataSize] = data[0];
 			DeleteShiftArrayLeft(0);
 			--dataSize;
 			// Assuming still leaves at least one element past the end of the list allocated
-			DeallocateIfNeeded(file,line);
+			DeallocateIfNeeded(file, line);
 			// Return end
-			return data[dataSize+1];
+			return data[dataSize + 1];
 		}
 		else
 		{
-			RakAssert(GetMultilistType()==ML_QUEUE);
+			RakAssert(GetMultilistType() == ML_QUEUE);
 			// Deallocate first, since we are returning off the existing list
-			DeallocateIfNeeded(file,line);
+			DeallocateIfNeeded(file, line);
 			dataSize--;
 
-			if (queueTail==0)
-				queueTail=allocationSize-1;
+			if (queueTail == 0)
+				queueTail = allocationSize - 1;
 			else
 				--queueTail;
 
@@ -518,19 +518,19 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	_DataType &Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::PeekOpposite(void) const
 	{
-		RakAssert(IsEmpty()==false);
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK || GetMultilistType()==ML_ORDERED_LIST)
+		RakAssert(IsEmpty() == false);
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK || GetMultilistType() == ML_ORDERED_LIST)
 		{
 			return data[0];
 		}
 		else
 		{
-			RakAssert(GetMultilistType()==ML_QUEUE);
+			RakAssert(GetMultilistType() == ML_QUEUE);
 			_IndexType priorIndex;
-			if (queueTail==0)
-				priorIndex=allocationSize-1;
+			if (queueTail == 0)
+				priorIndex = allocationSize - 1;
 			else
-				priorIndex=queueTail-1;
+				priorIndex = queueTail - 1;
 
 			return data[priorIndex];
 		}
@@ -539,134 +539,133 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::InsertAtIndex(const _DataType &d, _IndexType index, const char *file, unsigned int line)
 	{
-		ReallocateIfNeeded(file,line);
+		ReallocateIfNeeded(file, line);
 
-		if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK || GetMultilistType()==ML_ORDERED_LIST)
+		if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK || GetMultilistType() == ML_ORDERED_LIST)
 		{
-			if (index>=dataSize)
+			if (index >= dataSize)
 			{
 				// insert at end
-				data[dataSize]=d;
+				data[dataSize] = d;
 
 				dataSize++;
 			}
 			else
 			{
 				// insert at index
-				InsertShiftArrayRight(d,index);
+				InsertShiftArrayRight(d, index);
 			}
 		}
 		else
 		{
 			data[queueTail++] = d;
 
-			if ( queueTail == allocationSize )
+			if (queueTail == allocationSize)
 				queueTail = 0;
 
 			++dataSize;
 
-			if (dataSize==1)
+			if (dataSize == 1)
 				return;
 
 			_IndexType writeIndex, readIndex, trueWriteIndex, trueReadIndex;
-			writeIndex=dataSize-1;
-			readIndex=writeIndex-1;
+			writeIndex = dataSize - 1;
+			readIndex = writeIndex - 1;
 			while (readIndex >= index)
 			{
-				if ( queueHead + writeIndex >= allocationSize )
+				if (queueHead + writeIndex >= allocationSize)
 					trueWriteIndex = queueHead + writeIndex - allocationSize;
 				else
 					trueWriteIndex = queueHead + writeIndex;
 
-				if ( queueHead + readIndex >= allocationSize )
+				if (queueHead + readIndex >= allocationSize)
 					trueReadIndex = queueHead + readIndex - allocationSize;
 				else
 					trueReadIndex = queueHead + readIndex;
 
-				data[trueWriteIndex]=data[trueReadIndex];
+				data[trueWriteIndex] = data[trueReadIndex];
 
-				if (readIndex==0)
+				if (readIndex == 0)
 					break;
 				writeIndex--;
 				readIndex--;
 			}
 
-			if ( queueHead + index >= allocationSize )
+			if (queueHead + index >= allocationSize)
 				trueWriteIndex = queueHead + index - allocationSize;
 			else
 				trueWriteIndex = queueHead + index;
 
-			data[trueWriteIndex]=d;
+			data[trueWriteIndex] = d;
 		}
 
-		if (_MultilistType!=ML_ORDERED_LIST)
-			sortState=ML_UNSORTED;
+		if (_MultilistType != ML_ORDERED_LIST)
+			sortState = ML_UNSORTED;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::RemoveAtIndex(_IndexType position, const char *file, unsigned int line)
 	{
 		RakAssert(position < dataSize);
-		RakAssert(IsEmpty()==false);
+		RakAssert(IsEmpty() == false);
 
-		if (GetMultilistType()==ML_UNORDERED_LIST)
+		if (GetMultilistType() == ML_UNORDERED_LIST)
 		{
 			// Copy tail to current
-			data[position]=data[dataSize-1];
+			data[position] = data[dataSize - 1];
 		}
-		else if (GetMultilistType()==ML_STACK || GetMultilistType()==ML_ORDERED_LIST)
+		else if (GetMultilistType() == ML_STACK || GetMultilistType() == ML_ORDERED_LIST)
 		{
 			DeleteShiftArrayLeft(position);
 		}
 		else
 		{
-			RakAssert(GetMultilistType()==ML_QUEUE);
+			RakAssert(GetMultilistType() == ML_QUEUE);
 
 			_IndexType index, next;
 
-			if ( queueHead + position >= allocationSize )
+			if (queueHead + position >= allocationSize)
 				index = queueHead + position - allocationSize;
 			else
 				index = queueHead + position;
 
 			next = index + 1;
 
-			if ( next == allocationSize )
+			if (next == allocationSize)
 				next = 0;
 
-			while ( next != queueTail )
+			while (next != queueTail)
 			{
 				// Overwrite the previous element
-				data[ index ] = data[ next ];
+				data[index] = data[next];
 				index = next;
-				//next = (next + 1) % allocationSize;
+				// next = (next + 1) % allocationSize;
 
-				if ( ++next == allocationSize )
+				if (++next == allocationSize)
 					next = 0;
 			}
 
 			// Move the queueTail back
-			if ( queueTail == 0 )
+			if (queueTail == 0)
 				queueTail = allocationSize - 1;
 			else
 				--queueTail;
 		}
-		
-		
+
 		dataSize--;
-		DeallocateIfNeeded(file,line);
+		DeallocateIfNeeded(file, line);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	bool Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::RemoveAtKey(_KeyType key, bool assertIfDoesNotExist, const char *file, unsigned int line)
 	{
 		_IndexType index = GetIndexOf(key);
-		if (index==(_IndexType)-1)
+		if (index == (_IndexType)-1)
 		{
-			RakAssert(assertIfDoesNotExist==false && "RemoveAtKey element not found");
+			RakAssert(assertIfDoesNotExist == false && "RemoveAtKey element not found");
 			return false;
 		}
-		RemoveAtIndex(index,file,line);
+		RemoveAtIndex(index, file, line);
 		return true;
 	}
 
@@ -677,27 +676,27 @@ namespace DataStructures
 		if (IsSorted())
 		{
 			bool objectExists;
-			i=GetIndexFromKeyInSortedList(key, &objectExists);
+			i = GetIndexFromKeyInSortedList(key, &objectExists);
 			if (objectExists)
 				return i;
 			return (_IndexType)-1;
 		}
-		else if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK)
+		else if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK)
 		{
-			for (i=0; i < dataSize; i++)
+			for (i = 0; i < dataSize; i++)
 			{
-				if (MLKeyRef<_KeyType>(key)==data[i])
+				if (MLKeyRef<_KeyType>(key) == data[i])
 					return i;
 			}
 			return (_IndexType)-1;
 		}
 		else
 		{
-			RakAssert( GetMultilistType()==ML_QUEUE );
+			RakAssert(GetMultilistType() == ML_QUEUE);
 
-			for (i=0; i < dataSize; i++)
+			for (i = 0; i < dataSize; i++)
 			{
-				if (MLKeyRef<_KeyType>(key)==operator[](i))
+				if (MLKeyRef<_KeyType>(key) == operator[](i))
 					return i;
 			}
 			return (_IndexType)-1;
@@ -711,27 +710,27 @@ namespace DataStructures
 		if (IsSorted())
 		{
 			bool objectExists;
-			i=GetIndexFromKeyInSortedList(key, &objectExists);
+			i = GetIndexFromKeyInSortedList(key, &objectExists);
 			if (objectExists)
 				return (_IndexType)-1;
 			return i;
 		}
-		else if (GetMultilistType()==ML_UNORDERED_LIST || GetMultilistType()==ML_STACK)
+		else if (GetMultilistType() == ML_UNORDERED_LIST || GetMultilistType() == ML_STACK)
 		{
-			for (i=0; i < dataSize; i++)
+			for (i = 0; i < dataSize; i++)
 			{
-				if (MLKeyRef<_KeyType>(key)==data[i])
+				if (MLKeyRef<_KeyType>(key) == data[i])
 					return (_IndexType)-1;
 			}
 			return dataSize;
 		}
 		else
 		{
-			RakAssert( GetMultilistType()==ML_QUEUE );
+			RakAssert(GetMultilistType() == ML_QUEUE);
 
-			for (i=0; i < dataSize; i++)
+			for (i = 0; i < dataSize; i++)
 			{
-				if (MLKeyRef<_KeyType>(key)==operator[](i))
+				if (MLKeyRef<_KeyType>(key) == operator[](i))
 					return (_IndexType)-1;
 			}
 			return dataSize;
@@ -742,7 +741,7 @@ namespace DataStructures
 	_DataType Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::GetPtr(_KeyType key) const
 	{
 		_IndexType i = GetIndexOf(key);
-		if (i==(_IndexType)-1)
+		if (i == (_IndexType)-1)
 			return 0;
 		return data[i];
 	}
@@ -751,7 +750,7 @@ namespace DataStructures
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ForEach(void (*func)(_DataType &item, const char *file, unsigned int line), const char *file, unsigned int line)
 	{
 		_IndexType i;
-		for (i=0; i < dataSize; i++)
+		for (i = 0; i < dataSize; i++)
 			func(operator[](i), file, line);
 	}
 
@@ -759,14 +758,14 @@ namespace DataStructures
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ForEach(void (*func)(_DataType &item))
 	{
 		_IndexType i;
-		for (i=0; i < dataSize; i++)
+		for (i = 0; i < dataSize; i++)
 			func(operator[](i));
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	bool Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::IsEmpty(void) const
 	{
-		return dataSize==0;
+		return dataSize == 0;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
@@ -776,42 +775,42 @@ namespace DataStructures
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Clear( bool deallocateSmallBlocks, const char *file, unsigned int line )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Clear(bool deallocateSmallBlocks, const char *file, unsigned int line)
 	{
-		dataSize=0;
-		if (GetMultilistType()==ML_ORDERED_LIST)
+		dataSize = 0;
+		if (GetMultilistType() == ML_ORDERED_LIST)
 			if (ascendingSort)
-				sortState=ML_SORTED_ASCENDING;
+				sortState = ML_SORTED_ASCENDING;
 			else
-				sortState=ML_SORTED_DESCENDING;
+				sortState = ML_SORTED_DESCENDING;
 		else
-			sortState=ML_UNSORTED;
-		queueHead=0;
-		queueTail=0;
+			sortState = ML_UNSORTED;
+		queueHead = 0;
+		queueTail = 0;
 
 		if (deallocateSmallBlocks && allocationSize < 128 && data)
 		{
-			RakNet::OP_DELETE_ARRAY(data,file,line);
-			data=0;
-			allocationSize=0;
+			RakNet::OP_DELETE_ARRAY(data, file, line);
+			data = 0;
+			allocationSize = 0;
 		}
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ClearPointers( bool deallocateSmallBlocks, const char *file, unsigned int line )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ClearPointers(bool deallocateSmallBlocks, const char *file, unsigned int line)
 	{
 		_IndexType i;
-		for (i=0; i < dataSize; i++)
+		for (i = 0; i < dataSize; i++)
 			RakNet::OP_DELETE(operator[](i), file, line);
 		Clear(deallocateSmallBlocks, file, line);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ClearPointer( _KeyType key, const char *file, unsigned int line )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ClearPointer(_KeyType key, const char *file, unsigned int line)
 	{
 		_IndexType i;
 		i = GetIndexOf(key);
-		if (i!=-1)
+		if (i != -1)
 		{
 			RakNet::OP_DELETE(operator[](i), file, line);
 			RemoveAtIndex(i);
@@ -822,7 +821,7 @@ namespace DataStructures
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ReverseList(void)
 	{
 		if (IsSorted())
-			ascendingSort=!ascendingSort;
+			ascendingSort = !ascendingSort;
 
 		ReverseListInternal();
 	}
@@ -832,25 +831,25 @@ namespace DataStructures
 	{
 		_IndexType newAllocationSize;
 		if (size < dataSize)
-			newAllocationSize=dataSize;
+			newAllocationSize = dataSize;
 		else
-			newAllocationSize=size;
-		preallocationSize=size;
-		ReallocToSize(newAllocationSize,file,line);
+			newAllocationSize = size;
+		preallocationSize = size;
+		ReallocToSize(newAllocationSize, file, line);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::Sort(bool force)
 	{
-		if (IsSorted() && force==false)
+		if (IsSorted() && force == false)
 			return;
 
-		if (dataSize>1)
+		if (dataSize > 1)
 		{
 			if (ascendingSort)
-				QSortAscending(0,dataSize-1);		
+				QSortAscending(0, dataSize - 1);
 			else
-				QSortDescending(0,dataSize-1);
+				QSortDescending(0, dataSize - 1);
 		}
 
 		TagSorted();
@@ -860,20 +859,20 @@ namespace DataStructures
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::TagSorted(void)
 	{
 		if (ascendingSort)
-			sortState=ML_SORTED_ASCENDING;
+			sortState = ML_SORTED_ASCENDING;
 		else
-			sortState=ML_SORTED_DESCENDING;
+			sortState = ML_SORTED_DESCENDING;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::QSortAscending(_IndexType leftEdge, _IndexType rightEdge)
 	{
 		_DataType temp;
-		_IndexType left=leftEdge;
-		_IndexType right=rightEdge;
-		_IndexType pivotIndex=left++;
+		_IndexType left = leftEdge;
+		_IndexType right = rightEdge;
+		_IndexType pivotIndex = left++;
 
-		while (left<right)
+		while (left < right)
 		{
 			if (data[left] <= data[pivotIndex])
 			{
@@ -881,47 +880,47 @@ namespace DataStructures
 			}
 			else
 			{
-				temp=data[left];
-				data[left]=data[right];
-				data[right]=temp;
+				temp = data[left];
+				data[left] = data[right];
+				data[right] = temp;
 				--right;
 			}
 		}
 
-		temp=data[pivotIndex];
+		temp = data[pivotIndex];
 
 		// Move pivot to center
 		if (data[left] > data[pivotIndex])
 		{
 			--left;
 
-			data[pivotIndex]=data[left];
-			data[left]=temp;
+			data[pivotIndex] = data[left];
+			data[left] = temp;
 		}
 		else
 		{
-			data[pivotIndex]=data[left];
-			data[left]=temp;
+			data[pivotIndex] = data[left];
+			data[left] = temp;
 
 			--left;
 		}
 
-		if (left!=leftEdge)
+		if (left != leftEdge)
 			QSortAscending(leftEdge, left);
 
-		if (right!=rightEdge)
-			QSortAscending(right, rightEdge);		
+		if (right != rightEdge)
+			QSortAscending(right, rightEdge);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::QSortDescending(_IndexType leftEdge, _IndexType rightEdge)
 	{
 		_DataType temp;
-		_IndexType left=leftEdge;
-		_IndexType right=rightEdge;
-		_IndexType pivotIndex=left++;
+		_IndexType left = leftEdge;
+		_IndexType right = rightEdge;
+		_IndexType pivotIndex = left++;
 
-		while (left<right)
+		while (left < right)
 		{
 			if (data[left] >= data[pivotIndex])
 			{
@@ -929,49 +928,49 @@ namespace DataStructures
 			}
 			else
 			{
-				temp=data[left];
-				data[left]=data[right];
-				data[right]=temp;
+				temp = data[left];
+				data[left] = data[right];
+				data[right] = temp;
 				--right;
 			}
 		}
 
-		temp=data[pivotIndex];
+		temp = data[pivotIndex];
 
 		// Move pivot to center
 		if (data[left] < data[pivotIndex])
 		{
 			--left;
 
-			data[pivotIndex]=data[left];
-			data[left]=temp;
+			data[pivotIndex] = data[left];
+			data[left] = temp;
 		}
 		else
 		{
-			data[pivotIndex]=data[left];
-			data[left]=temp;
+			data[pivotIndex] = data[left];
+			data[left] = temp;
 
 			--left;
 		}
 
-		if (left!=leftEdge)
+		if (left != leftEdge)
 			QSortDescending(leftEdge, left);
 
-		if (right!=rightEdge)
-			QSortDescending(right, rightEdge);		
+		if (right != rightEdge)
+			QSortDescending(right, rightEdge);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::SetSortOrder(bool ascending)
 	{
-		if (ascendingSort!=ascending && IsSorted())
+		if (ascendingSort != ascending && IsSorted())
 		{
-			ascendingSort=ascending;
+			ascendingSort = ascending;
 			// List is sorted, and the sort order has changed. So reverse the list
 			ReverseListInternal();
 		}
 		else
-			ascendingSort=ascending;
+			ascendingSort = ascending;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
@@ -983,13 +982,13 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	bool Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::IsSorted(void) const
 	{
-		return GetMultilistType()==ML_ORDERED_LIST || sortState!=ML_UNSORTED;
+		return GetMultilistType() == ML_ORDERED_LIST || sortState != ML_UNSORTED;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	MultilistType Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::GetMultilistType(void) const
 	{
-		if (_MultilistType==ML_VARIABLE_DURING_RUNTIME)
+		if (_MultilistType == ML_VARIABLE_DURING_RUNTIME)
 			return variableMultilistType;
 		return _MultilistType;
 	}
@@ -997,7 +996,7 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::SetMultilistType(MultilistType newType)
 	{
-		RakAssert(_MultilistType==ML_VARIABLE_DURING_RUNTIME);
+		RakAssert(_MultilistType == ML_VARIABLE_DURING_RUNTIME);
 		switch (variableMultilistType)
 		{
 		case ML_UNORDERED_LIST:
@@ -1010,8 +1009,8 @@ namespace DataStructures
 				// Same data format
 				break;
 			case ML_QUEUE:
-				queueHead=0;
-				queueTail=dataSize;
+				queueHead = 0;
+				queueTail = dataSize;
 				break;
 			case ML_ORDERED_LIST:
 				Sort(false);
@@ -1028,8 +1027,8 @@ namespace DataStructures
 				// No change
 				break;
 			case ML_QUEUE:
-				queueHead=0;
-				queueTail=dataSize;
+				queueHead = 0;
+				queueTail = dataSize;
 				break;
 			case ML_ORDERED_LIST:
 				Sort(false);
@@ -1051,10 +1050,10 @@ namespace DataStructures
 				{
 					// Else can just copy starting at head
 					_IndexType i;
-					for (i=0; i < dataSize; i++)
-						data[i]=operator[](i);
+					for (i = 0; i < dataSize; i++)
+						data[i] = operator[](i);
 				}
-				if (newType==ML_ORDERED_LIST)
+				if (newType == ML_ORDERED_LIST)
 					Sort(false);
 				break;
 			case ML_QUEUE:
@@ -1071,13 +1070,13 @@ namespace DataStructures
 				// Same data format
 				// Tag as sorted
 				if (ascendingSort)
-					sortState=ML_SORTED_ASCENDING;
+					sortState = ML_SORTED_ASCENDING;
 				else
-					sortState=ML_SORTED_DESCENDING;
-				if (newType==ML_QUEUE)
+					sortState = ML_SORTED_DESCENDING;
+				if (newType == ML_QUEUE)
 				{
-					queueHead=0;
-					queueTail=dataSize;
+					queueHead = 0;
+					queueTail = dataSize;
 				}
 				break;
 			case ML_ORDERED_LIST:
@@ -1087,53 +1086,53 @@ namespace DataStructures
 			break;
 		}
 
-		variableMultilistType=newType;
+		variableMultilistType = newType;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::FindIntersection(
-		Multilist& source1,
-		Multilist& source2, 
-		Multilist& intersection,
-		Multilist& uniqueToSource1,
-		Multilist& uniqueToSource2)
+		Multilist &source1,
+		Multilist &source2,
+		Multilist &intersection,
+		Multilist &uniqueToSource1,
+		Multilist &uniqueToSource2)
 	{
-		_IndexType index1=0, index2=0;
+		_IndexType index1 = 0, index2 = 0;
 		source1.SetSortOrder(true);
 		source2.SetSortOrder(true);
 		source1.Sort(false);
 		source2.Sort(false);
-		intersection.Clear(true,_FILE_AND_LINE_);
-		uniqueToSource1.Clear(true,_FILE_AND_LINE_);
-		uniqueToSource2.Clear(true,_FILE_AND_LINE_);
-		
+		intersection.Clear(true, _FILE_AND_LINE_);
+		uniqueToSource1.Clear(true, _FILE_AND_LINE_);
+		uniqueToSource2.Clear(true, _FILE_AND_LINE_);
+
 		while (index1 < source1.GetSize() && index2 < source2.GetSize())
 		{
-			if (source1[index1]<source2[index2])
+			if (source1[index1] < source2[index2])
 			{
-				uniqueToSource1.Push(source1[index1],_FILE_AND_LINE_);
+				uniqueToSource1.Push(source1[index1], _FILE_AND_LINE_);
 				index1++;
 			}
-			else if (source1[index1]==source2[index2])
+			else if (source1[index1] == source2[index2])
 			{
-				intersection.Push(source1[index1],_FILE_AND_LINE_);
+				intersection.Push(source1[index1], _FILE_AND_LINE_);
 				index1++;
 				index2++;
 			}
 			else
 			{
-				uniqueToSource2.Push(source2[index2],_FILE_AND_LINE_);
+				uniqueToSource2.Push(source2[index2], _FILE_AND_LINE_);
 				index2++;
 			}
 		}
 		while (index1 < source1.GetSize())
 		{
-			uniqueToSource1.Push(source1[index1],_FILE_AND_LINE_);
+			uniqueToSource1.Push(source1[index1], _FILE_AND_LINE_);
 			index1++;
 		}
 		while (index2 < source2.GetSize())
 		{
-			uniqueToSource2.Push(source2[index2],_FILE_AND_LINE_);
+			uniqueToSource2.Push(source2[index2], _FILE_AND_LINE_);
 			index2++;
 		}
 	}
@@ -1141,58 +1140,58 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ReallocateIfNeeded(const char *file, unsigned int line)
 	{
-		if (dataSize<allocationSize)
+		if (dataSize < allocationSize)
 			return;
 
 		_IndexType newAllocationSize;
-		if (allocationSize<16)
-			newAllocationSize=32;
-		else if (allocationSize>65536)
-			newAllocationSize=allocationSize+65536;
+		if (allocationSize < 16)
+			newAllocationSize = 32;
+		else if (allocationSize > 65536)
+			newAllocationSize = allocationSize + 65536;
 		else
 		{
-			newAllocationSize=allocationSize<<1; // * 2
+			newAllocationSize = allocationSize << 1; // * 2
 			// Protect against underflow
 			if (newAllocationSize < allocationSize)
-				newAllocationSize=allocationSize+65536;
+				newAllocationSize = allocationSize + 65536;
 		}
 
-		ReallocToSize(newAllocationSize,file,line);
+		ReallocToSize(newAllocationSize, file, line);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::DeallocateIfNeeded(const char *file, unsigned int line)
 	{
-		if (allocationSize<512)
+		if (allocationSize < 512)
 			return;
-		if (dataSize >= allocationSize/3 )
+		if (dataSize >= allocationSize / 3)
 			return;
-		if (dataSize <= preallocationSize )
+		if (dataSize <= preallocationSize)
 			return;
-		
-		_IndexType newAllocationSize = dataSize<<1; // * 2
 
-		ReallocToSize(newAllocationSize,file,line);
+		_IndexType newAllocationSize = dataSize << 1; // * 2
+
+		ReallocToSize(newAllocationSize, file, line);
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ReallocToSize(_IndexType newAllocationSize, const char *file, unsigned int line)
 	{
-		_DataType* newData = RakNet::OP_NEW_ARRAY<_DataType>(newAllocationSize,file,line);
+		_DataType *newData = RakNet::OP_NEW_ARRAY<_DataType>(newAllocationSize, file, line);
 		_IndexType i;
-		for (i=0; i < dataSize; i++)
-			newData[i]=operator[](i);
-		if (dataSize>0)
+		for (i = 0; i < dataSize; i++)
+			newData[i] = operator[](i);
+		if (dataSize > 0)
 		{
-			RakNet::OP_DELETE_ARRAY(data,file,line);
-			if (GetMultilistType()==ML_QUEUE)
+			RakNet::OP_DELETE_ARRAY(data, file, line);
+			if (GetMultilistType() == ML_QUEUE)
 			{
-				queueHead=0;
-				queueTail=dataSize;
+				queueHead = 0;
+				queueTail = dataSize;
 			}
 		}
-		data=newData;
-		allocationSize=newAllocationSize;
+		data = newData;
+		allocationSize = newAllocationSize;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
@@ -1200,40 +1199,40 @@ namespace DataStructures
 	{
 		_DataType temp;
 		_IndexType i;
-		for (i=0; i < dataSize/2; i++)
+		for (i = 0; i < dataSize / 2; i++)
 		{
-			temp=operator[](i);
-			operator[](i)=operator[](dataSize-1-i);
-			operator[](dataSize-1-i)=temp;
+			temp = operator[](i);
+			operator[](i) = operator[](dataSize - 1 - i);
+			operator[](dataSize - 1 - i) = temp;
 		}
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::InsertInOrderedList(const _DataType &d, const _KeyType &key)
 	{
-		RakAssert(GetMultilistType()==ML_ORDERED_LIST);
+		RakAssert(GetMultilistType() == ML_ORDERED_LIST);
 
 		bool objectExists;
 		_IndexType index;
 		index = GetIndexFromKeyInSortedList(key, &objectExists);
 
-	//	if (objectExists)
-	//	{
-			// Ordered list only allows unique insertions
-	//		RakAssert("Duplicate insertion into ordered list" && false);
-	//		return;
-	//	}
+		//	if (objectExists)
+		//	{
+		// Ordered list only allows unique insertions
+		//		RakAssert("Duplicate insertion into ordered list" && false);
+		//		return;
+		//	}
 
-		if (index>=dataSize)
+		if (index >= dataSize)
 		{
 			// insert at end
-			data[dataSize]=d;
+			data[dataSize] = d;
 			dataSize++;
 		}
 		else
 		{
 			// insert at index
-			InsertShiftArrayRight(d,index);
+			InsertShiftArrayRight(d, index);
 		}
 	}
 
@@ -1243,47 +1242,47 @@ namespace DataStructures
 		RakAssert(IsSorted());
 		_IndexType index, upperBound, lowerBound;
 
-		if (dataSize==0)
+		if (dataSize == 0)
 		{
-			*objectExists=false;
+			*objectExists = false;
 			return 0;
 		}
 
-		upperBound=dataSize-1;
-		lowerBound=0;
-		index = dataSize/2;
+		upperBound = dataSize - 1;
+		lowerBound = 0;
+		index = dataSize / 2;
 
 #ifdef _MSC_VER
-	#pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
+#pragma warning(disable : 4127) // warning C4127: conditional expression is constant
 #endif
 		while (1)
 		{
-			if (MLKeyRef<_KeyType>(key) > operator[](index) )
+			if (MLKeyRef<_KeyType>(key) > operator[](index))
 			{
 				if (ascendingSort)
-					lowerBound=index+1;
+					lowerBound = index + 1;
 				else
-					upperBound=index-1;
+					upperBound = index - 1;
 			}
-			else if (MLKeyRef<_KeyType>(key) < operator[](index) )
+			else if (MLKeyRef<_KeyType>(key) < operator[](index))
 			{
 				if (ascendingSort)
-					upperBound=index-1;
+					upperBound = index - 1;
 				else
-					lowerBound=index+1;
+					lowerBound = index + 1;
 			}
 			else
 			{
 				// ==
-				*objectExists=true;
+				*objectExists = true;
 				return index;
 			}
 
-			index=lowerBound+(upperBound-lowerBound)/2;
+			index = lowerBound + (upperBound - lowerBound) / 2;
 
-			if (lowerBound>upperBound || upperBound==(_IndexType)-1)
+			if (lowerBound > upperBound || upperBound == (_IndexType)-1)
 			{
-				*objectExists=false;
+				*objectExists = false;
 				return lowerBound; // No match
 			}
 		}
@@ -1292,28 +1291,28 @@ namespace DataStructures
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
 	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::InsertShiftArrayRight(const _DataType &d, _IndexType index)
 	{
-		RakAssert(_MultilistType!=ML_QUEUE);
+		RakAssert(_MultilistType != ML_QUEUE);
 
 		// Move the elements in the list to make room
 		_IndexType i;
-		for ( i = dataSize; i != index; i-- )
-			data[ i ] = data[ i - 1 ];
+		for (i = dataSize; i != index; i--)
+			data[i] = data[i - 1];
 
 		// Insert the new item at the correct spot
-		data[ index ] = d;
+		data[index] = d;
 
 		++dataSize;
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
-	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::DeleteShiftArrayLeft( _IndexType index )
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::DeleteShiftArrayLeft(_IndexType index)
 	{
 		RakAssert(index < dataSize);
-		RakAssert(_MultilistType!=ML_QUEUE);
+		RakAssert(_MultilistType != ML_QUEUE);
 
 		_IndexType i;
-		for ( i = index; i < dataSize-1; i++ )
-			data[i]=data[i+1];
+		for (i = index; i < dataSize - 1; i++)
+			data[i] = data[i + 1];
 	}
 };
 

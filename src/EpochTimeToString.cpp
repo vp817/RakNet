@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -17,18 +17,18 @@
 #include <time.h>
 #include "LinuxStrings.h"
 
-char * EpochTimeToString(long long time)
+char *EpochTimeToString(long long time)
 {
-	static int textIndex=0;
+	static int textIndex = 0;
 	static char text[4][64];
 
-	if (++textIndex==4)
-		textIndex=0;
+	if (++textIndex == 4)
+		textIndex = 0;
 
-	struct tm * timeinfo;
+	struct tm *timeinfo;
 	time_t t = time;
-	timeinfo = localtime ( &t );
-	strftime (text[textIndex],64,"%c.",timeinfo);
+	timeinfo = localtime(&t);
+	strftime(text[textIndex], 64, "%c.", timeinfo);
 
 	/*
 	time_t

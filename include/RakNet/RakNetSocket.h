@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -46,11 +46,11 @@ public:
 		int protocol);
 #endif
 
-	int Bind(		
+	int Bind(
 		const struct sockaddr *addr,
 		int namelen);
 
-	inline int GetSockName(		
+	inline int GetSockName(
 		struct sockaddr *name,
 			socklen_t * namelen) {return getsockname__(s,name,namelen);}
 
@@ -61,19 +61,19 @@ public:
 		socklen_t *optlen) {return getsockopt__(s,level,optname,optval,optlen);}
 
 
-	int IOCTLSocket(		
+	int IOCTLSocket(
 		long cmd,
 		unsigned long *argp);
 
-	int Listen (		
+	int Listen (
 		int backlog);
 
-	inline int Recv(		
+	inline int Recv(
 		char * buf,
 		int len,
 		int flags) {return recv__(s,buf,len,flags);}
 
-	inline int RecvFrom(		
+	inline int RecvFrom(
 		char * buf,
 		int len,
 		int flags,
@@ -87,12 +87,12 @@ public:
 // 		fd_set *exceptfds,
 // 		struct timeval *timeout) {return select__(nfds,readfds,writefds,exceptfds,timeout);}
 
-	inline int Send(		
+	inline int Send(
 		const char * buf,
 		int len,
 		int flags) {return send__(s,buf,len,flags);}
 
-	inline int SendTo(		
+	inline int SendTo(
 		const char * buf,
 		int len,
 		int flags,
@@ -108,26 +108,26 @@ public:
 
 #if defined(_WIN32) && !defined(WINDOWS_STORE_RT)
 	inline int _WSASendTo(
-    LPWSABUF lpBuffers,
-    DWORD dwBufferCount,
-    LPDWORD lpNumberOfBytesSent,
-    DWORD dwFlags,
-    const struct sockaddr FAR * lpTo,
-    int iTolen,
-    LPWSAOVERLAPPED lpOverlapped,
-    LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
-    )
+	LPWSABUF lpBuffers,
+	DWORD dwBufferCount,
+	LPDWORD lpNumberOfBytesSent,
+	DWORD dwFlags,
+	const struct sockaddr FAR * lpTo,
+	int iTolen,
+	LPWSAOVERLAPPED lpOverlapped,
+	LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+	)
 	{ return WSASendTo(s,lpBuffers,dwBufferCount,lpNumberOfBytesSent,dwFlags,lpTo,iTolen,lpOverlapped,lpCompletionRoutine);}
 
 #endif
-	
-	int SetSockOpt(		
+
+	int SetSockOpt(
 		int level,
 		int optname,
 		const char * optval,
 		int optlen);
 
-	int Shutdown(		
+	int Shutdown(
 		int how);
 
 
@@ -176,7 +176,7 @@ protected:
 	#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3) || defined(_PS4) || defined(SN_TARGET_PSP2)
 	/// PS3: Set for the PS3, when using signaling.
 	/// PS3: Connect with the port returned by signaling. Set this to whatever port RakNet was actually started on
-	/// PSP2: Set non-zero to use SCE_NET_SOCK_DGRAM_P2P. This should be done for ad-hoc or with 
+	/// PSP2: Set non-zero to use SCE_NET_SOCK_DGRAM_P2P. This should be done for ad-hoc or with
 	#endif
 
 	unsigned short remotePortRakNetWasStartedOn_PS3_PSP2;

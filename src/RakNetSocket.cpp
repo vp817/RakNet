@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -39,7 +39,7 @@ RakNetSocket::RakNetSocket() {
 		nextSendSize = 0;
 	#endif
 }
-RakNetSocket::~RakNetSocket() 
+RakNetSocket::~RakNetSocket()
 {
 	#ifdef __native_client__
 		if(s != 0)
@@ -50,7 +50,7 @@ RakNetSocket::~RakNetSocket()
 		if ((__UDPSOCKET__)s != 0)
 			closesocket__(s);
 	#endif
-	
+
 
 #if defined (_WIN32) && defined(USE_WAIT_FOR_MULTIPLE_EVENTS)
 	if (recvEvent!=INVALID_HANDLE_VALUE)
@@ -60,7 +60,7 @@ RakNetSocket::~RakNetSocket()
 	}
 #endif
 }
-// 
+//
 // void RakNetSocket::Accept(
 // struct sockaddr *addr,
 // 	int *addrlen)
@@ -68,7 +68,7 @@ RakNetSocket::~RakNetSocket()
 // 	accept__(s, addr, addrlen);
 // }
 
-// 
+//
 // void RakNetSocket::Close( void )
 // {
 // 	closesocket__(s);
@@ -113,14 +113,14 @@ RakNetSocket* RakNetSocket::Create
 	return rns;
 }
 
-int RakNetSocket::Bind(		
+int RakNetSocket::Bind(
 		  const struct sockaddr *addr,
 		  int namelen)
 {
 	return bind__(s,addr,namelen);
 }
 
-int RakNetSocket::IOCTLSocket(		
+int RakNetSocket::IOCTLSocket(
 				 long cmd,
 				 unsigned long *argp)
 {
@@ -131,13 +131,13 @@ int RakNetSocket::IOCTLSocket(
 	#endif
 }
 
-int RakNetSocket::Listen (		
+int RakNetSocket::Listen (
 			 int backlog)
 {
 	return listen__(s,backlog);
 }
 
-int RakNetSocket::SetSockOpt(		
+int RakNetSocket::SetSockOpt(
 				int level,
 				int optname,
 				const char * optval,
@@ -146,7 +146,7 @@ int RakNetSocket::SetSockOpt(
 	return setsockopt__(s,level,optname,optval,optlen);
 }
 
-int RakNetSocket::Shutdown(		
+int RakNetSocket::Shutdown(
 			  int how)
 {
 	#ifndef SN_TARGET_PSP2

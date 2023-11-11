@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -12,8 +12,6 @@
 /// \brief Contains enumerations used by the ReplicaManager system.  This file is a lightweight header, so you can include it without worrying about linking in lots of other crap
 ///
 
-
-
 #ifndef __REPLICA_ENUMS_H
 #define __REPLICA_ENUMS_H
 
@@ -21,13 +19,13 @@
 /// Passed to ReplicaManager::EnableReplicaInterfaces and ReplicaManager::DisableReplicaInterfaces
 enum
 {
-	REPLICA_RECEIVE_DESTRUCTION=1<<0,
-	REPLICA_RECEIVE_SERIALIZE=1<<1,
-	REPLICA_RECEIVE_SCOPE_CHANGE=1<<2,
-	REPLICA_SEND_CONSTRUCTION=1<<3,
-	REPLICA_SEND_DESTRUCTION=1<<4,
-	REPLICA_SEND_SCOPE_CHANGE=1<<5,
-	REPLICA_SEND_SERIALIZE=1<<6,
+	REPLICA_RECEIVE_DESTRUCTION = 1 << 0,
+	REPLICA_RECEIVE_SERIALIZE = 1 << 1,
+	REPLICA_RECEIVE_SCOPE_CHANGE = 1 << 2,
+	REPLICA_SEND_CONSTRUCTION = 1 << 3,
+	REPLICA_SEND_DESTRUCTION = 1 << 4,
+	REPLICA_SEND_SCOPE_CHANGE = 1 << 5,
+	REPLICA_SEND_SERIALIZE = 1 << 6,
 	REPLICA_SET_ALL = 0xFF // Allow all of the above
 };
 

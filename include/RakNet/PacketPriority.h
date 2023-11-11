@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -12,10 +12,8 @@
 /// \brief This file contains enumerations for packet priority and reliability enumerations.
 ///
 
-
-
 #ifndef __PACKET_PRIORITY_H
-#define __PACKET_PRIORITY_H 
+#define __PACKET_PRIORITY_H
 
 /// These enumerations are used to describe when packets are delivered.
 enum PacketPriority
@@ -24,15 +22,15 @@ enum PacketPriority
 	IMMEDIATE_PRIORITY,
 
 	/// For every 2 IMMEDIATE_PRIORITY messages, 1 HIGH_PRIORITY will be sent.
-	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control. 
+	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control.
 	HIGH_PRIORITY,
 
 	/// For every 2 HIGH_PRIORITY messages, 1 MEDIUM_PRIORITY will be sent.
-	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control. 
-	MEDIUM_PRIORITY,   
+	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control.
+	MEDIUM_PRIORITY,
 
 	/// For every 2 MEDIUM_PRIORITY messages, 1 LOW_PRIORITY will be sent.
-	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control. 
+	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control.
 	LOW_PRIORITY,
 
 	/// \internal

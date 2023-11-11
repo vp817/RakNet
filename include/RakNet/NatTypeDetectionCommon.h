@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -18,7 +18,7 @@
 
 #include "NativeFeatureIncludes.h"
 
-#if _RAKNET_SUPPORT_NatTypeDetectionServer==1 || _RAKNET_SUPPORT_NatTypeDetectionClient==1
+#if _RAKNET_SUPPORT_NatTypeDetectionServer == 1 || _RAKNET_SUPPORT_NatTypeDetectionClient == 1
 
 #include "SocketIncludes.h"
 #include "RakNetTypes.h"
@@ -27,7 +27,7 @@
 namespace RakNet
 {
 
-	/// All possible types of NATs (except NAT_TYPE_COUNT, which is an internal value) 
+	/// All possible types of NATs (except NAT_TYPE_COUNT, which is an internal value)
 	enum NATTypeDetectionResult
 	{
 		/// Works with anyone
@@ -54,24 +54,25 @@ namespace RakNet
 	bool RAK_DLL_EXPORT CanConnect(NATTypeDetectionResult type1, NATTypeDetectionResult type2);
 
 	/// Return a technical string representin the enumeration
-	RAK_DLL_EXPORT const char * NATTypeDetectionResultToString(NATTypeDetectionResult type);
+	RAK_DLL_EXPORT const char *NATTypeDetectionResultToString(NATTypeDetectionResult type);
 
 	/// Return a friendly string representing the enumeration
 	/// None and relaxed can connect to anything
 	/// Moderate can connect to moderate or less
 	/// Strict can connect to relaxed or less
-	RAK_DLL_EXPORT const char * NATTypeDetectionResultToStringFriendly(NATTypeDetectionResult type);
+	RAK_DLL_EXPORT const char *NATTypeDetectionResultToStringFriendly(NATTypeDetectionResult type);
 
 	/// \internal
-	RAK_DLL_EXPORT RakNetSocket2* CreateNonblockingBoundSocket(const char *bindAddr
+	RAK_DLL_EXPORT RakNetSocket2 *CreateNonblockingBoundSocket(const char *bindAddr
 #ifdef __native_client__
-		,_PP_Instance_ chromeInstance
+															   ,
+															   _PP_Instance_ chromeInstance
 #endif
-		, RNS2EventHandler *eventHandler
-		);
+															   ,
+															   RNS2EventHandler *eventHandler);
 
 	/// \internal
-	//int NatTypeRecvFrom(char *data, RakNetSocket2* socket, SystemAddress &sender, RNS2EventHandler *eventHandler);
+	// int NatTypeRecvFrom(char *data, RakNetSocket2* socket, SystemAddress &sender, RNS2EventHandler *eventHandler);
 }
 
 #endif // #if _RAKNET_SUPPORT_NatTypeDetectionServer==1 || _RAKNET_SUPPORT_NatTypeDetectionClient==1

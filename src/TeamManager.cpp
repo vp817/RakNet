@@ -3,13 +3,13 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
 
 #include "NativeFeatureIncludes.h"
-#if _RAKNET_SUPPORT_TeamManager==1
+#if _RAKNET_SUPPORT_TeamManager == 1
 
 #include "TeamManager.h"
 #include "BitStream.h"
@@ -17,7 +17,6 @@
 #include "GetTime.h"
 
 using namespace RakNet;
-
 
 enum TeamManagerOperations
 {
@@ -36,9 +35,9 @@ enum TeamManagerOperations
 	ID_RUN_SerializeWorld,
 };
 
-STATIC_FACTORY_DEFINITIONS(TM_TeamMember,TM_TeamMember);
-STATIC_FACTORY_DEFINITIONS(TM_Team,TM_Team);
-STATIC_FACTORY_DEFINITIONS(TeamManager,TeamManager);
+STATIC_FACTORY_DEFINITIONS(TM_TeamMember, TM_TeamMember);
+STATIC_FACTORY_DEFINITIONS(TM_Team, TM_Team);
+STATIC_FACTORY_DEFINITIONS(TeamManager, TeamManager);
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,36 +64,34 @@ TeamSelection::TeamSelection(JoinTeamType itt) : joinTeamType(itt) {}
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TeamSelection::TeamSelection(JoinTeamType itt, TM_Team *param) : joinTeamType(itt) {teamParameter.specificTeamToJoin=param;}
+TeamSelection::TeamSelection(JoinTeamType itt, TM_Team *param) : joinTeamType(itt) { teamParameter.specificTeamToJoin = param; }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TeamSelection::TeamSelection(JoinTeamType itt, NoTeamId param) : joinTeamType(itt) {teamParameter.noTeamSubcategory=param;}
+TeamSelection::TeamSelection(JoinTeamType itt, NoTeamId param) : joinTeamType(itt) { teamParameter.noTeamSubcategory = param; }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TeamSelection TeamSelection::AnyAvailable(void) {return TeamSelection(JOIN_ANY_AVAILABLE_TEAM);}
+TeamSelection TeamSelection::AnyAvailable(void) { return TeamSelection(JOIN_ANY_AVAILABLE_TEAM); }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TeamSelection TeamSelection::SpecificTeam(TM_Team *specificTeamToJoin) {return TeamSelection(JOIN_SPECIFIC_TEAM, specificTeamToJoin);}
+TeamSelection TeamSelection::SpecificTeam(TM_Team *specificTeamToJoin) { return TeamSelection(JOIN_SPECIFIC_TEAM, specificTeamToJoin); }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TeamSelection TeamSelection::NoTeam(NoTeamId noTeamSubcategory) {return TeamSelection(JOIN_NO_TEAM, noTeamSubcategory);}
+TeamSelection TeamSelection::NoTeam(NoTeamId noTeamSubcategory) { return TeamSelection(JOIN_NO_TEAM, noTeamSubcategory); }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 TM_TeamMember::TM_TeamMember()
 {
-	networkId=0;
-	world=0;
-	joinTeamType=JOIN_NO_TEAM;
-	noTeamSubcategory=0;
+	networkId = 0;
+	world = 0;
+	joinTeamType = JOIN_NO_TEAM;
+	noTeamSubcategory = 0;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -111,17 +108,17 @@ TM_TeamMember::~TM_TeamMember()
 
 bool TM_TeamMember::RequestTeam(TeamSelection teamSelection)
 {
-	if (teamSelection.joinTeamType==JOIN_NO_TEAM)
+	if (teamSelection.joinTeamType == JOIN_NO_TEAM)
 	{
 		// If joining no team:
 		// - If already no team, and no team category is the same, return false.
 		// - Execute JoinNoTeam() locally. Return ID_TEAM_BALANCER_TEAM_ASSIGNED locally.
 		// - If we are host, broadcast event. Done.
 		// - Send to remote host event to call JoinNoTeam()
-		// - remote Host executes JoinNoTeam() and broadcasts event. This may cause may cause rebalance if team balancing is on. 
+		// - remote Host executes JoinNoTeam() and broadcasts event. This may cause may cause rebalance if team balancing is on.
 		// - - JoinNoTeam(): Remove from all current and requested teams. Set no-team category.
 
-		if (teams.Size()==0 && noTeamSubcategory==teamSelection.teamParameter.noTeamSubcategory)
+		if (teams.Size() == 0 && noTeamSubcategory == teamSelection.teamParameter.noTeamSubcategory)
 		{
 			// No change
 			return false;
@@ -140,26 +137,26 @@ bool TM_TeamMember::RequestTeam(TeamSelection teamSelection)
 		UpdateListsToNoTeam(teamSelection.teamParameter.noTeamSubcategory);
 
 		world->GetTeamManager()->PushTeamAssigned(this);
-		if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified())
+		if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified())
 		{
 			world->FillRequestedSlots();
 			world->EnforceTeamBalance(teamSelection.teamParameter.noTeamSubcategory);
 		}
 	}
-	else if (teamSelection.joinTeamType==JOIN_ANY_AVAILABLE_TEAM)
+	else if (teamSelection.joinTeamType == JOIN_ANY_AVAILABLE_TEAM)
 	{
 		// If joining any team
 		// Execute JoinAnyTeamCheck()
-		// - JoinAnyTeamCheck(): 
+		// - JoinAnyTeamCheck():
 		// - - If already on a team, return false
 		// - - If any team is already in requested teams, return false.
 		// On local, call UpdateTeamsRequestedToAny(). Send event to also execute this to remote host
 		// If we are host, execute JoinAnyTeam(myguid).
 		// - JoinAnyTeam(requesterGuid): Attempt to join any team immediately.  If fails, send to all except requestGuid UpdateTeamsRequestedToAny(). Else sends out new team, including to caller.
 		// On remote host, execute JoinAnyTeamCheck(). If fails, this was because you were added to a team simultaneously on host. This is OK, just ignore the call.
-		// Assuming JoinAnyTeamCheck() passed on remote host, call UpdateTeamsRequestedToAny() for this player. execute JoinAnyTeam(packet->guid). 
+		// Assuming JoinAnyTeamCheck() passed on remote host, call UpdateTeamsRequestedToAny() for this player. execute JoinAnyTeam(packet->guid).
 
-		if (JoinAnyTeamCheck()==false)
+		if (JoinAnyTeamCheck() == false)
 			return false;
 
 		UpdateTeamsRequestedToAny();
@@ -170,11 +167,11 @@ bool TM_TeamMember::RequestTeam(TeamSelection teamSelection)
 		bsOut.WriteCasted<MessageID>(ID_RUN_JoinAnyTeam);
 		bsOut.Write(world->GetWorldId());
 		bsOut.Write(networkId);
-		world->GetTeamManager()->SendUnified(&bsOut,HIGH_PRIORITY, RELIABLE_ORDERED, 0, world->GetHost(), false);
+		world->GetTeamManager()->SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, world->GetHost(), false);
 	}
 	else
 	{
-		RakAssert(teamSelection.joinTeamType==JOIN_SPECIFIC_TEAM);
+		RakAssert(teamSelection.joinTeamType == JOIN_SPECIFIC_TEAM);
 
 		// If joining specific team
 		// Execute JoinSpecificTeamCheck()
@@ -187,7 +184,7 @@ bool TM_TeamMember::RequestTeam(TeamSelection teamSelection)
 		// On remote host, execute JoinSpecificTeamCheck(). If fails, just ignore.
 		// Assuming JoinSpecificTeamCheck() passed on host, call AddSpecificToRequestedList(). Execute JoinSpecificTeam(packet->guid)
 
-		if (JoinSpecificTeamCheck(teamSelection.teamParameter.specificTeamToJoin,false)==false)
+		if (JoinSpecificTeamCheck(teamSelection.teamParameter.specificTeamToJoin, false) == false)
 			return false;
 
 		AddToRequestedTeams(teamSelection.teamParameter.specificTeamToJoin);
@@ -200,7 +197,7 @@ bool TM_TeamMember::RequestTeam(TeamSelection teamSelection)
 		bsOut.Write(networkId);
 		bsOut.Write(teamSelection.teamParameter.specificTeamToJoin->GetNetworkID());
 		bsOut.Write(false);
-		world->GetTeamManager()->SendUnified(&bsOut,HIGH_PRIORITY, RELIABLE_ORDERED, 0, world->GetHost(), false);
+		world->GetTeamManager()->SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, world->GetHost(), false);
 	}
 
 	return true;
@@ -210,7 +207,7 @@ bool TM_TeamMember::RequestTeam(TeamSelection teamSelection)
 
 bool TM_TeamMember::RequestTeamSwitch(TM_Team *teamToJoin, TM_Team *teamToLeave)
 {
-	if (SwitchSpecificTeamCheck(teamToJoin,teamToLeave,false)==false)
+	if (SwitchSpecificTeamCheck(teamToJoin, teamToLeave, false) == false)
 		return false;
 
 	AddToRequestedTeams(teamToJoin, teamToLeave);
@@ -232,7 +229,7 @@ bool TM_TeamMember::RequestTeamSwitch(TM_Team *teamToJoin, TM_Team *teamToLeave)
 	{
 		bsOut.Write(false);
 	}
-	world->GetTeamManager()->SendUnified(&bsOut,HIGH_PRIORITY, RELIABLE_ORDERED, 0, world->GetHost(), false);
+	world->GetTeamManager()->SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, world->GetHost(), false);
 
 	return true;
 }
@@ -241,9 +238,9 @@ bool TM_TeamMember::RequestTeamSwitch(TM_Team *teamToJoin, TM_Team *teamToLeave)
 
 TeamSelection TM_TeamMember::GetRequestedTeam(void) const
 {
-	if (teamsRequested.Size()>0)
+	if (teamsRequested.Size() > 0)
 		return TeamSelection::SpecificTeam(teamsRequested[0].requested);
-	else if (joinTeamType==JOIN_NO_TEAM)
+	else if (joinTeamType == JOIN_NO_TEAM)
 		return TeamSelection::NoTeam(noTeamSubcategory);
 	else
 		return TeamSelection::AnyAvailable();
@@ -251,10 +248,10 @@ TeamSelection TM_TeamMember::GetRequestedTeam(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TM_TeamMember::GetRequestedSpecificTeams(DataStructures::List<TM_Team*> &requestedTeams) const
+void TM_TeamMember::GetRequestedSpecificTeams(DataStructures::List<TM_Team *> &requestedTeams) const
 {
 	requestedTeams.Clear(true, _FILE_AND_LINE_);
-	for (unsigned int i=0; i < teamsRequested.Size(); i++)
+	for (unsigned int i = 0; i < teamsRequested.Size(); i++)
 		requestedTeams.Push(teamsRequested[i].requested, _FILE_AND_LINE_);
 }
 
@@ -263,7 +260,7 @@ void TM_TeamMember::GetRequestedSpecificTeams(DataStructures::List<TM_Team*> &re
 bool TM_TeamMember::HasRequestedTeam(TM_Team *team) const
 {
 	unsigned int i = GetRequestedTeamIndex(team);
-	if (i==(unsigned int)-1)
+	if (i == (unsigned int)-1)
 		return false;
 	return true;
 }
@@ -273,12 +270,12 @@ bool TM_TeamMember::HasRequestedTeam(TM_Team *team) const
 unsigned int TM_TeamMember::GetRequestedTeamIndex(TM_Team *team) const
 {
 	unsigned int i;
-	for (i=0; i < teamsRequested.Size(); i++)
+	for (i = 0; i < teamsRequested.Size(); i++)
 	{
-		if (teamsRequested[i].requested==team)
+		if (teamsRequested[i].requested == team)
 			return i;
 	}
-	return (unsigned int) -1;
+	return (unsigned int)-1;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -292,7 +289,7 @@ unsigned int TM_TeamMember::GetRequestedTeamCount(void) const
 
 bool TM_TeamMember::CancelTeamRequest(TM_Team *specificTeamToCancel)
 {
-	if (RemoveFromRequestedTeams(specificTeamToCancel)==false)
+	if (RemoveFromRequestedTeams(specificTeamToCancel) == false)
 		return false;
 
 	// Send request to host to execute JoinRequestedTeam()
@@ -318,16 +315,16 @@ bool TM_TeamMember::CancelTeamRequest(TM_Team *specificTeamToCancel)
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-bool TM_TeamMember::LeaveTeam(TM_Team* team, NoTeamId _noTeamSubcategory)
+bool TM_TeamMember::LeaveTeam(TM_Team *team, NoTeamId _noTeamSubcategory)
 {
-	if (LeaveTeamCheck(team)==false)
+	if (LeaveTeamCheck(team) == false)
 		return false;
 
 	RemoveFromSpecificTeamInternal(team);
-	if (teams.Size()==0)
+	if (teams.Size() == 0)
 	{
-		noTeamSubcategory=_noTeamSubcategory;
-		joinTeamType=JOIN_NO_TEAM;
+		noTeamSubcategory = _noTeamSubcategory;
+		joinTeamType = JOIN_NO_TEAM;
 	}
 
 	// Execute LeaveTeamCheck()
@@ -356,7 +353,7 @@ bool TM_TeamMember::LeaveTeam(TM_Team* team, NoTeamId _noTeamSubcategory)
 	bsOut.Write(noTeamSubcategory);
 	world->BroadcastToParticipants(&bsOut, UNASSIGNED_RAKNET_GUID);
 
-	if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified())
+	if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified())
 	{
 		// Rebalance teams
 		world->FillRequestedSlots();
@@ -375,9 +372,9 @@ bool TM_TeamMember::LeaveAllTeams(NoTeamId noTeamSubcategory)
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_Team* TM_TeamMember::GetCurrentTeam(void) const
+TM_Team *TM_TeamMember::GetCurrentTeam(void) const
 {
-	if (teams.Size()>0)
+	if (teams.Size() > 0)
 		return teams[0];
 	return 0;
 }
@@ -391,23 +388,23 @@ unsigned int TM_TeamMember::GetCurrentTeamCount(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_Team* TM_TeamMember::GetCurrentTeamByIndex(unsigned int index)
+TM_Team *TM_TeamMember::GetCurrentTeamByIndex(unsigned int index)
 {
 	return teams[index];
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TM_TeamMember::GetCurrentTeams(DataStructures::List<TM_Team*> &_teams) const
+void TM_TeamMember::GetCurrentTeams(DataStructures::List<TM_Team *> &_teams) const
 {
-	_teams=teams;
+	_teams = teams;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TM_TeamMember::GetLastTeams(DataStructures::List<TM_Team*> &_teams) const
+void TM_TeamMember::GetLastTeams(DataStructures::List<TM_Team *> &_teams) const
 {
-	_teams=lastTeams;
+	_teams = lastTeams;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -415,9 +412,9 @@ void TM_TeamMember::GetLastTeams(DataStructures::List<TM_Team*> &_teams) const
 bool TM_TeamMember::IsOnTeam(TM_Team *team) const
 {
 	unsigned int i;
-	for (i=0; i < teams.Size(); i++)
+	for (i = 0; i < teams.Size(); i++)
 	{
-		if (teams[i]==team)
+		if (teams[i] == team)
 			return true;
 	}
 	return false;
@@ -432,7 +429,7 @@ NetworkID TM_TeamMember::GetNetworkID(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_World* TM_TeamMember::GetTM_World(void) const
+TM_World *TM_TeamMember::GetTM_World(void) const
 {
 	return world;
 }
@@ -440,12 +437,12 @@ TM_World* TM_TeamMember::GetTM_World(void) const
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void TM_TeamMember::SerializeConstruction(BitStream *constructionBitstream)
-{	
+{
 	// Write requested teams
 	constructionBitstream->Write(world->GetWorldId());
 	constructionBitstream->Write(networkId);
 	constructionBitstream->WriteCasted<uint16_t>(teamsRequested.Size());
-	for (unsigned int i=0; i < teamsRequested.Size(); i++)
+	for (unsigned int i = 0; i < teamsRequested.Size(); i++)
 	{
 		constructionBitstream->Write(teamsRequested[i].isTeamSwitch);
 		if (teamsRequested[i].teamToLeave)
@@ -484,17 +481,17 @@ bool TM_TeamMember::DeserializeConstruction(TeamManager *teamManager, BitStream 
 	TM_World *world = teamManager->GetWorldWithId(worldId);
 	RakAssert(world);
 	constructionBitstream->Read(networkId);
-	world->ReferenceTeamMember(this,networkId);
+	world->ReferenceTeamMember(this, networkId);
 
-	success=constructionBitstream->Read(teamsRequestedSize);
-	for (unsigned int i=0; i < teamsRequestedSize; i++)
+	success = constructionBitstream->Read(teamsRequestedSize);
+	for (unsigned int i = 0; i < teamsRequestedSize; i++)
 	{
 		RequestedTeam rt;
-		rt.isTeamSwitch=false;
-		rt.requested=0;
-		rt.whenRequested=0;
+		rt.isTeamSwitch = false;
+		rt.requested = 0;
+		rt.whenRequested = 0;
 		constructionBitstream->Read(rt.isTeamSwitch);
-		bool hasTeamToLeave=false;
+		bool hasTeamToLeave = false;
 		constructionBitstream->Read(hasTeamToLeave);
 		NetworkID teamToLeaveId;
 		if (hasTeamToLeave)
@@ -504,27 +501,25 @@ bool TM_TeamMember::DeserializeConstruction(TeamManager *teamManager, BitStream 
 			RakAssert(rt.teamToLeave);
 		}
 		else
-			rt.teamToLeave=0;
-		bool hasTeamRequested=false;
-		success=constructionBitstream->Read(hasTeamRequested);
+			rt.teamToLeave = 0;
+		bool hasTeamRequested = false;
+		success = constructionBitstream->Read(hasTeamRequested);
 		NetworkID teamRequestedId;
 		if (hasTeamRequested)
 		{
-			success=constructionBitstream->Read(teamRequestedId);
+			success = constructionBitstream->Read(teamRequestedId);
 			rt.requested = world->GetTeamByNetworkID(teamRequestedId);
 			RakAssert(rt.requested);
 		}
-		rt.whenRequested=RakNet::GetTime();
-		rt.requestIndex=world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
+		rt.whenRequested = RakNet::GetTime();
+		rt.requestIndex = world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
 		if (
-			(hasTeamToLeave==false || (hasTeamToLeave==true && rt.teamToLeave!=0)) &&
-			(hasTeamRequested==false || (hasTeamRequested==true && rt.requested!=0))
-			)
+			(hasTeamToLeave == false || (hasTeamToLeave == true && rt.teamToLeave != 0)) &&
+			(hasTeamRequested == false || (hasTeamRequested == true && rt.requested != 0)))
 		{
 			teamsRequested.Push(rt, _FILE_AND_LINE_);
 		}
 	}
-
 
 	if (success)
 		world->teamManager->ProcessTeamAssigned(constructionBitstream);
@@ -542,7 +537,7 @@ void *TM_TeamMember::GetOwner(void) const
 
 void TM_TeamMember::SetOwner(void *o)
 {
-	owner=o;
+	owner = o;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -561,7 +556,7 @@ unsigned int TM_TeamMember::GetWorldIndex(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-unsigned long TM_TeamMember::ToUint32( const NetworkID &g )
+unsigned long TM_TeamMember::ToUint32(const NetworkID &g)
 {
 	return g & 0xFFFFFFFF;
 }
@@ -570,14 +565,14 @@ unsigned long TM_TeamMember::ToUint32( const NetworkID &g )
 
 void TM_TeamMember::UpdateListsToNoTeam(NoTeamId nti)
 {
-	teamsRequested.Clear(true, _FILE_AND_LINE_ );
-	for (unsigned int i=0; i < teams.Size(); i++)
+	teamsRequested.Clear(true, _FILE_AND_LINE_);
+	for (unsigned int i = 0; i < teams.Size(); i++)
 	{
 		teams[i]->RemoveFromTeamMemberList(this);
 	}
-	teams.Clear(true, _FILE_AND_LINE_ );
-	noTeamSubcategory=nti;
-	joinTeamType=JOIN_NO_TEAM;
+	teams.Clear(true, _FILE_AND_LINE_);
+	noTeamSubcategory = nti;
+	joinTeamType = JOIN_NO_TEAM;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -589,7 +584,7 @@ bool TM_TeamMember::JoinAnyTeamCheck(void) const
 		return false;
 
 	// - - If any team is already in requested teams, return false.
-	if (teamsRequested.Size()==0 && joinTeamType==JOIN_ANY_AVAILABLE_TEAM)
+	if (teamsRequested.Size() == 0 && joinTeamType == JOIN_ANY_AVAILABLE_TEAM)
 		return false;
 
 	return true;
@@ -607,11 +602,11 @@ bool TM_TeamMember::JoinSpecificTeamCheck(TM_Team *specificTeamToJoin, bool igno
 		return true;
 
 	unsigned int i;
-	for (i=0; i < teamsRequested.Size(); i++)
+	for (i = 0; i < teamsRequested.Size(); i++)
 	{
-		if (teamsRequested[i].requested==specificTeamToJoin)
+		if (teamsRequested[i].requested == specificTeamToJoin)
 		{
-			if (teamsRequested[i].isTeamSwitch==true)
+			if (teamsRequested[i].isTeamSwitch == true)
 				return true; // Turn off team switch
 
 			// Same thing
@@ -627,30 +622,30 @@ bool TM_TeamMember::JoinSpecificTeamCheck(TM_Team *specificTeamToJoin, bool igno
 
 bool TM_TeamMember::SwitchSpecificTeamCheck(TM_Team *teamToJoin, TM_Team *teamToLeave, bool ignoreRequested) const
 {
-	RakAssert(teamToJoin!=0);
+	RakAssert(teamToJoin != 0);
 
 	// - If already on specific team, return false
 	if (IsOnTeam(teamToJoin))
 		return false;
 
-	if (teamToLeave!=0 && IsOnTeam(teamToLeave)==false)
+	if (teamToLeave != 0 && IsOnTeam(teamToLeave) == false)
 		return false;
 
-	if (teamToJoin==teamToLeave)
+	if (teamToJoin == teamToLeave)
 		return false;
 
 	if (ignoreRequested)
 		return true;
 
 	unsigned int i;
-	for (i=0; i < teamsRequested.Size(); i++)
+	for (i = 0; i < teamsRequested.Size(); i++)
 	{
-		if (teamsRequested[i].requested==teamToJoin)
+		if (teamsRequested[i].requested == teamToJoin)
 		{
-			if (teamsRequested[i].isTeamSwitch==false)
+			if (teamsRequested[i].isTeamSwitch == false)
 				return true; // Different - leave team was off, turn on
-			
-			if (teamsRequested[i].teamToLeave==teamToLeave)
+
+			if (teamsRequested[i].teamToLeave == teamToLeave)
 				return false; // Same thing - leave all or a specific team
 
 			// Change leave team
@@ -666,7 +661,7 @@ bool TM_TeamMember::SwitchSpecificTeamCheck(TM_Team *teamToJoin, TM_Team *teamTo
 
 bool TM_TeamMember::LeaveTeamCheck(TM_Team *team) const
 {
-	if (IsOnTeam(team)==false)
+	if (IsOnTeam(team) == false)
 		return false;
 	return true;
 }
@@ -676,9 +671,9 @@ bool TM_TeamMember::LeaveTeamCheck(TM_Team *team) const
 void TM_TeamMember::UpdateTeamsRequestedToAny(void)
 {
 	teamsRequested.Clear(true, _FILE_AND_LINE_);
-	joinTeamType=JOIN_ANY_AVAILABLE_TEAM;
-	whenJoinAnyRequested=RakNet::GetTime();
-	joinAnyRequestIndex=world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
+	joinTeamType = JOIN_ANY_AVAILABLE_TEAM;
+	whenJoinAnyRequested = RakNet::GetTime();
+	joinAnyRequestIndex = world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -686,7 +681,7 @@ void TM_TeamMember::UpdateTeamsRequestedToAny(void)
 void TM_TeamMember::UpdateTeamsRequestedToNone(void)
 {
 	teamsRequested.Clear(true, _FILE_AND_LINE_);
-	joinTeamType=JOIN_NO_TEAM;
+	joinTeamType = JOIN_NO_TEAM;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -696,12 +691,12 @@ void TM_TeamMember::AddToRequestedTeams(TM_Team *teamToJoin)
 	RemoveFromRequestedTeams(teamToJoin);
 
 	RequestedTeam rt;
-	rt.isTeamSwitch=false;
-	rt.requested=teamToJoin;
-	rt.teamToLeave=0;
-	rt.whenRequested=RakNet::GetTime();
-	rt.requestIndex=world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
-	teamsRequested.Push(rt, _FILE_AND_LINE_ );
+	rt.isTeamSwitch = false;
+	rt.requested = teamToJoin;
+	rt.teamToLeave = 0;
+	rt.whenRequested = RakNet::GetTime();
+	rt.requestIndex = world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
+	teamsRequested.Push(rt, _FILE_AND_LINE_);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -711,35 +706,35 @@ void TM_TeamMember::AddToRequestedTeams(TM_Team *teamToJoin, TM_Team *teamToLeav
 	RemoveFromRequestedTeams(teamToJoin);
 
 	RequestedTeam rt;
-	rt.isTeamSwitch=true;
-	rt.requested=teamToJoin;
-	rt.teamToLeave=teamToLeave;
-	rt.whenRequested=RakNet::GetTime();
-	rt.requestIndex=world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
-	teamsRequested.Push(rt, _FILE_AND_LINE_ );
+	rt.isTeamSwitch = true;
+	rt.requested = teamToJoin;
+	rt.teamToLeave = teamToLeave;
+	rt.whenRequested = RakNet::GetTime();
+	rt.requestIndex = world->teamRequestIndex++; // In case whenRequested is the same between two teams when sorting team requests
+	teamsRequested.Push(rt, _FILE_AND_LINE_);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 bool TM_TeamMember::RemoveFromRequestedTeams(TM_Team *team)
 {
-	if (team==0)
+	if (team == 0)
 	{
 		teamsRequested.Clear(true, _FILE_AND_LINE_);
-		joinTeamType=JOIN_NO_TEAM;
+		joinTeamType = JOIN_NO_TEAM;
 		return true;
 	}
 	else
 	{
 		unsigned int i;
-		for (i=0; i < teamsRequested.Size(); i++)
+		for (i = 0; i < teamsRequested.Size(); i++)
 		{
-			if (teamsRequested[i].requested==team)
+			if (teamsRequested[i].requested == team)
 			{
 				teamsRequested.RemoveAtIndex(i);
-				if (teamsRequested.Size()==0)
+				if (teamsRequested.Size() == 0)
 				{
-					joinTeamType=JOIN_NO_TEAM;
+					joinTeamType = JOIN_NO_TEAM;
 				}
 				return true;
 			}
@@ -752,22 +747,22 @@ bool TM_TeamMember::RemoveFromRequestedTeams(TM_Team *team)
 
 void TM_TeamMember::AddToTeamList(TM_Team *team)
 {
-	team->teamMembers.Push(this, _FILE_AND_LINE_ );
-	teams.Push(team, _FILE_AND_LINE_ );
+	team->teamMembers.Push(this, _FILE_AND_LINE_);
+	teams.Push(team, _FILE_AND_LINE_);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void TM_TeamMember::RemoveFromSpecificTeamInternal(TM_Team *team)
 {
-	unsigned int i,j;
-	for (i=0; i < teams.Size(); i++)
+	unsigned int i, j;
+	for (i = 0; i < teams.Size(); i++)
 	{
-		if (teams[i]==team)
+		if (teams[i] == team)
 		{
-			for (j=0; j < team->teamMembers.Size(); j++)
+			for (j = 0; j < team->teamMembers.Size(); j++)
 			{
-				if (team->teamMembers[j]==this)
+				if (team->teamMembers[j] == this)
 				{
 					team->teamMembers.RemoveAtIndex(j);
 					break;
@@ -784,14 +779,14 @@ void TM_TeamMember::RemoveFromSpecificTeamInternal(TM_Team *team)
 void TM_TeamMember::RemoveFromAllTeamsInternal(void)
 {
 	TM_Team *team;
-	unsigned int i,j;
-	for (i=0; i < teams.Size(); i++)
+	unsigned int i, j;
+	for (i = 0; i < teams.Size(); i++)
 	{
 		team = teams[i];
 
-		for (j=0; j < team->teamMembers.Size(); j++)
+		for (j = 0; j < team->teamMembers.Size(); j++)
 		{
-			if (team->teamMembers[j]==this)
+			if (team->teamMembers[j] == this)
 			{
 				team->teamMembers.RemoveAtIndex(j);
 				break;
@@ -805,27 +800,23 @@ void TM_TeamMember::RemoveFromAllTeamsInternal(void)
 
 void TM_TeamMember::StoreLastTeams(void)
 {
-	lastTeams=teams;
+	lastTeams = teams;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 TM_Team::TM_Team()
 {
-	ID=0;
-	world=0;
-	joinPermissions=ALLOW_JOIN_ANY_AVAILABLE_TEAM|ALLOW_JOIN_SPECIFIC_TEAM|ALLOW_JOIN_REBALANCING;
-	balancingApplies=true;
-	teamMemberLimit=65535;
-	owner=0;
+	ID = 0;
+	world = 0;
+	joinPermissions = ALLOW_JOIN_ANY_AVAILABLE_TEAM | ALLOW_JOIN_SPECIFIC_TEAM | ALLOW_JOIN_REBALANCING;
+	balancingApplies = true;
+	teamMemberLimit = 65535;
+	owner = 0;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -840,10 +831,10 @@ TM_Team::~TM_Team()
 
 bool TM_Team::SetMemberLimit(TeamMemberLimit _teamMemberLimit, NoTeamId noTeamId)
 {
-	if (teamMemberLimit==_teamMemberLimit)
+	if (teamMemberLimit == _teamMemberLimit)
 		return false;
 
-	teamMemberLimit=_teamMemberLimit;
+	teamMemberLimit = _teamMemberLimit;
 	// Network this as request to host
 	BitStream bsOut;
 	bsOut.WriteCasted<MessageID>(ID_TEAM_BALANCER_INTERNAL);
@@ -861,13 +852,13 @@ bool TM_Team::SetMemberLimit(TeamMemberLimit _teamMemberLimit, NoTeamId noTeamId
 
 TeamMemberLimit TM_Team::GetMemberLimit(void) const
 {
-	if (world->GetBalanceTeams()==false)
+	if (world->GetBalanceTeams() == false)
 	{
 		return teamMemberLimit;
 	}
 	else
 	{
-		TeamMemberLimit limitWithBalancing=world->GetBalancedTeamLimit();
+		TeamMemberLimit limitWithBalancing = world->GetBalancedTeamLimit();
 		if (limitWithBalancing < teamMemberLimit)
 			return limitWithBalancing;
 		return teamMemberLimit;
@@ -885,10 +876,10 @@ TeamMemberLimit TM_Team::GetMemberLimitSetting(void) const
 
 bool TM_Team::SetJoinPermissions(JoinPermissions _joinPermissions)
 {
-	if (joinPermissions==_joinPermissions)
+	if (joinPermissions == _joinPermissions)
 		return false;
 
-	joinPermissions=_joinPermissions;
+	joinPermissions = _joinPermissions;
 
 	// Network this as request to host
 	BitStream bsOut;
@@ -897,11 +888,9 @@ bool TM_Team::SetJoinPermissions(JoinPermissions _joinPermissions)
 	bsOut.Write(world->GetWorldId());
 	bsOut.Write(GetNetworkID());
 	bsOut.Write(_joinPermissions);
-	world->GetTeamManager()->Send(&bsOut,world->GetHost(), false);
+	world->GetTeamManager()->Send(&bsOut, world->GetHost(), false);
 
 	return true;
-
-	
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -913,7 +902,7 @@ JoinPermissions TM_Team::GetJoinPermissions(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TM_Team::LeaveTeam(TM_TeamMember* teamMember, NoTeamId noTeamSubcategory)
+void TM_Team::LeaveTeam(TM_TeamMember *teamMember, NoTeamId noTeamSubcategory)
 {
 	teamMember->LeaveTeam(this, noTeamSubcategory);
 }
@@ -927,9 +916,9 @@ bool TM_Team::GetBalancingApplies(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TM_Team::GetTeamMembers(DataStructures::List<TM_TeamMember*> &_teamMembers) const
+void TM_Team::GetTeamMembers(DataStructures::List<TM_TeamMember *> &_teamMembers) const
 {
-	_teamMembers=teamMembers;
+	_teamMembers = teamMembers;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -955,7 +944,7 @@ NetworkID TM_Team::GetNetworkID(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_World* TM_Team::GetTM_World(void) const
+TM_World *TM_Team::GetTM_World(void) const
 {
 	return world;
 }
@@ -970,7 +959,6 @@ void TM_Team::SerializeConstruction(BitStream *constructionBitstream)
 	constructionBitstream->Write(joinPermissions);
 	constructionBitstream->Write(balancingApplies);
 	constructionBitstream->Write(teamMemberLimit);
-
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -988,15 +976,14 @@ bool TM_Team::DeserializeConstruction(TeamManager *teamManager, BitStream *const
 	RakAssert(b);
 	if (b)
 	{
-		world->ReferenceTeam(this,ID,balancingApplies);
+		world->ReferenceTeam(this, ID, balancingApplies);
 	}
 	return b;
 }
 
-
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-unsigned long TM_Team::ToUint32( const NetworkID &g )
+unsigned long TM_Team::ToUint32(const NetworkID &g)
 {
 	return g & 0xFFFFFFFF;
 }
@@ -1010,7 +997,6 @@ void *TM_Team::GetOwner(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 unsigned int TM_Team::GetWorldIndex(void) const
 {
 	return world->GetTeamIndex(this);
@@ -1020,7 +1006,7 @@ unsigned int TM_Team::GetWorldIndex(void) const
 
 void TM_Team::SetOwner(void *o)
 {
-	owner=o;
+	owner = o;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1028,7 +1014,7 @@ void TM_Team::SetOwner(void *o)
 void TM_Team::RemoveFromTeamMemberList(TM_TeamMember *teamMember)
 {
 	unsigned int index = teamMembers.GetIndexOf(teamMember);
-	RakAssert(index != (unsigned int) -1);
+	RakAssert(index != (unsigned int)-1);
 	teamMembers.RemoveAtIndex(index);
 }
 
@@ -1037,37 +1023,35 @@ void TM_Team::RemoveFromTeamMemberList(TM_TeamMember *teamMember)
 unsigned int TM_Team::GetMemberWithRequestedSingleTeamSwitch(TM_Team *team)
 {
 	unsigned int i;
-	for (i=0; i < teamMembers.Size(); i++)
+	for (i = 0; i < teamMembers.Size(); i++)
 	{
-		if (teamMembers[i]->GetCurrentTeamCount()==1)
+		if (teamMembers[i]->GetCurrentTeamCount() == 1)
 		{
 			unsigned int j = teamMembers[i]->GetRequestedTeamIndex(team);
-			if (j!=(unsigned int)-1)
+			if (j != (unsigned int)-1)
 			{
-				if (teamMembers[i]->teamsRequested[j].isTeamSwitch && 
-					(teamMembers[i]->teamsRequested[j].teamToLeave==0 ||
-					teamMembers[i]->teamsRequested[j].teamToLeave==teamMembers[i]->teams[0])
-				)
-				return i;
+				if (teamMembers[i]->teamsRequested[j].isTeamSwitch &&
+					(teamMembers[i]->teamsRequested[j].teamToLeave == 0 ||
+					 teamMembers[i]->teamsRequested[j].teamToLeave == teamMembers[i]->teams[0]))
+					return i;
 			}
 		}
 	}
-	return (unsigned int) -1;
+	return (unsigned int)-1;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 TM_World::TM_World()
 {
-	teamManager=0;
-	balanceTeamsIsActive=false;
-	hostGuid=UNASSIGNED_RAKNET_GUID;
-	worldId=0;
-	autoAddParticipants=true;
-	teamRequestIndex=0;
+	teamManager = 0;
+	balanceTeamsIsActive = false;
+	hostGuid = UNASSIGNED_RAKNET_GUID;
+	worldId = 0;
+	autoAddParticipants = true;
+	teamRequestIndex = 0;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1088,11 +1072,11 @@ TeamManager *TM_World::GetTeamManager(void) const
 
 void TM_World::AddParticipant(RakNetGUID rakNetGUID)
 {
-	participants.Push(rakNetGUID, _FILE_AND_LINE_ );
+	participants.Push(rakNetGUID, _FILE_AND_LINE_);
 
 	// Send to remote system status of balanceTeamsIsActive
 
-	if (GetTeamManager()->GetMyGUIDUnified()==GetHost())
+	if (GetTeamManager()->GetMyGUIDUnified() == GetHost())
 	{
 		// Actually just transmitting initial value of balanceTeamsIsActive
 		BitStream bsOut;
@@ -1100,7 +1084,7 @@ void TM_World::AddParticipant(RakNetGUID rakNetGUID)
 		bsOut.WriteCasted<MessageID>(ID_RUN_SetBalanceTeamsInitial);
 		bsOut.Write(GetWorldId());
 		bsOut.Write(balanceTeamsIsActive);
-		teamManager->SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0,rakNetGUID, false);
+		teamManager->SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, rakNetGUID, false);
 	}
 }
 
@@ -1110,7 +1094,7 @@ void TM_World::RemoveParticipant(RakNetGUID rakNetGUID)
 {
 	unsigned int i;
 	i = participants.GetIndexOf(rakNetGUID);
-	if (i!=(unsigned int)-1)
+	if (i != (unsigned int)-1)
 		participants.RemoveAtIndex(i);
 }
 
@@ -1118,7 +1102,7 @@ void TM_World::RemoveParticipant(RakNetGUID rakNetGUID)
 
 void TM_World::SetAutoManageConnections(bool autoAdd)
 {
-	autoAddParticipants=autoAdd;
+	autoAddParticipants = autoAdd;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1133,20 +1117,20 @@ void TM_World::GetParticipantList(DataStructures::List<RakNetGUID> &participantL
 void TM_World::ReferenceTeam(TM_Team *team, NetworkID networkId, bool applyBalancing)
 {
 	unsigned int i;
-	for (i=0; i < teams.Size(); i++)
+	for (i = 0; i < teams.Size(); i++)
 	{
-		if (teams[i]==team)
+		if (teams[i] == team)
 			return;
 	}
 
-	team->ID=networkId;
-	team->balancingApplies=applyBalancing;
-	team->world=this;
+	team->ID = networkId;
+	team->balancingApplies = applyBalancing;
+	team->world = this;
 
 	// Add this team to the list of teams
 	teams.Push(team, _FILE_AND_LINE_);
 
-	teamsHash.Push(networkId,team,_FILE_AND_LINE_);
+	teamsHash.Push(networkId, team, _FILE_AND_LINE_);
 
 	// If autobalancing is on, and the team lock state supports it, then call EnforceTeamBalancing()
 	if (applyBalancing && balanceTeamsIsActive)
@@ -1160,18 +1144,18 @@ void TM_World::ReferenceTeam(TM_Team *team, NetworkID networkId, bool applyBalan
 void TM_World::DereferenceTeam(TM_Team *team, NoTeamId noTeamSubcategory)
 {
 	unsigned int i;
-	for (i=0; i < teams.Size(); i++)
+	for (i = 0; i < teams.Size(); i++)
 	{
-		if (teams[i]==team)
+		if (teams[i] == team)
 		{
 			TM_Team *team = teams[i];
 			while (team->teamMembers.Size())
 			{
-				team->teamMembers[team->teamMembers.Size()-1]->LeaveTeam(team, noTeamSubcategory);
+				team->teamMembers[team->teamMembers.Size() - 1]->LeaveTeam(team, noTeamSubcategory);
 			}
 			teams.RemoveAtIndex(i);
 
-			teamsHash.Remove(team->GetNetworkID(),_FILE_AND_LINE_);
+			teamsHash.Remove(team->GetNetworkID(), _FILE_AND_LINE_);
 
 			break;
 		}
@@ -1207,12 +1191,12 @@ TM_Team *TM_World::GetTeamByNetworkID(NetworkID teamId)
 unsigned int TM_World::GetTeamIndex(const TM_Team *team) const
 {
 	unsigned int i;
-	for (i=0; i < teams.Size(); i++)
+	for (i = 0; i < teams.Size(); i++)
 	{
-		if (teams[i]==team)
+		if (teams[i] == team)
 			return i;
 	}
-	return (unsigned int) -1;
+	return (unsigned int)-1;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1220,18 +1204,18 @@ unsigned int TM_World::GetTeamIndex(const TM_Team *team) const
 void TM_World::ReferenceTeamMember(TM_TeamMember *teamMember, NetworkID networkId)
 {
 	unsigned int i;
-	for (i=0; i < teamMembers.Size(); i++)
+	for (i = 0; i < teamMembers.Size(); i++)
 	{
-		if (teamMembers[i]==teamMember)
+		if (teamMembers[i] == teamMember)
 			return;
 	}
 
-	teamMember->world=this;
-	teamMember->networkId=networkId;
+	teamMember->world = this;
+	teamMember->networkId = networkId;
 
 	teamMembers.Push(teamMember, _FILE_AND_LINE_);
 
-	teamMembersHash.Push(networkId,teamMember,_FILE_AND_LINE_);
+	teamMembersHash.Push(networkId, teamMember, _FILE_AND_LINE_);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1239,12 +1223,12 @@ void TM_World::ReferenceTeamMember(TM_TeamMember *teamMember, NetworkID networkI
 void TM_World::DereferenceTeamMember(TM_TeamMember *teamMember)
 {
 	unsigned int i;
-	for (i=0; i < teamMembers.Size(); i++)
+	for (i = 0; i < teamMembers.Size(); i++)
 	{
-		if (teamMembers[i]==teamMember)
+		if (teamMembers[i] == teamMember)
 		{
 			teamMembers[i]->UpdateListsToNoTeam(0);
-			teamMembersHash.Remove(teamMembers[i]->GetNetworkID(),_FILE_AND_LINE_);
+			teamMembersHash.Remove(teamMembers[i]->GetNetworkID(), _FILE_AND_LINE_);
 			teamMembers.RemoveAtIndex(i);
 			break;
 		}
@@ -1287,22 +1271,22 @@ TM_TeamMember *TM_World::GetTeamMemberByNetworkID(NetworkID teamMemberId)
 unsigned int TM_World::GetTeamMemberIndex(const TM_TeamMember *teamMember) const
 {
 	unsigned int i;
-	for (i=0; i < teamMembers.Size(); i++)
+	for (i = 0; i < teamMembers.Size(); i++)
 	{
-		if (teamMembers[i]==teamMember)
+		if (teamMembers[i] == teamMember)
 			return i;
 	}
-	return (unsigned int) -1;
+	return (unsigned int)-1;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 bool TM_World::SetBalanceTeams(bool balanceTeams, NoTeamId noTeamId)
 {
-	if (balanceTeams==balanceTeamsIsActive)
+	if (balanceTeams == balanceTeamsIsActive)
 		return false;
 
-	balanceTeamsIsActive=balanceTeams;
+	balanceTeamsIsActive = balanceTeams;
 
 	// Network this as request to host
 	BitStream bsOut;
@@ -1311,7 +1295,7 @@ bool TM_World::SetBalanceTeams(bool balanceTeams, NoTeamId noTeamId)
 	bsOut.Write(GetWorldId());
 	bsOut.Write(balanceTeams);
 	bsOut.Write(noTeamId);
-	GetTeamManager()->SendUnified(&bsOut,HIGH_PRIORITY, RELIABLE_ORDERED, 0, GetHost(), false);
+	GetTeamManager()->SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, GetHost(), false);
 
 	return true;
 }
@@ -1327,14 +1311,14 @@ bool TM_World::GetBalanceTeams(void) const
 
 void TM_World::SetHost(RakNetGUID _hostGuid)
 {
-	if (hostGuid==_hostGuid)
+	if (hostGuid == _hostGuid)
 		return;
 
-	RakAssert(_hostGuid!=UNASSIGNED_RAKNET_GUID);
+	RakAssert(_hostGuid != UNASSIGNED_RAKNET_GUID);
 
-	hostGuid=_hostGuid;
+	hostGuid = _hostGuid;
 
-	if (GetHost()==GetTeamManager()->GetMyGUIDUnified())
+	if (GetHost() == GetTeamManager()->GetMyGUIDUnified())
 		FillRequestedSlots();
 }
 
@@ -1356,13 +1340,13 @@ WorldId TM_World::GetWorldId(void) const
 
 void TM_World::Clear(void)
 {
-	for (unsigned int i=0; i < teams.Size(); i++)
+	for (unsigned int i = 0; i < teams.Size(); i++)
 	{
-		teams[i]->world=0;
+		teams[i]->world = 0;
 	}
-	for (unsigned int i=0; i < teamMembers.Size(); i++)
+	for (unsigned int i = 0; i < teamMembers.Size(); i++)
 	{
-		teamMembers[i]->world=0;
+		teamMembers[i]->world = 0;
 	}
 	participants.Clear(true, _FILE_AND_LINE_);
 	teams.Clear(true, _FILE_AND_LINE_);
@@ -1371,10 +1355,10 @@ void TM_World::Clear(void)
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TM_World::OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
+void TM_World::OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason)
 {
-	(void) lostConnectionReason;
-	(void) systemAddress;
+	(void)lostConnectionReason;
+	(void)systemAddress;
 
 	RemoveParticipant(rakNetGUID);
 }
@@ -1383,8 +1367,8 @@ void TM_World::OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID
 
 void TM_World::OnNewConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, bool isIncoming)
 {
-	(void) isIncoming;
-	(void) systemAddress;
+	(void)isIncoming;
+	(void)systemAddress;
 
 	if (autoAddParticipants)
 		AddParticipant(rakNetGUID);
@@ -1395,37 +1379,36 @@ void TM_World::OnNewConnection(const SystemAddress &systemAddress, RakNetGUID ra
 void TM_World::EnforceTeamBalance(NoTeamId noTeamId)
 {
 	// Host only function
-	RakAssert(GetHost()==GetTeamManager()->GetMyGUIDUnified());
+	RakAssert(GetHost() == GetTeamManager()->GetMyGUIDUnified());
 
 	KickExcessMembers(noTeamId);
 }
-
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void TM_World::KickExcessMembers(NoTeamId noTeamId)
 {
 	// Host only function
-	RakAssert(GetHost()==GetTeamManager()->GetMyGUIDUnified());
+	RakAssert(GetHost() == GetTeamManager()->GetMyGUIDUnified());
 
 	// For each team that applies balancing, if the team is overfull, put on a team that is not overfull if the team has ALLOW_JOIN_REBALANCING set
 	// If cannot move the player to another team, just take the player off the team and set to noTeamId if they have no team at that point
-	
+
 	TeamMemberLimit balancedTeamLimit;
 	if (balanceTeamsIsActive)
 		balancedTeamLimit = GetBalancedTeamLimit();
 	else
-		balancedTeamLimit = (TeamMemberLimit) -1;
+		balancedTeamLimit = (TeamMemberLimit)-1;
 
 	TM_Team *team, *teamToJoin;
 	unsigned int i, teamIndex;
-	for (i=0; i < teams.Size(); i++)
+	for (i = 0; i < teams.Size(); i++)
 	{
 		team = teams[i];
 		while (team->GetMemberLimitSetting() < team->GetTeamMembersCount() ||
-			(balancedTeamLimit < team->GetTeamMembersCount() && team->GetBalancingApplies()) )
+			   (balancedTeamLimit < team->GetTeamMembersCount() && team->GetBalancingApplies()))
 		{
-			TM_TeamMember *teamMember = team->teamMembers[team->teamMembers.Size()-1];
+			TM_TeamMember *teamMember = team->teamMembers[team->teamMembers.Size() - 1];
 
 			teamIndex = GetAvailableTeamIndexWithFewestMembers(balancedTeamLimit, ALLOW_JOIN_REBALANCING);
 			if (teamIndex == (unsigned int)-1)
@@ -1453,7 +1436,6 @@ void TM_World::KickExcessMembers(NoTeamId noTeamId)
 				bsOut.Write(team->GetNetworkID());
 				BroadcastToParticipants(&bsOut, UNASSIGNED_RAKNET_GUID);
 			}
-
 		}
 	}
 }
@@ -1462,14 +1444,13 @@ void TM_World::KickExcessMembers(NoTeamId noTeamId)
 void TM_World::FillRequestedSlots(void)
 {
 	// Host only function
-	RakAssert(GetHost()==GetTeamManager()->GetMyGUIDUnified());
-
+	RakAssert(GetHost() == GetTeamManager()->GetMyGUIDUnified());
 
 	TeamMemberLimit balancedTeamLimit;
 	if (balanceTeamsIsActive)
 		balancedTeamLimit = GetBalancedTeamLimit();
 	else
-		balancedTeamLimit = (TeamMemberLimit) -1;
+		balancedTeamLimit = (TeamMemberLimit)-1;
 
 	unsigned int teamIndex, indexIntoTeamsRequested = (unsigned int)-1;
 	TM_Team *team;
@@ -1478,30 +1459,30 @@ void TM_World::FillRequestedSlots(void)
 	GetSortedJoinRequests(joinRequests);
 	unsigned int joinRequestIndex;
 
-	for (joinRequestIndex=0; joinRequestIndex < joinRequests.Size(); joinRequestIndex++)
+	for (joinRequestIndex = 0; joinRequestIndex < joinRequests.Size(); joinRequestIndex++)
 	{
 		teamMember = teamMembers[joinRequests[joinRequestIndex].teamMemberIndex];
-		if (teamMember->teamsRequested.Size()==0)
+		if (teamMember->teamsRequested.Size() == 0)
 		{
-			if (teamMember->joinTeamType==JOIN_ANY_AVAILABLE_TEAM)
+			if (teamMember->joinTeamType == JOIN_ANY_AVAILABLE_TEAM)
 				teamIndex = GetAvailableTeamIndexWithFewestMembers(balancedTeamLimit, ALLOW_JOIN_ANY_AVAILABLE_TEAM);
 			else
-				teamIndex=(unsigned int)-1;
+				teamIndex = (unsigned int)-1;
 		}
 		else
 		{
 			indexIntoTeamsRequested = joinRequests[joinRequestIndex].indexIntoTeamsRequested;
 
 			team = teamMember->teamsRequested[indexIntoTeamsRequested].requested;
-			if (team->GetTeamMembersCount() < balancedTeamLimit && 
+			if (team->GetTeamMembersCount() < balancedTeamLimit &&
 				team->GetTeamMembersCount() < team->GetMemberLimitSetting() &&
-				(ALLOW_JOIN_SPECIFIC_TEAM & team->GetJoinPermissions())!=0)
+				(ALLOW_JOIN_SPECIFIC_TEAM & team->GetJoinPermissions()) != 0)
 			{
-				teamIndex=teams.GetIndexOf(team);
+				teamIndex = teams.GetIndexOf(team);
 			}
 			else
 			{
-				teamIndex=(unsigned int)-1;
+				teamIndex = (unsigned int)-1;
 			}
 		}
 
@@ -1509,9 +1490,9 @@ void TM_World::FillRequestedSlots(void)
 		{
 			team = teams[teamIndex];
 
-			if (teamMember->teamsRequested.Size()==0)
+			if (teamMember->teamsRequested.Size() == 0)
 			{
-				if (teamMember->joinTeamType==JOIN_ANY_AVAILABLE_TEAM)
+				if (teamMember->joinTeamType == JOIN_ANY_AVAILABLE_TEAM)
 				{
 					// Join any
 					teamMember->StoreLastTeams();
@@ -1531,12 +1512,12 @@ void TM_World::FillRequestedSlots(void)
 			else
 			{
 				// Switch or join specific
-				DataStructures::List<TM_Team*> teamsWeAreLeaving;
+				DataStructures::List<TM_Team *> teamsWeAreLeaving;
 				bool isSwitch = teamMember->teamsRequested[indexIntoTeamsRequested].isTeamSwitch;
 				TM_Team *teamToLeave;
 				if (isSwitch)
 				{
-					teamToLeave=teamMember->teamsRequested[indexIntoTeamsRequested].teamToLeave;
+					teamToLeave = teamMember->teamsRequested[indexIntoTeamsRequested].teamToLeave;
 					if (teamToLeave)
 					{
 						if (teamMember->IsOnTeam(teamToLeave))
@@ -1545,21 +1526,21 @@ void TM_World::FillRequestedSlots(void)
 						}
 						else
 						{
-							teamToLeave=0;
-							isSwitch=false;
+							teamToLeave = 0;
+							isSwitch = false;
 						}
 					}
 					else
 					{
-						teamsWeAreLeaving=teamMember->teams;
+						teamsWeAreLeaving = teamMember->teams;
 					}
 				}
 				else
-					teamToLeave=0;
+					teamToLeave = 0;
 
 				int teamJoined = JoinSpecificTeam(teamMember, team, isSwitch, teamToLeave, teamsWeAreLeaving);
 
-				if (teamJoined==1)
+				if (teamJoined == 1)
 				{
 					BitStream bsOut;
 					bsOut.WriteCasted<MessageID>(ID_TEAM_BALANCER_INTERNAL);
@@ -1568,7 +1549,7 @@ void TM_World::FillRequestedSlots(void)
 					bsOut.Write(teamMember->GetNetworkID());
 					bsOut.Write(team->GetNetworkID());
 					bsOut.Write(isSwitch);
-					if (teamToLeave!=0)
+					if (teamToLeave != 0)
 					{
 						bsOut.Write(true);
 						bsOut.Write(teamToLeave->GetNetworkID());
@@ -1588,15 +1569,15 @@ unsigned int TM_World::GetAvailableTeamIndexWithFewestMembers(TeamMemberLimit se
 {
 	unsigned int teamIndex;
 
-	unsigned int lowestTeamMembers = (unsigned int) -1;
-	unsigned int lowestIndex = (unsigned int) -1;
+	unsigned int lowestTeamMembers = (unsigned int)-1;
+	unsigned int lowestIndex = (unsigned int)-1;
 
-	for (teamIndex=0; teamIndex < teams.Size(); teamIndex++)
+	for (teamIndex = 0; teamIndex < teams.Size(); teamIndex++)
 	{
-		if (teams[teamIndex]->GetTeamMembersCount() < secondaryLimit && 
+		if (teams[teamIndex]->GetTeamMembersCount() < secondaryLimit &&
 			teams[teamIndex]->GetTeamMembersCount() < teams[teamIndex]->GetMemberLimitSetting() &&
 			teams[teamIndex]->GetTeamMembersCount() < lowestTeamMembers &&
-			(joinPermissions & teams[teamIndex]->GetJoinPermissions())!=0)
+			(joinPermissions & teams[teamIndex]->GetJoinPermissions()) != 0)
 		{
 			lowestTeamMembers = teams[teamIndex]->GetTeamMembersCount();
 			lowestIndex = teamIndex;
@@ -1612,33 +1593,32 @@ void TM_World::GetSortedJoinRequests(DataStructures::OrderedList<TM_World::JoinR
 {
 	unsigned int i;
 
-	for (i=0; i < teamMembers.Size(); i++)
+	for (i = 0; i < teamMembers.Size(); i++)
 	{
 		TM_TeamMember *teamMember = teamMembers[i];
-		if (teamMember->teamsRequested.Size()==0)
+		if (teamMember->teamsRequested.Size() == 0)
 		{
-			if (teamMember->joinTeamType==JOIN_ANY_AVAILABLE_TEAM)
+			if (teamMember->joinTeamType == JOIN_ANY_AVAILABLE_TEAM)
 			{
 				TM_World::JoinRequestHelper jrh;
-				jrh.whenRequestMade=teamMember->whenJoinAnyRequested;
-				jrh.teamMemberIndex=i;
-				jrh.requestIndex=teamMember->joinAnyRequestIndex;
+				jrh.whenRequestMade = teamMember->whenJoinAnyRequested;
+				jrh.teamMemberIndex = i;
+				jrh.requestIndex = teamMember->joinAnyRequestIndex;
 				joinRequests.Insert(jrh, jrh, true, _FILE_AND_LINE_);
 			}
 		}
 		else
 		{
 			unsigned int j;
-			for (j=0; j < teamMember->teamsRequested.Size(); j++)
+			for (j = 0; j < teamMember->teamsRequested.Size(); j++)
 			{
 				TM_World::JoinRequestHelper jrh;
-				jrh.whenRequestMade=teamMember->teamsRequested[j].whenRequested;
-				jrh.teamMemberIndex=i;
-				jrh.indexIntoTeamsRequested=j;
-				jrh.requestIndex=teamMember->teamsRequested[j].requestIndex;
+				jrh.whenRequestMade = teamMember->teamsRequested[j].whenRequested;
+				jrh.teamMemberIndex = i;
+				jrh.indexIntoTeamsRequested = j;
+				jrh.requestIndex = teamMember->teamsRequested[j].requestIndex;
 				joinRequests.Insert(jrh, jrh, true, _FILE_AND_LINE_);
 			}
-
 		}
 	}
 }
@@ -1646,9 +1626,9 @@ void TM_World::GetSortedJoinRequests(DataStructures::OrderedList<TM_World::JoinR
 
 void TM_World::BroadcastToParticipants(RakNet::BitStream *bsOut, RakNetGUID exclusionGuid)
 {
-	for (unsigned int i=0; i < participants.Size(); i++)
+	for (unsigned int i = 0; i < participants.Size(); i++)
 	{
-		if (participants[i]==exclusionGuid)
+		if (participants[i] == exclusionGuid)
 			continue;
 		teamManager->SendUnified(bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, participants[i], false);
 	}
@@ -1658,60 +1638,60 @@ void TM_World::BroadcastToParticipants(RakNet::BitStream *bsOut, RakNetGUID excl
 
 void TM_World::BroadcastToParticipants(unsigned char *data, const int length, RakNetGUID exclusionGuid)
 {
-	for (unsigned int i=0; i < participants.Size(); i++)
+	for (unsigned int i = 0; i < participants.Size(); i++)
 	{
-		if (participants[i]==exclusionGuid)
+		if (participants[i] == exclusionGuid)
 			continue;
-		teamManager->SendUnified((const char*) data, length, HIGH_PRIORITY, RELIABLE_ORDERED, 0, participants[i], false);
+		teamManager->SendUnified((const char *)data, length, HIGH_PRIORITY, RELIABLE_ORDERED, 0, participants[i], false);
 	}
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_Team* TM_World::JoinAnyTeam(TM_TeamMember *teamMember, int *resultCode)
+TM_Team *TM_World::JoinAnyTeam(TM_TeamMember *teamMember, int *resultCode)
 {
 	TeamMemberLimit balancedLimit = GetBalancedTeamLimit();
 
 	unsigned int idx = GetAvailableTeamIndexWithFewestMembers(balancedLimit, ALLOW_JOIN_ANY_AVAILABLE_TEAM);
-	if (idx == (unsigned int ) -1)
+	if (idx == (unsigned int)-1)
 	{
 		// If any team is joinable but full, return full. Otherwise return locked
-		for (idx=0; idx < teams.Size(); idx++)
+		for (idx = 0; idx < teams.Size(); idx++)
 		{
 			if ((teams[idx]->GetTeamMembersCount() >= balancedLimit ||
-				teams[idx]->GetTeamMembersCount()  >= teams[idx]->GetMemberLimitSetting()) &&
+				 teams[idx]->GetTeamMembersCount() >= teams[idx]->GetMemberLimitSetting()) &&
 				teams[idx]->GetMemberLimitSetting() != 0 &&
-				(ALLOW_JOIN_ANY_AVAILABLE_TEAM & teams[idx]->GetJoinPermissions())!=0)
+				(ALLOW_JOIN_ANY_AVAILABLE_TEAM & teams[idx]->GetJoinPermissions()) != 0)
 			{
 				// Full
-				*resultCode=-2;
+				*resultCode = -2;
 				return teams[idx];
 			}
 		}
 
 		// Locked
-		*resultCode=-1;
+		*resultCode = -1;
 		return 0;
 	}
 
-	TM_Team* lowestMemberTeam = teams[idx];
+	TM_Team *lowestMemberTeam = teams[idx];
 
 	teamMember->StoreLastTeams();
 	teamMember->UpdateTeamsRequestedToNone();
 	teamMember->AddToTeamList(lowestMemberTeam);
 	teamManager->PushTeamAssigned(teamMember);
 
-	*resultCode=1;
+	*resultCode = 1;
 	return lowestMemberTeam;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int TM_World::JoinSpecificTeam(TM_TeamMember *teamMember, TM_Team *team, bool isTeamSwitch, TM_Team *teamToLeave, DataStructures::List<TM_Team*> &teamsWeAreLeaving)
+int TM_World::JoinSpecificTeam(TM_TeamMember *teamMember, TM_Team *team, bool isTeamSwitch, TM_Team *teamToLeave, DataStructures::List<TM_Team *> &teamsWeAreLeaving)
 {
 	if (team->GetJoinPermissions() & ALLOW_JOIN_SPECIFIC_TEAM)
 	{
-		if (balanceTeamsIsActive==false || teamsWeAreLeaving.Size()==0)
+		if (balanceTeamsIsActive == false || teamsWeAreLeaving.Size() == 0)
 		{
 			if (team->GetMemberLimit() > team->GetTeamMembersCount())
 			{
@@ -1732,10 +1712,10 @@ int TM_World::JoinSpecificTeam(TM_TeamMember *teamMember, TM_Team *team, bool is
 
 			// Do limited team swap
 			// We must be on one team, target must be on one team, and we want to exchange teams
-			if (teamsWeAreLeaving.Size()==1)
+			if (teamsWeAreLeaving.Size() == 1)
 			{
 				unsigned int j = team->GetMemberWithRequestedSingleTeamSwitch(teamsWeAreLeaving[0]);
-				if (j!=(unsigned int)-1)
+				if (j != (unsigned int)-1)
 				{
 					TM_TeamMember *swappingMember = team->teamMembers[j];
 					teamMember->StoreLastTeams();
@@ -1769,30 +1749,30 @@ int TM_World::JoinSpecificTeam(TM_TeamMember *teamMember, TM_Team *team, bool is
 
 TeamMemberLimit TM_World::GetBalancedTeamLimit(void) const
 {
-	if (teams.Size()==0)
+	if (teams.Size() == 0)
 		return 0;
 
-	if (balanceTeamsIsActive==false)
-		return (TeamMemberLimit) -1;
+	if (balanceTeamsIsActive == false)
+		return (TeamMemberLimit)-1;
 
 	unsigned int i;
 	bool additionalTeamsExcluded;
 	TeamMemberLimit balancedLimit;
-	unsigned int teamsCount=teams.Size();
-	unsigned int membersCount=teamMembers.Size();
-	DataStructures::List<TM_Team*> consideredTeams = teams;
+	unsigned int teamsCount = teams.Size();
+	unsigned int membersCount = teamMembers.Size();
+	DataStructures::List<TM_Team *> consideredTeams = teams;
 
-	do 
+	do
 	{
-		additionalTeamsExcluded=false;
-		balancedLimit = (TeamMemberLimit) ((membersCount+(teamsCount-1))/(teamsCount));
-		i=0;
+		additionalTeamsExcluded = false;
+		balancedLimit = (TeamMemberLimit)((membersCount + (teamsCount - 1)) / (teamsCount));
+		i = 0;
 		while (i < consideredTeams.Size())
 		{
 			if (consideredTeams[i]->GetMemberLimitSetting() < balancedLimit)
 			{
-				additionalTeamsExcluded=true;
-				membersCount-=consideredTeams[i]->GetMemberLimitSetting();
+				additionalTeamsExcluded = true;
+				membersCount -= consideredTeams[i]->GetMemberLimitSetting();
 				teamsCount--;
 				consideredTeams.RemoveAtIndexFast(i);
 			}
@@ -1802,22 +1782,21 @@ TeamMemberLimit TM_World::GetBalancedTeamLimit(void) const
 			}
 		}
 
-	} while (additionalTeamsExcluded==true && teamsCount>0);
-	
+	} while (additionalTeamsExcluded == true && teamsCount > 0);
+
 	return balancedLimit;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 TeamManager::TeamManager()
 {
-	for (unsigned int i=0; i < 255; i++)
-		worldsArray[i]=0;
-	autoAddParticipants=true;
-	topology=TM_PEER_TO_PEER;
+	for (unsigned int i = 0; i < 255; i++)
+		worldsArray[i] = 0;
+	autoAddParticipants = true;
+	topology = TM_PEER_TO_PEER;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1829,16 +1808,16 @@ TeamManager::~TeamManager()
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_World* TeamManager::AddWorld(WorldId worldId)
+TM_World *TeamManager::AddWorld(WorldId worldId)
 {
-	RakAssert(worldsArray[worldId]==0 && "World already in use");
+	RakAssert(worldsArray[worldId] == 0 && "World already in use");
 
 	TM_World *newWorld = RakNet::OP_NEW<TM_World>(_FILE_AND_LINE_);
-	newWorld->worldId=worldId;
-	newWorld->teamManager=this;
-	newWorld->hostGuid=GetMyGUIDUnified();
-	worldsArray[worldId]=newWorld;
-	worldsList.Push(newWorld,_FILE_AND_LINE_);
+	newWorld->worldId = worldId;
+	newWorld->teamManager = this;
+	newWorld->hostGuid = GetMyGUIDUnified();
+	worldsArray[worldId] = newWorld;
+	worldsList.Push(newWorld, _FILE_AND_LINE_);
 	return newWorld;
 }
 
@@ -1846,17 +1825,17 @@ TM_World* TeamManager::AddWorld(WorldId worldId)
 
 void TeamManager::RemoveWorld(WorldId worldId)
 {
-	RakAssert(worldsArray[worldId]!=0 && "World not in use");
-	for (unsigned int i=0; i < worldsList.Size(); i++)
+	RakAssert(worldsArray[worldId] != 0 && "World not in use");
+	for (unsigned int i = 0; i < worldsList.Size(); i++)
 	{
-		if (worldsList[i]==worldsArray[worldId])
+		if (worldsList[i] == worldsArray[worldId])
 		{
-			RakNet::OP_DELETE(worldsList[i],_FILE_AND_LINE_);
+			RakNet::OP_DELETE(worldsList[i], _FILE_AND_LINE_);
 			worldsList.RemoveAtIndexFast(i);
 			break;
 		}
 	}
-	worldsArray[worldId]=0;
+	worldsArray[worldId] = 0;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1868,14 +1847,14 @@ unsigned int TeamManager::GetWorldCount(void) const
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_World* TeamManager::GetWorldAtIndex(unsigned int index) const
+TM_World *TeamManager::GetWorldAtIndex(unsigned int index) const
 {
 	return worldsList[index];
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TM_World* TeamManager::GetWorldWithId(WorldId worldId) const
+TM_World *TeamManager::GetWorldWithId(WorldId worldId) const
 {
 	return worldsArray[worldId];
 }
@@ -1884,9 +1863,9 @@ TM_World* TeamManager::GetWorldWithId(WorldId worldId) const
 
 void TeamManager::SetAutoManageConnections(bool autoAdd)
 {
-	autoAddParticipants=autoAdd;
+	autoAddParticipants = autoAdd;
 
-	for (unsigned int i=0; i < worldsList.Size(); i++)
+	for (unsigned int i = 0; i < worldsList.Size(); i++)
 	{
 		worldsList[i]->SetAutoManageConnections(autoAdd);
 	}
@@ -1896,7 +1875,7 @@ void TeamManager::SetAutoManageConnections(bool autoAdd)
 
 void TeamManager::SetTopology(TMTopology _topology)
 {
-	topology=_topology;
+	topology = _topology;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1913,7 +1892,7 @@ void TeamManager::DecomposeTeamFull(Packet *packet,
 									TM_World **world, TM_TeamMember **teamMember, TM_Team **team,
 									uint16_t &currentMembers, uint16_t &memberLimitIncludingBalancing, bool &balancingIsActive, JoinPermissions &joinPermissions)
 {
-	BitStream bsIn(packet->data,packet->length,false);
+	BitStream bsIn(packet->data, packet->length, false);
 	bsIn.IgnoreBytes(sizeof(MessageID));
 	DecomposeTeamFullOrLocked(&bsIn, world, teamMember, team, currentMembers, memberLimitIncludingBalancing, balancingIsActive, joinPermissions);
 }
@@ -1942,15 +1921,15 @@ void TeamManager::EncodeTeamFullOrLocked(RakNet::BitStream *bitStream, TM_TeamMe
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void TeamManager::DecomposeTeamFullOrLocked(RakNet::BitStream *bsIn, TM_World **world, TM_TeamMember **teamMember, TM_Team **team,
-							   uint16_t &currentMembers, uint16_t &memberLimitIncludingBalancing, bool &balancingIsActive, JoinPermissions &joinPermissions)
+											uint16_t &currentMembers, uint16_t &memberLimitIncludingBalancing, bool &balancingIsActive, JoinPermissions &joinPermissions)
 {
 	WorldId worldId;
 	NetworkID teamMemberId;
 	NetworkID teamId;
 
-	*teamMember=0;
-	*team=0;
-	*world=0;
+	*teamMember = 0;
+	*team = 0;
+	*world = 0;
 
 	bsIn->Read(worldId);
 	bsIn->Read(teamMemberId);
@@ -1974,7 +1953,7 @@ void TeamManager::DecomposeTeamLocked(Packet *packet,
 									  TM_World **world, TM_TeamMember **teamMember, TM_Team **team,
 									  uint16_t &currentMembers, uint16_t &memberLimitIncludingBalancing, bool &balancingIsActive, JoinPermissions &joinPermissions)
 {
-	BitStream bsIn(packet->data,packet->length,false);
+	BitStream bsIn(packet->data, packet->length, false);
 	bsIn.IgnoreBytes(sizeof(MessageID));
 	DecomposeTeamFullOrLocked(&bsIn, world, teamMember, team, currentMembers, memberLimitIncludingBalancing, balancingIsActive, joinPermissions);
 }
@@ -1986,7 +1965,7 @@ void TeamManager::EncodeTeamAssigned(RakNet::BitStream *bitStream, TM_TeamMember
 	bitStream->Write(teamMember->world->GetWorldId());
 	bitStream->Write(teamMember->GetNetworkID());
 	bitStream->WriteCasted<uint16_t>(teamMember->teams.Size());
-	for (unsigned int i=0; i < teamMember->teams.Size(); i++)
+	for (unsigned int i = 0; i < teamMember->teams.Size(); i++)
 	{
 		bitStream->Write(teamMember->teams[i]->GetNetworkID());
 	}
@@ -2009,20 +1988,20 @@ void TeamManager::ProcessTeamAssigned(RakNet::BitStream *bsIn)
 	if (teamMember)
 	{
 		teamMember->StoreLastTeams();
-		for (unsigned int i=0; i < teamsLeft.Size(); i++)
+		for (unsigned int i = 0; i < teamsLeft.Size(); i++)
 		{
 			teamMember->RemoveFromSpecificTeamInternal(teamsLeft[i]);
 		}
-		for (unsigned int i=0; i < teamsJoined.Size(); i++)
+		for (unsigned int i = 0; i < teamsJoined.Size(); i++)
 		{
-			if (teamMember->IsOnTeam(teamsJoined[i])==false)
+			if (teamMember->IsOnTeam(teamsJoined[i]) == false)
 			{
 				teamMember->RemoveFromRequestedTeams(teamsJoined[i]);
 				teamMember->AddToTeamList(teamsJoined[i]);
 			}
 		}
-		teamMember->noTeamSubcategory=noTeamId;
-		teamMember->joinTeamType=joinTeamType;
+		teamMember->noTeamSubcategory = noTeamId;
+		teamMember->joinTeamType = joinTeamType;
 	}
 }
 
@@ -2044,7 +2023,7 @@ void TeamManager::DecodeTeamAssigned(Packet *packet, TM_World **world, TM_TeamMe
 	}
 	else
 	{
-		*teamMember=0;
+		*teamMember = 0;
 	}
 }
 
@@ -2059,7 +2038,7 @@ void TeamManager::DecodeTeamCancelled(Packet *packet, TM_World **world, TM_TeamM
 	bsIn.IgnoreBytes(sizeof(MessageID));
 	bsIn.Read(worldId);
 	bsIn.Read(teamMemberId);
-	bool sp=false;
+	bool sp = false;
 	*world = GetWorldWithId(worldId);
 	if (*world)
 	{
@@ -2067,7 +2046,7 @@ void TeamManager::DecodeTeamCancelled(Packet *packet, TM_World **world, TM_TeamM
 	}
 	else
 	{
-		*teamMember=0;
+		*teamMember = 0;
 	}
 
 	bsIn.Read(sp);
@@ -2086,9 +2065,8 @@ void TeamManager::DecodeTeamCancelled(Packet *packet, TM_World **world, TM_TeamM
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void TeamManager::DecodeTeamAssigned(BitStream *bsIn, TM_World **world, TM_TeamMember **teamMember, NoTeamId &noTeamId,
-										JoinTeamType &joinTeamType, DataStructures::List<TM_Team *> &newTeam,
-										DataStructures::List<TM_Team *> &teamsLeft, DataStructures::List<TM_Team *> &teamsJoined
-										)
+									 JoinTeamType &joinTeamType, DataStructures::List<TM_Team *> &newTeam,
+									 DataStructures::List<TM_Team *> &teamsLeft, DataStructures::List<TM_Team *> &teamsJoined)
 {
 	newTeam.Clear(true, _FILE_AND_LINE_);
 	teamsLeft.Clear(true, _FILE_AND_LINE_);
@@ -2107,10 +2085,10 @@ void TeamManager::DecodeTeamAssigned(BitStream *bsIn, TM_World **world, TM_TeamM
 		uint16_t teamsCount;
 		bsIn->Read(teamsCount);
 
-		for (unsigned int i=0; i < teamsCount; i++)
+		for (unsigned int i = 0; i < teamsCount; i++)
 		{
 			bsIn->Read(teamId);
-			TM_Team * team = (*world)->GetTeamByNetworkID(teamId);
+			TM_Team *team = (*world)->GetTeamByNetworkID(teamId);
 			RakAssert(team);
 			if (team)
 				newTeam.Push(team, _FILE_AND_LINE_);
@@ -2119,18 +2097,18 @@ void TeamManager::DecodeTeamAssigned(BitStream *bsIn, TM_World **world, TM_TeamM
 
 		if (*teamMember)
 		{
-			for (unsigned int i=0; i < (*teamMember)->teams.Size(); i++)
+			for (unsigned int i = 0; i < (*teamMember)->teams.Size(); i++)
 			{
 				TM_Team *team = (*teamMember)->teams[i];
-				if (newTeam.GetIndexOf(team)==(unsigned int)-1)
+				if (newTeam.GetIndexOf(team) == (unsigned int)-1)
 					teamsLeft.Push(team, _FILE_AND_LINE_);
 			}
 		}
 
-		for (unsigned int i=0; i < newTeam.Size(); i++)
+		for (unsigned int i = 0; i < newTeam.Size(); i++)
 		{
 			TM_Team *team = newTeam[i];
-			if ((*teamMember)->teams.GetIndexOf(team)==(unsigned int)-1)
+			if ((*teamMember)->teams.GetIndexOf(team) == (unsigned int)-1)
 				teamsJoined.Push(team, _FILE_AND_LINE_);
 		}
 
@@ -2139,7 +2117,7 @@ void TeamManager::DecodeTeamAssigned(BitStream *bsIn, TM_World **world, TM_TeamM
 	}
 	else
 	{
-		*teamMember=0;
+		*teamMember = 0;
 	}
 }
 
@@ -2147,9 +2125,9 @@ void TeamManager::DecodeTeamAssigned(BitStream *bsIn, TM_World **world, TM_TeamM
 
 void TeamManager::Clear(void)
 {
-	for (unsigned int i=0; i < worldsList.Size(); i++)
+	for (unsigned int i = 0; i < worldsList.Size(); i++)
 	{
-		worldsArray[worldsList[i]->worldId]=0;
+		worldsArray[worldsList[i]->worldId] = 0;
 		worldsList[i]->Clear();
 		delete worldsList[i];
 	}
@@ -2169,87 +2147,87 @@ PluginReceiveResult TeamManager::OnReceive(Packet *packet)
 	switch (packet->data[0])
 	{
 	case ID_FCM2_NEW_HOST:
-		{
-			unsigned int i;
-			for (i=0; i < worldsList.Size(); i++)
-				worldsList[i]->SetHost(packet->guid);
-		}
-		break;
+	{
+		unsigned int i;
+		for (i = 0; i < worldsList.Size(); i++)
+			worldsList[i]->SetHost(packet->guid);
+	}
+	break;
 	case ID_TEAM_BALANCER_TEAM_ASSIGNED:
-		{
-			BitStream bsIn(packet->data,packet->length,false);
-			bsIn.IgnoreBytes(sizeof(MessageID));
+	{
+		BitStream bsIn(packet->data, packet->length, false);
+		bsIn.IgnoreBytes(sizeof(MessageID));
 
-			ProcessTeamAssigned(&bsIn);
-		}
-		break;
+		ProcessTeamAssigned(&bsIn);
+	}
+	break;
 	case ID_TEAM_BALANCER_TEAM_REQUESTED_CANCELLED:
+	{
+		BitStream bsIn(packet->data, packet->length, false);
+		bsIn.IgnoreBytes(1);
+		WorldId worldId;
+		bsIn.Read(worldId);
+		TM_World *world = GetWorldWithId(worldId);
+		if (world == 0)
+			return RR_STOP_PROCESSING_AND_DEALLOCATE;
+		bool validPacket = OnRemoveFromRequestedTeams(packet, world);
+		if (validPacket == false)
+			return RR_STOP_PROCESSING_AND_DEALLOCATE;
+		break;
+	}
+	case ID_TEAM_BALANCER_INTERNAL:
+	{
+		if (packet->length >= 2)
 		{
-			BitStream bsIn(packet->data,packet->length,false);
-			bsIn.IgnoreBytes(1);
+			BitStream bsIn(packet->data, packet->length, false);
+			bsIn.IgnoreBytes(2);
 			WorldId worldId;
 			bsIn.Read(worldId);
 			TM_World *world = GetWorldWithId(worldId);
-			if (world==0)
+			if (world == 0)
 				return RR_STOP_PROCESSING_AND_DEALLOCATE;
-			bool validPacket = OnRemoveFromRequestedTeams(packet, world);
-			if (validPacket==false)
-				return RR_STOP_PROCESSING_AND_DEALLOCATE;
-			break;
-		}
-	case ID_TEAM_BALANCER_INTERNAL:
-		{
-			if (packet->length>=2)
-			{
-				BitStream bsIn(packet->data,packet->length,false);
-				bsIn.IgnoreBytes(2);
-				WorldId worldId;
-				bsIn.Read(worldId);
-				TM_World *world = GetWorldWithId(worldId);
-				if (world==0)
-					return RR_STOP_PROCESSING_AND_DEALLOCATE;
 
-				switch (packet->data[1])
-				{
-				case ID_RUN_UpdateListsToNoTeam:
-					OnUpdateListsToNoTeam(packet, world);
-					break;
-				case ID_RUN_UpdateTeamsRequestedToAny:
-					OnUpdateTeamsRequestedToAny(packet, world);
-					break;
-				case ID_RUN_JoinAnyTeam:
-					OnJoinAnyTeam(packet, world);
-					break;
-				case ID_RUN_JoinRequestedTeam:
-					OnJoinRequestedTeam(packet, world);
-					break;
-				case ID_RUN_UpdateTeamsRequestedToNoneAndAddTeam:
-					OnUpdateTeamsRequestedToNoneAndAddTeam(packet, world);
-					break;
-				case ID_RUN_RemoveFromTeamsRequestedAndAddTeam:
-					OnRemoveFromTeamsRequestedAndAddTeam(packet, world);
-					break;
-				case ID_RUN_AddToRequestedTeams:
-					OnAddToRequestedTeams(packet, world);
-					break;
-				case ID_RUN_LeaveTeam:
-					OnLeaveTeam(packet, world);
-					break;
-				case ID_RUN_SetMemberLimit:
-					OnSetMemberLimit(packet, world);
-					break;
-				case ID_RUN_SetJoinPermissions:
-					OnSetJoinPermissions(packet, world);
-					break;
-				case ID_RUN_SetBalanceTeams:
-					OnSetBalanceTeams(packet, world);
-					break;
-				case ID_RUN_SetBalanceTeamsInitial:
-					OnSetBalanceTeamsInitial(packet, world);
-					break;
-				}
+			switch (packet->data[1])
+			{
+			case ID_RUN_UpdateListsToNoTeam:
+				OnUpdateListsToNoTeam(packet, world);
+				break;
+			case ID_RUN_UpdateTeamsRequestedToAny:
+				OnUpdateTeamsRequestedToAny(packet, world);
+				break;
+			case ID_RUN_JoinAnyTeam:
+				OnJoinAnyTeam(packet, world);
+				break;
+			case ID_RUN_JoinRequestedTeam:
+				OnJoinRequestedTeam(packet, world);
+				break;
+			case ID_RUN_UpdateTeamsRequestedToNoneAndAddTeam:
+				OnUpdateTeamsRequestedToNoneAndAddTeam(packet, world);
+				break;
+			case ID_RUN_RemoveFromTeamsRequestedAndAddTeam:
+				OnRemoveFromTeamsRequestedAndAddTeam(packet, world);
+				break;
+			case ID_RUN_AddToRequestedTeams:
+				OnAddToRequestedTeams(packet, world);
+				break;
+			case ID_RUN_LeaveTeam:
+				OnLeaveTeam(packet, world);
+				break;
+			case ID_RUN_SetMemberLimit:
+				OnSetMemberLimit(packet, world);
+				break;
+			case ID_RUN_SetJoinPermissions:
+				OnSetJoinPermissions(packet, world);
+				break;
+			case ID_RUN_SetBalanceTeams:
+				OnSetBalanceTeams(packet, world);
+				break;
+			case ID_RUN_SetBalanceTeamsInitial:
+				OnSetBalanceTeamsInitial(packet, world);
+				break;
 			}
 		}
+	}
 		return RR_STOP_PROCESSING_AND_DEALLOCATE;
 	}
 
@@ -2258,9 +2236,9 @@ PluginReceiveResult TeamManager::OnReceive(Packet *packet)
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TeamManager::OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
+void TeamManager::OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason)
 {
-	for (unsigned int i=0; i < worldsList.Size(); i++)
+	for (unsigned int i = 0; i < worldsList.Size(); i++)
 	{
 		worldsList[i]->OnClosedConnection(systemAddress, rakNetGUID, lostConnectionReason);
 	}
@@ -2270,7 +2248,7 @@ void TeamManager::OnClosedConnection(const SystemAddress &systemAddress, RakNetG
 
 void TeamManager::OnNewConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, bool isIncoming)
 {
-	for (unsigned int i=0; i < worldsList.Size(); i++)
+	for (unsigned int i = 0; i < worldsList.Size(); i++)
 	{
 		worldsList[i]->OnNewConnection(systemAddress, rakNetGUID, isIncoming);
 	}
@@ -2278,9 +2256,9 @@ void TeamManager::OnNewConnection(const SystemAddress &systemAddress, RakNetGUID
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TeamManager::Send( const RakNet::BitStream * bitStream, const AddressOrGUID systemIdentifier, bool broadcast )
+void TeamManager::Send(const RakNet::BitStream *bitStream, const AddressOrGUID systemIdentifier, bool broadcast)
 {
-	SendUnified(bitStream,HIGH_PRIORITY, RELIABLE_ORDERED, 0, systemIdentifier, broadcast);
+	SendUnified(bitStream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, systemIdentifier, broadcast);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2290,7 +2268,7 @@ void TeamManager::RemoveFromTeamsRequestedAndAddTeam(TM_TeamMember *teamMember, 
 	teamMember->RemoveFromRequestedTeams(team);
 	if (isTeamSwitch)
 	{
-		if (teamToLeave==0)
+		if (teamToLeave == 0)
 		{
 			// Leave all teams
 			teamMember->RemoveFromAllTeamsInternal();
@@ -2323,10 +2301,10 @@ void TeamManager::PushBitStream(RakNet::BitStream *bitStream)
 {
 	Packet *p = AllocatePacketUnified(bitStream->GetNumberOfBytesUsed());
 	memcpy(p->data, bitStream->GetData(), bitStream->GetNumberOfBytesUsed());
-	p->systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
-	p->systemAddress.systemIndex=(SystemIndex)-1;
-	p->guid=UNASSIGNED_RAKNET_GUID;
-	p->wasGeneratedLocally=true;
+	p->systemAddress = UNASSIGNED_SYSTEM_ADDRESS;
+	p->systemAddress.systemIndex = (SystemIndex)-1;
+	p->guid = UNASSIGNED_RAKNET_GUID;
+	p->wasGeneratedLocally = true;
 	PushBackPacketUnified(p, true);
 }
 
@@ -2334,8 +2312,8 @@ void TeamManager::PushBitStream(RakNet::BitStream *bitStream)
 
 void TeamManager::OnUpdateListsToNoTeam(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
@@ -2347,12 +2325,12 @@ void TeamManager::OnUpdateListsToNoTeam(Packet *packet, TM_World *world)
 		teamMember->UpdateListsToNoTeam(noTeamId);
 		PushTeamAssigned(teamMember);
 
-		if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified())
+		if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified())
 		{
 			world->FillRequestedSlots();
 			world->EnforceTeamBalance(noTeamId);
 
-			if (topology==TM_CLIENT_SERVER)
+			if (topology == TM_CLIENT_SERVER)
 			{
 				// Relay
 				world->BroadcastToParticipants(packet->data, packet->length, packet->guid);
@@ -2365,8 +2343,8 @@ void TeamManager::OnUpdateListsToNoTeam(Packet *packet, TM_World *world)
 
 void TeamManager::OnUpdateTeamsRequestedToAny(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
@@ -2380,22 +2358,22 @@ void TeamManager::OnUpdateTeamsRequestedToAny(Packet *packet, TM_World *world)
 
 void TeamManager::OnJoinAnyTeam(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
 	if (teamMember)
 	{
 		// This is a host-only operation
-		RakAssert(world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified());
+		RakAssert(world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified());
 
 		teamMember->UpdateTeamsRequestedToAny();
 
 		int resultCode;
 		TM_Team *newTeam = world->JoinAnyTeam(teamMember, &resultCode);
 
-		if (resultCode==1)
+		if (resultCode == 1)
 		{
 			// Broadcast packet - remote systems should clear requested teams to none, and add the team we joined.
 			// Broadcast includes non-host sender (all participants)
@@ -2408,7 +2386,7 @@ void TeamManager::OnJoinAnyTeam(Packet *packet, TM_World *world)
 			world->BroadcastToParticipants(&bsOut, packet->guid);
 
 			// Send to sender ID_TEAM_BALANCER_TEAM_ASSIGNED
-			if (packet->guid!=GetMyGUIDUnified())
+			if (packet->guid != GetMyGUIDUnified())
 			{
 				RakNet::BitStream bitStream;
 				bitStream.WriteCasted<MessageID>(ID_TEAM_BALANCER_TEAM_ASSIGNED);
@@ -2427,17 +2405,17 @@ void TeamManager::OnJoinAnyTeam(Packet *packet, TM_World *world)
 			world->BroadcastToParticipants(&bsOut, packet->guid);
 
 			bsOut.Reset();
-			if (resultCode==-2)
+			if (resultCode == -2)
 			{
 				EncodeTeamFull(&bsOut, teamMember, newTeam);
 			}
-			else if (resultCode==-1)
+			else if (resultCode == -1)
 			{
 				EncodeTeamLocked(&bsOut, teamMember, newTeam);
 			}
 			// SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->guid, false);
 			world->BroadcastToParticipants(&bsOut, UNASSIGNED_RAKNET_GUID);
-			if (packet->guid!=GetMyGUIDUnified())
+			if (packet->guid != GetMyGUIDUnified())
 				PushBitStream(&bsOut);
 		}
 	}
@@ -2447,18 +2425,18 @@ void TeamManager::OnJoinAnyTeam(Packet *packet, TM_World *world)
 
 void TeamManager::OnJoinRequestedTeam(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
 	NetworkID teamToJoinNetworkId;
 	bsIn.Read(teamToJoinNetworkId);
 	TM_Team *teamToJoin = world->GetTeamByNetworkID(teamToJoinNetworkId);
-	bool isTeamSwitch=false;
-	bool switchSpecificTeam=false;
-	NetworkID teamToLeaveNetworkId=UNASSIGNED_NETWORK_ID;
-	TM_Team *teamToLeave=0;
+	bool isTeamSwitch = false;
+	bool switchSpecificTeam = false;
+	NetworkID teamToLeaveNetworkId = UNASSIGNED_NETWORK_ID;
+	TM_Team *teamToLeave = 0;
 	bsIn.Read(isTeamSwitch);
 	if (isTeamSwitch)
 	{
@@ -2467,33 +2445,33 @@ void TeamManager::OnJoinRequestedTeam(Packet *packet, TM_World *world)
 		{
 			bsIn.Read(teamToLeaveNetworkId);
 			teamToLeave = world->GetTeamByNetworkID(teamToLeaveNetworkId);
-			if (teamToLeave==0)
-				isTeamSwitch=false;
+			if (teamToLeave == 0)
+				isTeamSwitch = false;
 		}
 	}
 	if (teamToJoin && teamMember)
 	{
 		if (isTeamSwitch)
 		{
-			if (teamMember->SwitchSpecificTeamCheck(teamToJoin, teamToLeave, packet->guid==GetMyGUIDUnified())==false)
+			if (teamMember->SwitchSpecificTeamCheck(teamToJoin, teamToLeave, packet->guid == GetMyGUIDUnified()) == false)
 				return;
 
 			teamMember->AddToRequestedTeams(teamToJoin, teamToLeave);
 		}
 		else
 		{
-			if (teamMember->JoinSpecificTeamCheck(teamToJoin, packet->guid==GetMyGUIDUnified())==false)
+			if (teamMember->JoinSpecificTeamCheck(teamToJoin, packet->guid == GetMyGUIDUnified()) == false)
 				return;
 
 			teamMember->AddToRequestedTeams(teamToJoin);
 		}
 
-		DataStructures::List<TM_Team*> teamsWeAreLeaving;
+		DataStructures::List<TM_Team *> teamsWeAreLeaving;
 		if (isTeamSwitch)
 		{
-			if (teamToLeave==0)
+			if (teamToLeave == 0)
 			{
-				teamsWeAreLeaving=teamMember->teams;
+				teamsWeAreLeaving = teamMember->teams;
 			}
 			else
 			{
@@ -2501,13 +2479,13 @@ void TeamManager::OnJoinRequestedTeam(Packet *packet, TM_World *world)
 					teamsWeAreLeaving.Push(teamToLeave, _FILE_AND_LINE_);
 			}
 
-			if (teamsWeAreLeaving.Size()==0)
-				isTeamSwitch=false;
+			if (teamsWeAreLeaving.Size() == 0)
+				isTeamSwitch = false;
 		}
 
 		int resultCode = world->JoinSpecificTeam(teamMember, teamToJoin, isTeamSwitch, teamToLeave, teamsWeAreLeaving);
 
-		if (resultCode==1)
+		if (resultCode == 1)
 		{
 			// Broadcast packet - remote systems should remove from requested teams and add the team we joined.
 			// Broadcast includes non-host sender (all participants)
@@ -2527,7 +2505,7 @@ void TeamManager::OnJoinRequestedTeam(Packet *packet, TM_World *world)
 			world->BroadcastToParticipants(&bsOut, packet->guid);
 
 			// Send to sender ID_TEAM_BALANCER_TEAM_ASSIGNED
-			if (packet->guid!=GetMyGUIDUnified())
+			if (packet->guid != GetMyGUIDUnified())
 			{
 				RakNet::BitStream bitStream;
 				bitStream.WriteCasted<MessageID>(ID_TEAM_BALANCER_TEAM_ASSIGNED);
@@ -2554,18 +2532,18 @@ void TeamManager::OnJoinRequestedTeam(Packet *packet, TM_World *world)
 			world->BroadcastToParticipants(&bsOut, packet->guid);
 
 			bsOut.Reset();
-			if (resultCode==-2)
+			if (resultCode == -2)
 			{
 				EncodeTeamFull(&bsOut, teamMember, teamToJoin);
 			}
-			else if (resultCode==-1)
+			else if (resultCode == -1)
 			{
 				EncodeTeamLocked(&bsOut, teamMember, teamToJoin);
 			}
 			// SendUnified(&bsOut, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->guid, false);
 
 			world->BroadcastToParticipants(&bsOut, UNASSIGNED_RAKNET_GUID);
-			if (packet->guid!=GetMyGUIDUnified())
+			if (packet->guid != GetMyGUIDUnified())
 				PushBitStream(&bsOut);
 		}
 	}
@@ -2575,8 +2553,8 @@ void TeamManager::OnJoinRequestedTeam(Packet *packet, TM_World *world)
 
 void TeamManager::OnUpdateTeamsRequestedToNoneAndAddTeam(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
@@ -2597,16 +2575,16 @@ void TeamManager::OnUpdateTeamsRequestedToNoneAndAddTeam(Packet *packet, TM_Worl
 
 void TeamManager::OnRemoveFromTeamsRequestedAndAddTeam(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
 	NetworkID teamNetworkId;
 	bsIn.Read(teamNetworkId);
-	bool isTeamSwitch=false, switchSpecificTeam=false;
+	bool isTeamSwitch = false, switchSpecificTeam = false;
 	NetworkID teamToLeaveNetworkId;
-	TM_Team *teamToLeave=0;
+	TM_Team *teamToLeave = 0;
 	bsIn.Read(isTeamSwitch);
 	if (isTeamSwitch)
 	{
@@ -2624,7 +2602,7 @@ void TeamManager::OnRemoveFromTeamsRequestedAndAddTeam(Packet *packet, TM_World 
 		teamMember->StoreLastTeams();
 		if (teamToLeave)
 			teamMember->RemoveFromSpecificTeamInternal(teamToLeave);
-		else if (isTeamSwitch==true && switchSpecificTeam==false)
+		else if (isTeamSwitch == true && switchSpecificTeam == false)
 			teamMember->RemoveFromAllTeamsInternal();
 		RemoveFromTeamsRequestedAndAddTeam(teamMember, team, false, 0);
 	}
@@ -2634,8 +2612,8 @@ void TeamManager::OnRemoveFromTeamsRequestedAndAddTeam(Packet *packet, TM_World 
 
 void TeamManager::OnAddToRequestedTeams(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
@@ -2643,10 +2621,10 @@ void TeamManager::OnAddToRequestedTeams(Packet *packet, TM_World *world)
 	bsIn.Read(teamNetworkId);
 	TM_Team *team = world->GetTeamByNetworkID(teamNetworkId);
 
-	bool isTeamSwitch=false;
-	bool switchSpecificTeam=false;
-	NetworkID teamToLeaveNetworkId=UNASSIGNED_NETWORK_ID;
-	TM_Team *teamToLeave=0;
+	bool isTeamSwitch = false;
+	bool switchSpecificTeam = false;
+	NetworkID teamToLeaveNetworkId = UNASSIGNED_NETWORK_ID;
+	TM_Team *teamToLeave = 0;
 	bsIn.Read(isTeamSwitch);
 	if (isTeamSwitch)
 	{
@@ -2655,8 +2633,8 @@ void TeamManager::OnAddToRequestedTeams(Packet *packet, TM_World *world)
 		{
 			bsIn.Read(teamToLeaveNetworkId);
 			teamToLeave = world->GetTeamByNetworkID(teamToLeaveNetworkId);
-			if (teamToLeave==0)
-				isTeamSwitch=false;
+			if (teamToLeave == 0)
+				isTeamSwitch = false;
 		}
 	}
 
@@ -2673,12 +2651,12 @@ void TeamManager::OnAddToRequestedTeams(Packet *packet, TM_World *world)
 
 bool TeamManager::OnRemoveFromRequestedTeams(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(1+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(1 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
-	bool hasSpecificTeam=false;
+	bool hasSpecificTeam = false;
 	NetworkID teamNetworkId;
 	TM_Team *team;
 	bsIn.Read(hasSpecificTeam);
@@ -2686,12 +2664,12 @@ bool TeamManager::OnRemoveFromRequestedTeams(Packet *packet, TM_World *world)
 	{
 		bsIn.Read(teamNetworkId);
 		team = world->GetTeamByNetworkID(teamNetworkId);
-		if (team==0)
+		if (team == 0)
 			return false;
 	}
 	else
 	{
-		team=0;
+		team = 0;
 	}
 
 	if (teamMember)
@@ -2699,7 +2677,7 @@ bool TeamManager::OnRemoveFromRequestedTeams(Packet *packet, TM_World *world)
 		teamMember->RemoveFromRequestedTeams(team);
 
 		// Relay as host
-		if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified() && topology==TM_CLIENT_SERVER)
+		if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified() && topology == TM_CLIENT_SERVER)
 		{
 			world->BroadcastToParticipants(packet->data, packet->length, packet->guid);
 		}
@@ -2715,8 +2693,8 @@ bool TeamManager::OnRemoveFromRequestedTeams(Packet *packet, TM_World *world)
 
 void TeamManager::OnLeaveTeam(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID networkId;
 	bsIn.Read(networkId);
 	TM_TeamMember *teamMember = world->GetTeamMemberByNetworkID(networkId);
@@ -2728,26 +2706,26 @@ void TeamManager::OnLeaveTeam(Packet *packet, TM_World *world)
 
 	if (team && teamMember)
 	{
-		if (teamMember->LeaveTeamCheck(team)==false)
+		if (teamMember->LeaveTeamCheck(team) == false)
 			return;
 
 		teamMember->StoreLastTeams();
 		teamMember->RemoveFromSpecificTeamInternal(team);
-		if (teamMember->GetCurrentTeamCount()==0)
+		if (teamMember->GetCurrentTeamCount() == 0)
 		{
-			teamMember->noTeamSubcategory=noTeamId;
-			teamMember->joinTeamType=JOIN_NO_TEAM;
+			teamMember->noTeamSubcategory = noTeamId;
+			teamMember->joinTeamType = JOIN_NO_TEAM;
 		}
 		PushTeamAssigned(teamMember);
 
-		if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified())
+		if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified())
 		{
 			// Rebalance teams
 			world->FillRequestedSlots();
 			world->EnforceTeamBalance(noTeamId);
 
 			// Relay as host
-			if (topology==TM_CLIENT_SERVER)
+			if (topology == TM_CLIENT_SERVER)
 				world->BroadcastToParticipants(packet->data, packet->length, packet->guid);
 		}
 	}
@@ -2757,8 +2735,8 @@ void TeamManager::OnLeaveTeam(Packet *packet, TM_World *world)
 
 void TeamManager::OnSetMemberLimit(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID teamNetworkId;
 	bsIn.Read(teamNetworkId);
 	TeamMemberLimit teamMemberLimit;
@@ -2769,11 +2747,11 @@ void TeamManager::OnSetMemberLimit(Packet *packet, TM_World *world)
 	TM_Team *team = world->GetTeamByNetworkID(teamNetworkId);
 	if (team)
 	{
-		team->teamMemberLimit=teamMemberLimit;
+		team->teamMemberLimit = teamMemberLimit;
 
-		if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified())
+		if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified())
 		{
-			if (packet->guid==GetMyGUIDUnified())
+			if (packet->guid == GetMyGUIDUnified())
 				world->BroadcastToParticipants(packet->data, packet->length, packet->guid);
 			else
 				world->BroadcastToParticipants(packet->data, packet->length, UNASSIGNED_RAKNET_GUID);
@@ -2787,8 +2765,8 @@ void TeamManager::OnSetMemberLimit(Packet *packet, TM_World *world)
 
 void TeamManager::OnSetJoinPermissions(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
 	NetworkID teamNetworkId;
 	bsIn.Read(teamNetworkId);
 	JoinPermissions joinPermissions;
@@ -2797,11 +2775,11 @@ void TeamManager::OnSetJoinPermissions(Packet *packet, TM_World *world)
 	TM_Team *team = world->GetTeamByNetworkID(teamNetworkId);
 	if (team)
 	{
-		team->joinPermissions=joinPermissions;
+		team->joinPermissions = joinPermissions;
 
-		if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified())
+		if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified())
 		{
-			if (packet->guid==GetMyGUIDUnified())
+			if (packet->guid == GetMyGUIDUnified())
 				world->BroadcastToParticipants(packet->data, packet->length, packet->guid);
 			else
 				world->BroadcastToParticipants(packet->data, packet->length, UNASSIGNED_RAKNET_GUID);
@@ -2814,21 +2792,21 @@ void TeamManager::OnSetJoinPermissions(Packet *packet, TM_World *world)
 
 void TeamManager::OnSetBalanceTeams(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
-	bool balanceTeams=false;
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
+	bool balanceTeams = false;
 	bsIn.Read(balanceTeams);
 	NoTeamId noTeamId;
 	bsIn.Read(noTeamId);
 
-	world->balanceTeamsIsActive=balanceTeams;
-	if (world->GetHost()==world->GetTeamManager()->GetMyGUIDUnified())
+	world->balanceTeamsIsActive = balanceTeams;
+	if (world->GetHost() == world->GetTeamManager()->GetMyGUIDUnified())
 	{
-		if (packet->guid==GetMyGUIDUnified())
+		if (packet->guid == GetMyGUIDUnified())
 			world->BroadcastToParticipants(packet->data, packet->length, packet->guid);
 		else
 			world->BroadcastToParticipants(packet->data, packet->length, UNASSIGNED_RAKNET_GUID);
-		
+
 		if (balanceTeams)
 			world->EnforceTeamBalance(noTeamId);
 		else
@@ -2840,14 +2818,13 @@ void TeamManager::OnSetBalanceTeams(Packet *packet, TM_World *world)
 
 void TeamManager::OnSetBalanceTeamsInitial(Packet *packet, TM_World *world)
 {
-	BitStream bsIn(packet->data,packet->length,false);
-	bsIn.IgnoreBytes(2+sizeof(WorldId));
-	bool balanceTeams=false;
+	BitStream bsIn(packet->data, packet->length, false);
+	bsIn.IgnoreBytes(2 + sizeof(WorldId));
+	bool balanceTeams = false;
 	bsIn.Read(balanceTeams);
-	world->balanceTeamsIsActive=balanceTeams;
+	world->balanceTeamsIsActive = balanceTeams;
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif // _RAKNET_SUPPORT_TeamManager==1
-

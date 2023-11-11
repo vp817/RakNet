@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -11,7 +11,7 @@
 #ifndef _GRID_SECTORIZER_H
 #define _GRID_SECTORIZER_H
 
-//#define _USE_ORDERED_LIST
+// #define _USE_ORDERED_LIST
 
 #include "RakMemoryOverride.h"
 
@@ -41,12 +41,12 @@ public:
 
 	// Adds and removes in one pass, more efficient than calling both functions consecutively
 	void MoveEntry(void *entry, const float sourceMinX, const float sourceMinY, const float sourceMaxX, const float sourceMaxY,
-		const float destMinX, const float destMinY, const float destMaxX, const float destMaxY);
+				   const float destMinX, const float destMinY, const float destMaxX, const float destMaxY);
 
 #endif
 
 	// Adds to intersectionList all entries in a certain radius
-	void GetEntries(DataStructures::List<void*>& intersectionList, const float minX, const float minY, const float maxX, const float maxY);
+	void GetEntries(DataStructures::List<void *> &intersectionList, const float minX, const float minY, const float maxX, const float maxY);
 
 	void Clear(void);
 
@@ -65,13 +65,12 @@ protected:
 	float gridWidth, gridHeight;
 	int gridCellWidthCount, gridCellHeightCount;
 
-
 	// int gridWidth, gridHeight;
 
 #ifdef _USE_ORDERED_LIST
-	DataStructures::OrderedList<void*, void*>* grid;
+	DataStructures::OrderedList<void *, void *> *grid;
 #else
-	DataStructures::List<void*>* grid;
+	DataStructures::List<void *> *grid;
 #endif
 };
 

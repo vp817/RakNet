@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -60,7 +60,6 @@ enum UDPProxyMessages
 	ID_UDP_PROXY_NO_PASSWORD_SET_FROM_COORDINATOR_TO_SERVER,
 	ID_UDP_PROXY_WRONG_PASSWORD_FROM_COORDINATOR_TO_SERVER
 };
-
 
 #define UDP_FORWARDER_MAXIMUM_TIMEOUT (60000 * 10)
 

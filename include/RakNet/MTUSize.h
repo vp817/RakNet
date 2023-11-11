@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -11,7 +11,6 @@
 /// \file
 /// \brief \b [Internal] Defines the default maximum transfer unit.
 ///
-
 
 #ifndef MAXIMUM_MTU_SIZE
 
@@ -28,10 +27,7 @@
 /// \li \em 576. Typical value to connect to dial-up ISPs.
 /// The largest value for an UDP datagram
 
-
-
 #define MAXIMUM_MTU_SIZE 1492
-
 
 #define MINIMUM_MTU_SIZE 400
 
