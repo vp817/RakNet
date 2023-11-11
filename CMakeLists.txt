@@ -1,58 +1,76 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 
 project(RakNet)
 
-if( NOT APPLE )
-# check 64 bit
-if( CMAKE_SIZEOF_VOID_P MATCHES "4" )
-  set( HAVE_64_BIT 0 )
-else(  CMAKE_SIZEOF_VOID_P MATCHES "4")
-  set( HAVE_64_BIT 1 )
-endif(  CMAKE_SIZEOF_VOID_P MATCHES "4")
-endif( NOT APPLE )
-
-IF (WIN32 AND NOT UNIX)
-	set (PROGRAMFILESX86 $ENV{PROGRAMFILES})
-	string(REPLACE "\\" "/" PROGRAMFILESX86 ${PROGRAMFILESX86})
-ENDIF(WIN32 AND NOT UNIX)
-
-IF (WIN32 AND NOT UNIX)
-	set(RAKNET_LIBRARY_LIBS ws2_32.lib)
-ELSE(WIN32 AND NOT UNIX)
-	set(RAKNET_LIBRARY_LIBS pthread)
-ENDIF(WIN32 AND NOT UNIX)
-
-
-# Options
-option( RAKNET_ENABLE_SAMPLES 	"Generate RakNet sample projects if true." 		TRUE  )
-option( RAKNET_ENABLE_DLL		"Generate the DLL project if true." 			TRUE )
-option( RAKNET_ENABLE_STATIC	"Generate the static library project if true." 	TRUE )
-option( RAKNET_GENERATE_INCLUDE_ONLY_DIR "Setup a include/RakNet/ directory in which all the headers are copied." FALSE )
-
-set( RAKNETHEADERFILES ${RakNet_SOURCE_DIR}/Source ) #This name doesn't follow CMake conventions but for retro compatibility I'll let it there.
-
-if( RAKNET_GENERATE_INCLUDE_ONLY_DIR )
-	set( RAKNET_INCLUDE_ONLY_DIR ${RakNet_SOURCE_DIR}/include ) # this will be visible by client code
-	set( RAKNET_NAMED_INCLUDE_ONLY_DIR ${RAKNET_INCLUDE_ONLY_DIR}/RakNet )
-	message( STATUS "Setting up the ${RAKNET_NAMED_INCLUDE_ONLY_DIR} directory..." )
-	# Now setup the include/RakNet/*.h files.
-	file( MAKE_DIRECTORY ${RAKNET_NAMED_INCLUDE_ONLY_DIR} )
-	file( COPY ${RAKNETHEADERFILES}/ DESTINATION ${RAKNET_NAMED_INCLUDE_ONLY_DIR} FILES_MATCHING PATTERN "*.h"  )
-	message( STATUS "DONE: Setting up the ${RAKNET_NAMED_INCLUDE_ONLY_DIR} directory." )
+if(NOT APPLE)
+	if(CMAKE_SIZEOF_VOID_P MATCHES "4")
+		set(HAVE_64_BIT 0)
+	else()
+		set(HAVE_64_BIT 1)
+	endif()
 endif()
 
-set( RAKNET_INCLUDE_DIRS ${RAKNETHEADERFILES} ${RAKNET_INCLUDE_ONLY_DIR} PARENT_SCOPE ) # Visible from outside
+if(WIN32 AND NOT UNIX)
+	set(PROGRAMFILESX86 $ENV{PROGRAMFILES})
+	string(REPLACE "\\" "/" PROGRAMFILESX86 ${PROGRAMFILESX86})
+endif()
 
-include(./CmakeIncludes/CmakeMacros.txt)
+if(WIN32 AND NOT UNIX)
+	set(RAKNET_LIBRARY_LIBS ws2_32.lib)
+else()
+	set(RAKNET_LIBRARY_LIBS pthread)
+endif()
+
+set(RAKNET_INCLUDES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+file(GLOB_RECURSE RAKNET_ALL_HEADER_SRCS ${RAKNET_INCLUDES_PATH}/*.h)
+file(GLOB_RECURSE RAKNET_ALL_CPP_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+
+option(RAKNET_ENABLE_SAMPLES "Generate RakNet sample projects if true." OFF)
+option(RAKNET_ENABLE_DLL "Generate the DLL project if true." OFF)
+option(RAKNET_ENABLE_STATIC "Generate the static library project if true." ON)
+
+include(./CMakeIncludes/CMakeMacros.cmake)
 FIXLINKOPTIONS()
 FIXCOMPILEOPTIONS()
 
+if(RAKNET_ENABLE_DLL)
+	if(WIN32 AND NOT UNIX)
+		set(CMAKE_CXX_FLAGS "/D WIN32 /D _RAKNET_DLL /D _CRT_NONSTDC_NO_DEPRECATE /D _CRT_SECURE_NO_DEPRECATE /GS- /GR- ")
+	endif()
 
-add_subdirectory(Lib)
+	add_library(RakNetDLL SHARED ${RAKNET_ALL_CPP_SRCS} ${RAKNET_ALL_HEADER_SRCS})
+	target_include_directories(RakNetDLL PRIVATE ${RAKNET_INCLUDES_PATH}/RakNet)
 
+	if(WIN32 AND NOT UNIX)
+		target_link_libraries(RakNetDLL ${RAKNET_LIBRARY_LIBS})
+	else()
+		target_link_libraries(RakNetDLL ${RAKNET_LIBRARY_LIBS})
+		install(TARGETS RakNetDLL DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+	endif()
+elseif(RAKNET_ENABLE_STATIC)
+	add_library(RakNetLibStatic STATIC ${RAKNET_ALL_CPP_SRCS} ${RAKNET_ALL_HEADER_SRCS})
 
-set(RAKNET_COMMON_LIBS RakNetLibStatic)
+	target_include_directories(RakNetLibStatic PRIVATE ${RAKNET_INCLUDES_PATH}/RakNet)
 
-if( RAKNET_GENERATE_SAMPLES )
+	if(WIN32 AND NOT UNIX)
+		set(CMAKE_CXX_FLAGS "/D WIN32 /D _RAKNET_LIB /D _CRT_NONSTDC_NO_DEPRECATE /D _CRT_SECURE_NO_DEPRECATE /GS- /GR- ")
+	endif()
+
+	target_link_libraries(RakNetLibStatic ${RAKNET_LIBRARY_LIBS})
+
+	if(WIN32 AND NOT UNIX)
+		if(NOT ${CMAKE_GENERATOR} STREQUAL "MSYS Makefiles")
+			if(MSVC_VERSION GREATER_EQUAL 1600)
+				set_target_properties(RakNetLibStatic PROPERTIES STATIC_LIBRARY_FLAGS "/NODEFAULTLIB:\"LIBCD.lib LIBCMTD.lib MSVCRT.lib\"")
+			else()
+				set_target_properties(RakNetLibStatic PROPERTIES STATIC_LIBRARY_FLAGS "/NODEFAULTLIB:&quot;LIBCD.lib LIBCMTD.lib MSVCRT.lib&quot;")
+			endif()
+		endif()
+	else()
+		install(TARGETS RakNetLibStatic DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+		install(FILES ${RAKNET_ALL_HEADER_SRCS} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include/RakNet)
+	endif()
+elseif(RAKNET_GENERATE_SAMPLES)
 	add_subdirectory(Samples)
 endif()

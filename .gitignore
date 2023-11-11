@@ -3,10 +3,16 @@
 [Rr]elease/
 x64/
 
+# Visual Studio Code
+.vscode/
+
 *.opensdf
 *.sdf
 *.user
 *.suo
+
+# Linux
+MakeFile
 
 # Xcode and OS X 
 build/
@@ -29,3 +35,17 @@ Debug/
 Release/
 .DS_Store
 .Trashes
+
+# CMake
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+
+# MakeFile
+Makefile
+
+# Libraries
+libRakNetLibStatic.a
+RakNetLibStatic.lib
+libRakNetDLL.so
+RakNetDLL.dll
