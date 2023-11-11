@@ -1,4 +1,4 @@
-RakNet 4.081
+RakNet 5.00
 ============
 
 Copyright (c) 2014, Oculus VR, Inc.
