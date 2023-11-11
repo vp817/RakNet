@@ -68,26 +68,21 @@ namespace DataStructures
 	{
 		RakAssert(ranges.Size() < (unsigned short)-1);
 		RakNet::BitStream tempBS;
-		RakNet::BitSize_t bitsWritten;
-		unsigned short countWritten;
-		unsigned i;
-		countWritten = 0;
-		bitsWritten = 0;
-		for (i = 0; i < ranges.Size(); i++)
+		RakNet::BitSize_t bitsWritten = 0;
+		unsigned short countWritten = 0;
+
+		for (unsigned i = 0; i < ranges.Size(); i++)
 		{
 			if ((int)sizeof(unsigned short) * 8 + bitsWritten + (int)sizeof(range_type) * 8 * 2 + 1 > maxBits)
 				break;
-			unsigned char minEqualsMax;
-			if (ranges[i].minIndex == ranges[i].maxIndex)
-				minEqualsMax = 1;
-			else
-				minEqualsMax = 0;
-			tempBS.Write(minEqualsMax); // Use one byte, intead of one bit, for speed, as this is done a lot
-			tempBS.Write(ranges[i].minIndex);
+
+			bool minEqualsMax = ranges[i].minIndex == ranges[i].maxIndex;
+			tempBS.Write<unsigned char>(minEqualsMax ? 1 : 0); // Use one byte, intead of one bit, for speed, as this is done a lot
+			tempBS.Write<range_type>(ranges[i].minIndex);
 			bitsWritten += sizeof(range_type) * 8 + 8;
-			if (ranges[i].minIndex != ranges[i].maxIndex)
+			if (!minEqualsMax)
 			{
-				tempBS.Write(ranges[i].maxIndex);
+				tempBS.Write<range_type>(ranges[i].maxIndex);
 				bitsWritten += sizeof(range_type) * 8;
 			}
 			countWritten++;
@@ -113,25 +108,26 @@ namespace DataStructures
 
 		return bitsWritten;
 	}
+
 	template <class range_type>
 	bool RangeList<range_type>::Deserialize(RakNet::BitStream *out)
 	{
 		ranges.Clear(true, _FILE_AND_LINE_);
 		unsigned short count;
 		out->AlignReadToByteBoundary();
-		out->Read(count);
+		out->Read<unsigned short>(count);
 		unsigned short i;
 		range_type min, max;
 		unsigned char maxEqualToMin = 0;
 
 		for (i = 0; i < count; i++)
 		{
-			out->Read(maxEqualToMin);
-			if (out->Read(min) == false)
+			out->Read<unsigned char>(maxEqualToMin);
+			if (out->Read<range_type>(min) == false)
 				return false;
-			if (maxEqualToMin == false)
+			if (!maxEqualToMin)
 			{
-				if (out->Read(max) == false)
+				if (out->Read<range_type>(max) == false)
 					return false;
 				if (max < min)
 					return false;
