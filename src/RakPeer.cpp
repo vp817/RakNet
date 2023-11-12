@@ -458,7 +458,7 @@ StartupResult RakPeer::Startup(unsigned int maxConnections, SocketDescriptor *so
 		}
 		else
 		{
-			RakAssert("TODO" && 0);
+			RakAssert("TODO - Socket is not BerkleySocket" && 0);
 		}
 #endif
 		/*
