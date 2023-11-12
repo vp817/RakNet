@@ -70,8 +70,9 @@ namespace DataStructures
 		RakNet::BitStream tempBS;
 		RakNet::BitSize_t bitsWritten = 0;
 		unsigned short countWritten = 0;
+		unsigned i;
 
-		for (unsigned i = 0; i < ranges.Size(); i++)
+		for (i = 0; i < ranges.Size(); i++)
 		{
 			if ((int)sizeof(unsigned short) * 8 + bitsWritten + (int)sizeof(range_type) * 8 * 2 + 1 > maxBits)
 				break;
