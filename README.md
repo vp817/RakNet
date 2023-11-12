@@ -16,9 +16,16 @@ C# support
 
 See Help\swigtutorial.html
 
-Windows users (VC6, VC8)
+Windows users (Lower than VS10)
 -----------------------------------------
 You can get by if you directly include the source.
+Or
+Try this:
+```shell
+cd RakNet
+cmake -G "NMake Makefiles" .
+# Then you will have nmake file and you can use nmake in any visual studio version.
+```
 
 CYGWIN users
 -----------------------------------------
@@ -180,7 +187,7 @@ For example, if you create the path `\cygwin\home\Kevin\android-ndk-r4b\samples\
 2. I copied the Android.Manifest.xml and other files from another sample
 
 3. Under jni, you will need the following Android.mk
-
+```
     LOCAL_PATH := $(call my-dir)
     include $(CLEAR_VARS)
     LOCAL_MODULE    := RakNet
@@ -188,6 +195,7 @@ For example, if you create the path `\cygwin\home\Kevin\android-ndk-r4b\samples\
     MY_SOURCES := $(wildcard $(MY_PREFIX)*.cpp)
     LOCAL_SRC_FILES += $(MY_SOURCES:$(MY_PREFIX)%=RakNetSources/%)
     include $(BUILD_SHARED_LIBRARY)
+```
 
 This version of Android.mk assumes there is a directory called RakNetSources, for example
 `cygwin/home/Kevin/android-ndk-r4b/samples/RakNet/jni/RakNetSources`
