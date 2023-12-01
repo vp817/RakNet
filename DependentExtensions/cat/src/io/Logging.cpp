@@ -38,70 +38,78 @@ using namespace std;
 using namespace cat;
 
 #if defined(CAT_OS_WINDOWS) || defined(CAT_OS_WINDOWS_CE)
-# include <cat/port/WindowsInclude.hpp>
-# include <process.h>
+#include <cat/port/WindowsInclude.hpp>
+#include <process.h>
 #endif
 
 #if defined(CAT_ISA_X86)
 
 #if defined(CAT_WORD_64) && defined(CAT_COMPILER_MSVC)
-# define CAT_ARTIFICIAL_BREAKPOINT { ::DebugBreak(); }
+#define CAT_ARTIFICIAL_BREAKPOINT \
+	{                             \
+		::DebugBreak();           \
+	}
 #elif defined(CAT_ASM_INTEL)
-# define CAT_ARTIFICIAL_BREAKPOINT { CAT_ASM_BEGIN int 3 CAT_ASM_END }
+#define CAT_ARTIFICIAL_BREAKPOINT       \
+	{                                   \
+		CAT_ASM_BEGIN int 3 CAT_ASM_END \
+	}
 #elif defined(CAT_ASM_ATT)
-# define CAT_ARTIFICIAL_BREAKPOINT { CAT_ASM_BEGIN "int $3" CAT_ASM_END }
+#define CAT_ARTIFICIAL_BREAKPOINT          \
+	{                                      \
+		CAT_ASM_BEGIN "int $3" CAT_ASM_END \
+	}
 #endif
 
 #else
-# define CAT_ARTIFICIAL_BREAKPOINT
+#define CAT_ARTIFICIAL_BREAKPOINT
 #endif
 
-
-static const char *const EVENT_NAME[5] = { "Inane", "Info", "Warn", "Oops", "Fatal" };
-static const char *const SHORT_EVENT_NAME[5] = { ".", "I", "W", "!", "F" };
-
+static const char *const EVENT_NAME[5] = {"Inane", "Info", "Warn", "Oops", "Fatal"};
+static const char *const SHORT_EVENT_NAME[5] = {".", "I", "W", "!", "F"};
 
 //// Free functions
 
 region_string cat::HexDumpString(const void *vdata, u32 bytes)
 {
-    /* xxxx  xx xx xx xx xx xx xx xx  xx xx xx xx xx xx xx xx   aaaaaaaaaaaaaaaa*/
+	/* xxxx  xx xx xx xx xx xx xx xx  xx xx xx xx xx xx xx xx   aaaaaaaaaaaaaaaa*/
 
-    const u8 *data = (const u8*)vdata;
-    u32 ii, offset;
+	const u8 *data = (const u8 *)vdata;
+	u32 ii, offset;
 
-    char ascii[17];
-    ascii[16] = 0;
+	char ascii[17];
+	ascii[16] = 0;
 
-    region_ostringstream oss;
+	region_ostringstream oss;
 
-    for (offset = 0; offset < bytes; offset += 16)
-    {
-        oss << endl << setfill('0') << hex << setw(4) << offset << "  ";
+	for (offset = 0; offset < bytes; offset += 16)
+	{
+		oss << endl
+			<< setfill('0') << hex << setw(4) << offset << "  ";
 
-        for (ii = 0; ii < 16; ++ii)
-        {
-            if (ii == 8)
-                oss << ' ';
+		for (ii = 0; ii < 16; ++ii)
+		{
+			if (ii == 8)
+				oss << ' ';
 
-            if (offset + ii < bytes)
-            {
-                u8 ch = data[offset + ii];
+			if (offset + ii < bytes)
+			{
+				u8 ch = data[offset + ii];
 
-                oss << setw(2) << (u32)ch << ' ';
-                ascii[ii] = (ch >= ' ' && ch <= '~') ? ch : '.';
-            }
-            else
-            {
-                oss << "   ";
-                ascii[ii] = 0;
-            }
-        }
+				oss << setw(2) << (u32)ch << ' ';
+				ascii[ii] = (ch >= ' ' && ch <= '~') ? ch : '.';
+			}
+			else
+			{
+				oss << "   ";
+				ascii[ii] = 0;
+			}
+		}
 
-        oss << " " << ascii;
-    }
+		oss << " " << ascii;
+	}
 
-    return oss.str();
+	return oss.str();
 }
 
 void cat::FatalStop(const char *message)
@@ -150,24 +158,23 @@ void cat::DefaultLogCallback(EventSeverity severity, const char *source, region_
 	}
 }
 
-
 //// Logging
 
 Logging::Logging()
 {
-    _callback = &DefaultLogCallback;
-    _log_threshold = LVL_INANE;
+	_callback = &DefaultLogCallback;
+	_log_threshold = LVL_INANE;
 	_service = false;
 }
 
 void Logging::Initialize(EventSeverity min_severity)
 {
-    _log_threshold = min_severity;
+	_log_threshold = min_severity;
 }
 
 void Logging::ReadSettings()
 {
-    _log_threshold = Settings::ii->getInt("Log.Threshold", _log_threshold);
+	_log_threshold = Settings::ii->getInt("Log.Threshold", _log_threshold);
 }
 
 void Logging::LogEvent(Recorder *recorder)
@@ -192,19 +199,27 @@ void Logging::WriteServiceLog(EventSeverity severity, const char *line)
 		WORD mode;
 		switch (severity)
 		{
-		case LVL_INANE: mode = EVENTLOG_SUCCESS; break;
-		case LVL_INFO: mode = EVENTLOG_INFORMATION_TYPE; break;
+		case LVL_INANE:
+			mode = EVENTLOG_SUCCESS;
+			break;
+		case LVL_INFO:
+			mode = EVENTLOG_INFORMATION_TYPE;
+			break;
 		case LVL_OOPS:
-		case LVL_WARN: mode = EVENTLOG_WARNING_TYPE; break;
-		case LVL_FATAL: mode = EVENTLOG_ERROR_TYPE; break;
-		default: return;
+		case LVL_WARN:
+			mode = EVENTLOG_WARNING_TYPE;
+			break;
+		case LVL_FATAL:
+			mode = EVENTLOG_ERROR_TYPE;
+			break;
+		default:
+			return;
 		}
 
 		ReportEventA(_event_source, mode, 0, mode, 0, 1, 0, &line, 0);
 	}
 #endif
 }
-
 
 //// Recorder
 
@@ -219,12 +234,11 @@ Recorder::~Recorder()
 	Logging::ii->LogEvent(this);
 }
 
-
 //// Enforcer
 
 Enforcer::Enforcer(const char *locus)
 {
-    oss << locus;
+	oss << locus;
 }
 
 Enforcer::~Enforcer()

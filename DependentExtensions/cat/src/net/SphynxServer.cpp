@@ -41,11 +41,10 @@ using namespace std;
 using namespace cat;
 using namespace sphynx;
 
-
 //// Connexion
 
 Connexion::Connexion()
-	: ThreadRefObject(REFOBJ_PRIO_0+2)
+	: ThreadRefObject(REFOBJ_PRIO_0 + 2)
 {
 	_destroyed = 0;
 	_seen_encrypted = false;
@@ -112,7 +111,6 @@ bool Connexion::PostPacket(u8 *buffer, u32 buf_bytes, u32 msg_bytes, u32 skip_by
 	return _server_worker->Post(_client_addr, buffer, msg_bytes, skip_bytes);
 }
 
-
 //// Map
 
 Map::Map()
@@ -127,7 +125,7 @@ Map::Map()
 
 Map::~Map()
 {
-	//WARN("Destroy") << "Killing Map";
+	// WARN("Destroy") << "Killing Map";
 }
 
 u32 Map::hash_addr(const NetAddr &addr, u32 salt)
@@ -158,14 +156,15 @@ u32 Map::hash_addr(const NetAddr &addr, u32 salt)
 	const u32 SECRET_CONSTANT = 104729; // 1,000th prime number
 
 	// Map 16-bit port 1:1 to a random-looking number
-	key += (u32)addr.GetPort() * (SECRET_CONSTANT*4 + 1);
+	key += (u32)addr.GetPort() * (SECRET_CONSTANT * 4 + 1);
 
 	return key & HASH_TABLE_MASK;
 }
 
 Connexion *Map::Lookup(u32 key)
 {
-	if (key >= HASH_TABLE_SIZE) return 0;
+	if (key >= HASH_TABLE_SIZE)
+		return 0;
 
 	AutoReadLock lock(_table_lock);
 
@@ -293,7 +292,7 @@ void Map::DestroyList(Map::Slot *kill_list)
 				u32 key = (u32)(slot - _table) / sizeof(Map::Slot);
 
 				// Unset collision flags until first filled entry is found
-				do 
+				do
 				{
 					// Roll backwards
 					key = ((key + COLLISION_INCRINVERSE) * COLLISION_MULTINVERSE) & HASH_TABLE_MASK;
@@ -325,11 +324,10 @@ void Map::DestroyList(Map::Slot *kill_list)
 	}
 }
 
-
 //// ServerWorker
 
 ServerWorker::ServerWorker(Map *conn_map, ServerTimer *server_timer)
-	: UDPEndpoint(REFOBJ_PRIO_0+1)
+	: UDPEndpoint(REFOBJ_PRIO_0 + 1)
 {
 	_server_timer = server_timer;
 	_conn_map = conn_map;
@@ -339,7 +337,7 @@ ServerWorker::ServerWorker(Map *conn_map, ServerTimer *server_timer)
 
 ServerWorker::~ServerWorker()
 {
-	//WARN("Destroy") << "Killing Worker";
+	// WARN("Destroy") << "Killing Worker";
 }
 
 void ServerWorker::IncrementPopulation()
@@ -368,9 +366,7 @@ void ServerWorker::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *d
 
 void ServerWorker::OnClose()
 {
-
 }
-
 
 //// ServerTimer
 
@@ -395,7 +391,7 @@ ServerTimer::ServerTimer(Map *conn_map, ServerWorker **workers, int worker_count
 
 ServerTimer::~ServerTimer()
 {
-	//WARN("Destroy") << "Killing Timer";
+	// WARN("Destroy") << "Killing Timer";
 
 	_kill_flag.Set();
 
@@ -449,7 +445,7 @@ void ServerTimer::Tick(ThreadPoolLocalStorage *tls)
 	{
 		next = slot->next;
 
-		//INANE("ServerTimer") << "Linking new connection into active list";
+		// INANE("ServerTimer") << "Linking new connection into active list";
 
 		// Link into active list
 		slot->next = active_head;
@@ -468,10 +464,12 @@ void ServerTimer::Tick(ThreadPoolLocalStorage *tls)
 		if (!conn || !conn->IsValid() || !conn->Tick(tls, now))
 		{
 			// Unlink from active list
-			if (last) last->next = next;
-			else active_head = next;
+			if (last)
+				last->next = next;
+			else
+				active_head = next;
 
-			//INANE("ServerTimer") << "Relinking dead connection into kill list";
+			// INANE("ServerTimer") << "Relinking dead connection into kill list";
 
 			// Link into kill list
 			slot->next = kill_list;
@@ -511,7 +509,6 @@ bool ServerTimer::ThreadFunction(void *)
 	return true;
 }
 
-
 //// Server
 
 Server::Server()
@@ -526,7 +523,7 @@ Server::Server()
 
 Server::~Server()
 {
-	//WARN("Destroy") << "Killing Server";
+	// WARN("Destroy") << "Killing Server";
 
 	// Delete timer objects
 	if (_timers)
@@ -567,12 +564,15 @@ bool Server::StartServer(ThreadPoolLocalStorage *tls, Port port, u8 *public_key,
 
 	// Allocate worker array
 	_worker_count = ThreadPool::ref()->GetProcessorCount() * 4;
-	if (_worker_count > WORKER_LIMIT) _worker_count = WORKER_LIMIT;
-	if (_worker_count < 1) _worker_count = 1;
+	if (_worker_count > WORKER_LIMIT)
+		_worker_count = WORKER_LIMIT;
+	if (_worker_count < 1)
+		_worker_count = 1;
 
-	if (_workers) delete[] _workers;
+	if (_workers)
+		delete[] _workers;
 
-	_workers = new ServerWorker*[_worker_count];
+	_workers = new ServerWorker *[_worker_count];
 	if (!_workers)
 	{
 		WARN("Server") << "Failed to initialize: Unable to allocate " << _worker_count << " workers";
@@ -584,11 +584,13 @@ bool Server::StartServer(ThreadPoolLocalStorage *tls, Port port, u8 *public_key,
 
 	// Allocate timer array
 	_timer_count = _worker_count / 8;
-	if (_timer_count < 1) _timer_count = 1;
+	if (_timer_count < 1)
+		_timer_count = 1;
 
-	if (_timers) delete[] _timers;
+	if (_timers)
+		delete[] _timers;
 
-	_timers = new ServerTimer*[_timer_count];
+	_timers = new ServerTimer *[_timer_count];
 	if (!_timers)
 	{
 		WARN("Server") << "Failed to initialize: Unable to allocate " << _timer_count << " timers";
@@ -627,7 +629,7 @@ bool Server::StartServer(ThreadPoolLocalStorage *tls, Port port, u8 *public_key,
 	if (!Bind(only_ipv4, port, true, kernelReceiveBufferBytes))
 	{
 		WARN("Server") << "Failed to initialize: Unable to bind handshake port "
-			<< port << ". " << SocketGetLastErrorString();
+					   << port << ". " << SocketGetLastErrorString();
 		return false;
 	}
 
@@ -676,7 +678,7 @@ bool Server::StartServer(ThreadPoolLocalStorage *tls, Port port, u8 *public_key,
 		if (!worker || !worker->Bind(only_ipv4, worker_port, true, kernelReceiveBufferBytes))
 		{
 			WARN("Server") << "Failed to initialize: Unable to bind to data port " << worker_port << ": "
-				<< SocketGetLastErrorString();
+						   << SocketGetLastErrorString();
 
 			// Note failure
 			success = false;
@@ -733,22 +735,22 @@ u32 Server::GetTotalPopulation()
 void Server::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u32 bytes)
 {
 	// c2s 00 (protocol magic[4])
-	if (bytes == 1+4 && data[0] == C2S_HELLO)
+	if (bytes == 1 + 4 && data[0] == C2S_HELLO)
 	{
-		u32 *protocol_magic = reinterpret_cast<u32*>( data + 1 );
+		u32 *protocol_magic = reinterpret_cast<u32 *>(data + 1);
 
 		// If magic matches,
 		if (*protocol_magic == getLE(PROTOCOL_MAGIC))
 		{
 			// s2c 01 (cookie[4]) (public key[64])
-			const u32 PKT1_LEN = 1+4+PUBLIC_KEY_BYTES;
+			const u32 PKT1_LEN = 1 + 4 + PUBLIC_KEY_BYTES;
 			u8 *pkt1 = AsyncBuffer::Acquire(PKT1_LEN);
 
 			// If packet buffer could be allocated,
 			if (pkt1)
 			{
-				u32 *pkt1_cookie = reinterpret_cast<u32*>( pkt1 + 1 );
-				u8 *pkt1_public_key = pkt1 + 1+4;
+				u32 *pkt1_cookie = reinterpret_cast<u32 *>(pkt1 + 1);
+				u8 *pkt1_public_key = pkt1 + 1 + 4;
 
 				// Construct packet 1
 				pkt1[0] = S2C_COOKIE;
@@ -766,15 +768,13 @@ void Server::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 		}
 	}
 	// c2s 02 (cookie[4]) (challenge[64])
-	else if (bytes == 1+4+CHALLENGE_BYTES && data[0] == C2S_CHALLENGE)
+	else if (bytes == 1 + 4 + CHALLENGE_BYTES && data[0] == C2S_CHALLENGE)
 	{
-		u32 *cookie = reinterpret_cast<u32*>( data + 1 );
-		u8 *challenge = data + 1+4;
+		u32 *cookie = reinterpret_cast<u32 *>(data + 1);
+		u8 *challenge = data + 1 + 4;
 
 		// If cookie is invalid, ignore packet
-		bool good_cookie = src.Is6() ?
-			_cookie_jar.Verify(&src, sizeof(src), *cookie) :
-			_cookie_jar.Verify(src.GetIP4(), src.GetPort(), *cookie);
+		bool good_cookie = src.Is6() ? _cookie_jar.Verify(&src, sizeof(src), *cookie) : _cookie_jar.Verify(src.GetIP4(), src.GetPort(), *cookie);
 
 		if (!good_cookie)
 		{
@@ -783,7 +783,7 @@ void Server::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 		}
 
 		// s2c 03 (server session port[2]) (answer[128])
-		const int PKT3_LEN = 1+2+ANSWER_BYTES;
+		const int PKT3_LEN = 1 + 2 + ANSWER_BYTES;
 		u8 *pkt3 = AsyncBuffer::Acquire(PKT3_LEN);
 
 		// Verify that post buffer could be allocated
@@ -793,8 +793,8 @@ void Server::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 			return;
 		}
 
-		Port *pkt3_port = reinterpret_cast<Port*>( pkt3 + 1 );
-		u8 *pkt3_answer = pkt3 + 1+2;
+		Port *pkt3_port = reinterpret_cast<Port *>(pkt3 + 1);
+		u8 *pkt3_answer = pkt3 + 1 + 2;
 
 		// They took the time to get the cookie right, might as well check if we know them
 		AutoRef<Connexion> conn = _conn_map.Lookup(src);
@@ -846,8 +846,8 @@ void Server::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 				WARN("Server") << "Ignoring challenge: Server is full";
 
 				// Construct packet 4
-				const u32 PKT4_LEN = 1+2;
-				u16 *error_field = reinterpret_cast<u16*>( pkt3 + 1 );
+				const u32 PKT4_LEN = 1 + 2;
+				u16 *error_field = reinterpret_cast<u16 *>(pkt3 + 1);
 				pkt3[0] = S2C_ERROR;
 				*error_field = getLE16(ERR_SERVER_FULL);
 
@@ -925,14 +925,12 @@ void Server::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 
 void Server::OnWrite(u32 bytes)
 {
-
 }
 
 void Server::OnClose()
 {
 	WARN("Server") << "CLOSED";
 }
-
 
 bool Server::GenerateKeyPair(ThreadPoolLocalStorage *tls, const char *public_key_file,
 							 const char *private_key_file, u8 *public_key,
@@ -947,8 +945,8 @@ bool Server::GenerateKeyPair(ThreadPoolLocalStorage *tls, const char *public_key
 	// If the file was found and of the right size,
 	if (mmf.good() && mmf.remaining() == PUBLIC_KEY_BYTES + PRIVATE_KEY_BYTES)
 	{
-		u8 *cp_public_key = reinterpret_cast<u8*>( mmf.read(PUBLIC_KEY_BYTES) );
-		u8 *cp_private_key = reinterpret_cast<u8*>( mmf.read(PRIVATE_KEY_BYTES) );
+		u8 *cp_public_key = reinterpret_cast<u8 *>(mmf.read(PUBLIC_KEY_BYTES));
+		u8 *cp_private_key = reinterpret_cast<u8 *>(mmf.read(PRIVATE_KEY_BYTES));
 
 		// Remember the public key so we can report it to connecting users
 		memcpy(public_key, cp_public_key, PUBLIC_KEY_BYTES);
@@ -963,8 +961,8 @@ bool Server::GenerateKeyPair(ThreadPoolLocalStorage *tls, const char *public_key
 
 		// Ask Bob to generate a key pair for the server
 		if (!Bob.GenerateKeyPair(tls->math, tls->csprng,
-			public_key, PUBLIC_KEY_BYTES,
-			private_key, PRIVATE_KEY_BYTES))
+								 public_key, PUBLIC_KEY_BYTES,
+								 private_key, PRIVATE_KEY_BYTES))
 		{
 			WARN("KeyGenerator") << "Failed to initialize: Unable to generate key pair";
 			return false;
@@ -987,8 +985,8 @@ bool Server::GenerateKeyPair(ThreadPoolLocalStorage *tls, const char *public_key
 			public_keyfile.flush();
 
 			// Write private key file
-			private_keyfile.write((char*)public_key, PUBLIC_KEY_BYTES);
-			private_keyfile.write((char*)private_key, PRIVATE_KEY_BYTES);
+			private_keyfile.write((char *)public_key, PUBLIC_KEY_BYTES);
+			private_keyfile.write((char *)private_key, PRIVATE_KEY_BYTES);
 			private_keyfile.flush();
 
 			// If the key files were NOT successfully written,

@@ -32,24 +32,23 @@
 #include <cat/Platform.hpp>
 #include <ostream>
 
-namespace cat {
+namespace cat
+{
 
+	// Write buffer to output stream in Base64 encoding
+	int GetBase64LengthFromBinaryLength(int bytes);
 
-// Write buffer to output stream in Base64 encoding
-int GetBase64LengthFromBinaryLength(int bytes);
+	// Returns number of bytes written, or 0 for error
+	int WriteBase64(const void *buffer, int bytes, char *encoded_buffer, int encoded_bytes);
+	int WriteBase64Str(const void *buffer, int bytes, char *encoded_buffer, int encoded_bytes); // This version writes a null-terminator
+	int WriteBase64(const void *buffer, int bytes, std::ostream &output);
 
-// Returns number of bytes written, or 0 for error
-int WriteBase64(const void *buffer, int bytes, char *encoded_buffer, int encoded_bytes);
-int WriteBase64Str(const void *buffer, int bytes, char *encoded_buffer, int encoded_bytes); // This version writes a null-terminator
-int WriteBase64(const void *buffer, int bytes, std::ostream &output);
+	// Read buffer in Base64 encoding
+	int GetBinaryLengthFromBase64Length(const char *encoded_buffer, int bytes);
 
-// Read buffer in Base64 encoding
-int GetBinaryLengthFromBase64Length(const char *encoded_buffer, int bytes);
-
-// Returns number of bytes read, or 0 for error
-int ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decoded_buffer, int decoded_bytes);
-int ReadBase64(const char *encoded_buffer, int encoded_bytes, std::ostream &output);
-
+	// Returns number of bytes read, or 0 for error
+	int ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decoded_buffer, int decoded_bytes);
+	int ReadBase64(const char *encoded_buffer, int encoded_bytes, std::ostream &output);
 
 } // namespace cat
 

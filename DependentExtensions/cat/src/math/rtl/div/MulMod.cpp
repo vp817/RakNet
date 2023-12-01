@@ -32,7 +32,7 @@ using namespace cat;
 // r = a * b (mod m)
 void CAT_FASTCALL BigRTL::MulMod(const Leg *in_a, const Leg *in_b, const Leg *in_m, Leg *r)
 {
-    Leg *p = Get(library_regs - 5);
+	Leg *p = Get(library_regs - 5);
 
 	Multiply(in_a, in_b, p);
 	DivideProduct(p, in_m, p, r);

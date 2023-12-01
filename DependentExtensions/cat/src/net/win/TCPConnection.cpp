@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/net/ThreadPoolSockets.hpp>
@@ -34,11 +34,10 @@
 using namespace std;
 using namespace cat;
 
-
 //// TCPConnection
 
 TCPConnection::TCPConnection(int priorityLevel)
-	: ThreadRefObject(priorityLevel)
+    : ThreadRefObject(priorityLevel)
 {
     // Initialize to an invalid state.
     // Connection is invalid until AcceptConnection() runs successfully.
@@ -81,8 +80,8 @@ void TCPConnection::DisconnectClient()
 bool TCPConnection::PostToClient(void *buffer, u32 bytes)
 {
     // Recover the full overlapped structure from data pointer
-    TypedOverlapped *sendOv = reinterpret_cast<TypedOverlapped*>(
-		reinterpret_cast<u8*>(buffer) - sizeof(TypedOverlapped) );
+    TypedOverlapped *sendOv = reinterpret_cast<TypedOverlapped *>(
+        reinterpret_cast<u8 *>(buffer) - sizeof(TypedOverlapped));
 
     sendOv->Set(OVOP_SERVER_SEND);
 
@@ -95,10 +94,9 @@ bool TCPConnection::PostToClient(void *buffer, u32 bytes)
     return true;
 }
 
-
 bool TCPConnection::AcceptConnection(Socket listenSocket, Socket acceptSocket,
-                                LPFN_DISCONNECTEX lpfnDisconnectEx,
-                                const NetAddr &acceptAddress, const NetAddr &remoteClientAddress)
+                                     LPFN_DISCONNECTEX lpfnDisconnectEx,
+                                     const NetAddr &acceptAddress, const NetAddr &remoteClientAddress)
 {
     // If we return false here this object will be deleted.
 
@@ -108,7 +106,7 @@ bool TCPConnection::AcceptConnection(Socket listenSocket, Socket acceptSocket,
 
     // Finalize the accept socket context
     if (setsockopt(acceptSocket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
-                    (char *)&listenSocket, sizeof(listenSocket)))
+                   (char *)&listenSocket, sizeof(listenSocket)))
     {
         WARN("TCPConnection")
             << "Unable to update accept socket context: " << SocketGetLastErrorString();
@@ -117,7 +115,7 @@ bool TCPConnection::AcceptConnection(Socket listenSocket, Socket acceptSocket,
 
     // Set SO_SNDBUF to zero for a zero-copy network stack (we maintain the buffers)
     int bufsize = 0;
-    if (setsockopt(acceptSocket, SOL_SOCKET, SO_SNDBUF, (char*)&bufsize, sizeof(bufsize)))
+    if (setsockopt(acceptSocket, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize, sizeof(bufsize)))
     {
         FATAL("TCPConnection") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
         return false;
@@ -154,21 +152,20 @@ bool TCPConnection::AcceptConnection(Socket listenSocket, Socket acceptSocket,
     return true;
 }
 
-
 bool TCPConnection::QueueWSARecv()
 {
     if (_disconnecting)
         return false;
 
     WSABUF wsabuf;
-    wsabuf.buf = reinterpret_cast<CHAR*>( GetTrailingBytes(_recvOv) );
+    wsabuf.buf = reinterpret_cast<CHAR *>(GetTrailingBytes(_recvOv));
     wsabuf.len = RECV_DATA_SIZE;
 
     AddRef();
 
     // Queue up a WSARecv()
     DWORD flags = 0, bytes;
-	int result = WSARecv(_socket, &wsabuf, 1, &bytes, &flags, &_recvOv->ov, 0); 
+    int result = WSARecv(_socket, &wsabuf, 1, &bytes, &flags, &_recvOv->ov, 0);
 
     // This overlapped operation will always complete unless
     // we get an error code other than ERROR_IO_PENDING.
@@ -207,14 +204,13 @@ void TCPConnection::OnWSARecvComplete(int error, u32 bytes)
     }
 }
 
-
 bool TCPConnection::QueueWSASend(TypedOverlapped *sendOv, u32 bytes)
 {
     if (_disconnecting)
         return false;
 
     WSABUF wsabuf;
-    wsabuf.buf = reinterpret_cast<CHAR*>( GetTrailingBytes(sendOv) );
+    wsabuf.buf = reinterpret_cast<CHAR *>(GetTrailingBytes(sendOv));
     wsabuf.len = bytes;
 
     AddRef();
@@ -249,7 +245,6 @@ void TCPConnection::OnWSASendComplete(int error, u32 bytes)
     OnWriteToClient(bytes);
 }
 
-
 bool TCPConnection::QueueDisconnectEx()
 {
     // Create a new overlapped structure for receiving
@@ -264,7 +259,7 @@ bool TCPConnection::QueueDisconnectEx()
     AddRef();
 
     // Queue up a DisconnectEx()
-    BOOL result = _lpfnDisconnectEx(_socket, &overlapped->ov, 0, 0); 
+    BOOL result = _lpfnDisconnectEx(_socket, &overlapped->ov, 0, 0);
 
     // This overlapped operation will always complete unless
     // we get an error code other than ERROR_IO_PENDING.

@@ -4,18 +4,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -35,12 +35,11 @@
 #ifdef VORBIS_PSYCHO
 
 #include "smallft.h"
-#define P_BANDS 17      /* 62Hz to 16kHz */
+#define P_BANDS 17 /* 62Hz to 16kHz */
 #define NOISE_COMPAND_LEVELS 40
 
-
-#define todB(x)   ((x)==0?-400.f:log((x)*(x))*4.34294480f)
-#define fromdB(x) (exp((x)*.11512925f))  
+#define todB(x) ((x) == 0 ? -400.f : log((x) * (x)) * 4.34294480f)
+#define fromdB(x) (exp((x) * .11512925f))
 
 /* The bark scale equations are approximations, since the original
    table was somewhat hand rolled.  The below are chosen to have the
@@ -51,42 +50,40 @@
 
    all f in Hz, z in Bark */
 
-#define toBARK(n)   (13.1f*atan(.00074f*(n))+2.24f*atan((n)*(n)*1.85e-8f)+1e-4f*(n))
-#define fromBARK(z) (102.f*(z)-2.f*pow(z,2.f)+.4f*pow(z,3.f)+pow(1.46f,z)-1.f)
+#define toBARK(n) (13.1f * atan(.00074f * (n)) + 2.24f * atan((n) * (n) * 1.85e-8f) + 1e-4f * (n))
+#define fromBARK(z) (102.f * (z)-2.f * pow(z, 2.f) + .4f * pow(z, 3.f) + pow(1.46f, z) - 1.f)
 
 /* Frequency to octave.  We arbitrarily declare 63.5 Hz to be octave
    0.0 */
 
-#define toOC(n)     (log(n)*1.442695f-5.965784f)
-#define fromOC(o)   (exp(((o)+5.965784f)*.693147f))
+#define toOC(n) (log(n) * 1.442695f - 5.965784f)
+#define fromOC(o) (exp(((o) + 5.965784f) * .693147f))
 
+typedef struct
+{
 
-typedef struct {
-
-  float noisewindowlo;
-  float noisewindowhi;
-  int   noisewindowlomin;
-  int   noisewindowhimin;
-  int   noisewindowfixed;
-  float noiseoff[P_BANDS];
-  float noisecompand[NOISE_COMPAND_LEVELS];
+   float noisewindowlo;
+   float noisewindowhi;
+   int noisewindowlomin;
+   int noisewindowhimin;
+   int noisewindowfixed;
+   float noiseoff[P_BANDS];
+   float noisecompand[NOISE_COMPAND_LEVELS];
 
 } VorbisPsyInfo;
 
+typedef struct
+{
+   int n;
+   int rate;
+   struct drft_lookup lookup;
+   VorbisPsyInfo *vi;
 
-
-typedef struct {
-  int n;
-  int rate;
-  struct drft_lookup lookup;
-  VorbisPsyInfo *vi;
-
-  float *window;
-  float *noiseoffset;
-  long  *bark;
+   float *window;
+   float *noiseoffset;
+   long *bark;
 
 } VorbisPsy;
-
 
 VorbisPsy *vorbis_psy_init(int rate, int size);
 void vorbis_psy_destroy(VorbisPsy *psy);

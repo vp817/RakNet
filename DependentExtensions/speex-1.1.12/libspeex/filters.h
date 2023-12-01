@@ -7,18 +7,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -48,25 +48,22 @@ int normalize16(const spx_sig_t *x, spx_word16_t *y, spx_sig_t max_scale, int le
 #endif
 
 /** Combined filter memory. */
-typedef struct {
-   int   last_pitch;
+typedef struct
+{
+   int last_pitch;
    spx_word16_t last_pitch_gain[3];
    spx_word16_t smooth_gain;
 } CombFilterMem;
 
-
 void qmf_decomp(const spx_word16_t *xx, const spx_word16_t *aa, spx_sig_t *, spx_sig_t *y2, int N, int M, spx_word16_t *mem, char *stack);
 void fir_mem_up(const spx_sig_t *x, const spx_word16_t *a, spx_sig_t *y, int N, int M, spx_word32_t *mem, char *stack);
-
 
 void filter_mem2(const spx_sig_t *x, const spx_coef_t *num, const spx_coef_t *den, spx_sig_t *y, int N, int ord, spx_mem_t *mem);
 void fir_mem2(const spx_sig_t *x, const spx_coef_t *num, spx_sig_t *y, int N, int ord, spx_mem_t *mem);
 void iir_mem2(const spx_sig_t *x, const spx_coef_t *den, spx_sig_t *y, int N, int ord, spx_mem_t *mem);
 
 /* Apply bandwidth expansion on LPC coef */
-void bw_lpc(spx_word16_t , const spx_coef_t *lpc_in, spx_coef_t *lpc_out, int order);
-
-
+void bw_lpc(spx_word16_t, const spx_coef_t *lpc_in, spx_coef_t *lpc_out, int order);
 
 void syn_percep_zero(const spx_sig_t *x, const spx_coef_t *ak, const spx_coef_t *awk1, const spx_coef_t *awk2, spx_sig_t *y, int N, int ord, char *stack);
 
@@ -74,19 +71,17 @@ void residue_percep_zero(const spx_sig_t *xx, const spx_coef_t *ak, const spx_co
 
 void compute_impulse_response(const spx_coef_t *ak, const spx_coef_t *awk1, const spx_coef_t *awk2, spx_word16_t *y, int N, int ord, char *stack);
 
-void comb_filter_mem_init (CombFilterMem *mem);
+void comb_filter_mem_init(CombFilterMem *mem);
 
 void comb_filter(
-spx_sig_t *exc,          /*decoded excitation*/
-spx_sig_t *new_exc,      /*enhanced excitation*/
-spx_coef_t *ak,           /*LPC filter coefs*/
-int p,               /*LPC order*/
-int nsf,             /*sub-frame size*/
-int pitch,           /*pitch period*/
-spx_word16_t *pitch_gain,   /*pitch gain (3-tap)*/
-spx_word16_t  comb_gain,    /*gain of comb filter*/
-CombFilterMem *mem
-);
-
+    spx_sig_t *exc,           /*decoded excitation*/
+    spx_sig_t *new_exc,       /*enhanced excitation*/
+    spx_coef_t *ak,           /*LPC filter coefs*/
+    int p,                    /*LPC order*/
+    int nsf,                  /*sub-frame size*/
+    int pitch,                /*pitch period*/
+    spx_word16_t *pitch_gain, /*pitch gain (3-tap)*/
+    spx_word16_t comb_gain,   /*gain of comb filter*/
+    CombFilterMem *mem);
 
 #endif

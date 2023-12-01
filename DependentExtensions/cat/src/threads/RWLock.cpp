@@ -55,7 +55,8 @@ RWLock::~RWLock()
 
 #else
 
-	if (!init_failure) pthread_rwlock_destroy(&rw);
+	if (!init_failure)
+		pthread_rwlock_destroy(&rw);
 
 #endif
 }
@@ -87,7 +88,8 @@ void RWLock::ReadLock()
 
 #else
 
-	if (!init_failure) pthread_rwlock_rdlock(&rw);
+	if (!init_failure)
+		pthread_rwlock_rdlock(&rw);
 
 #endif
 
@@ -104,7 +106,8 @@ void RWLock::ReadUnlock()
 
 	CAT_FENCE_COMPILER
 
-	if (!init_failure) pthread_rwlock_unlock(&rw);
+	if (!init_failure)
+		pthread_rwlock_unlock(&rw);
 
 	CAT_FENCE_COMPILER
 
@@ -129,7 +132,8 @@ void RWLock::WriteLock()
 
 #else
 
-	if (!init_failure) pthread_rwlock_wrlock(&rw);
+	if (!init_failure)
+		pthread_rwlock_wrlock(&rw);
 
 #endif
 
@@ -149,13 +153,13 @@ void RWLock::WriteUnlock()
 
 #else
 
-	if (!init_failure) pthread_rwlock_unlock(&rw);
+	if (!init_failure)
+		pthread_rwlock_unlock(&rw);
 
 #endif
 
 	CAT_FENCE_COMPILER
 }
-
 
 //// AutoReadLock
 
@@ -180,7 +184,6 @@ bool AutoReadLock::Release()
 
 	return true;
 }
-
 
 //// AutoWriteLock
 

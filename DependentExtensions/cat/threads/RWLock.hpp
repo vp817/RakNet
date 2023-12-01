@@ -31,62 +31,59 @@
 
 #include <cat/threads/Mutex.hpp>
 
-namespace cat {
-
-
-//// RWLock
-
-class RWLock
+namespace cat
 {
+
+	//// RWLock
+
+	class RWLock
+	{
 #if defined(CAT_OS_WINDOWS)
-	volatile u32 _rd_count;
-	volatile u32 _wr_count;
-	HANDLE _rd_event;
-	Mutex _wr_lock;
+		volatile u32 _rd_count;
+		volatile u32 _wr_count;
+		HANDLE _rd_event;
+		Mutex _wr_lock;
 #else
-	int init_failure;
-	pthread_rwlock_t rw;
+		int init_failure;
+		pthread_rwlock_t rw;
 #endif
 
-public:
-	RWLock();
-	~RWLock();
+	public:
+		RWLock();
+		~RWLock();
 
-	void ReadLock();
-	void ReadUnlock();
+		void ReadLock();
+		void ReadUnlock();
 
-	void WriteLock();
-	void WriteUnlock();
-};
+		void WriteLock();
+		void WriteUnlock();
+	};
 
+	//// AutoReadLock
 
-//// AutoReadLock
+	class AutoReadLock
+	{
+		RWLock *_lock;
 
-class AutoReadLock
-{
-	RWLock *_lock;
+	public:
+		AutoReadLock(RWLock &lock);
+		~AutoReadLock();
 
-public:
-	AutoReadLock(RWLock &lock);
-	~AutoReadLock();
+		bool Release();
+	};
 
-    bool Release();
-};
+	//// AutoWriteLock
 
+	class AutoWriteLock
+	{
+		RWLock *_lock;
 
-//// AutoWriteLock
+	public:
+		AutoWriteLock(RWLock &lock);
+		~AutoWriteLock();
 
-class AutoWriteLock
-{
-	RWLock *_lock;
-
-public:
-	AutoWriteLock(RWLock &lock);
-	~AutoWriteLock();
-
-    bool Release();
-};
-
+		bool Release();
+	};
 
 } // namespace cat
 

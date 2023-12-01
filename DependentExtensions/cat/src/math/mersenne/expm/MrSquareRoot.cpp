@@ -44,7 +44,7 @@ void CAT_FASTCALL BigPseudoMersenne::MrSquareRoot(const Leg *in, Leg *out)
 
 	if ((CachedModulus[0] & 3) == 3)
 	{
-	    // Square root for modulus p = 3 mod 4
+		// Square root for modulus p = 3 mod 4
 		// out = in ^ (p + 1)/4
 
 		// Perform exponentiation for the first w bits
@@ -60,14 +60,26 @@ void CAT_FASTCALL BigPseudoMersenne::MrSquareRoot(const Leg *in, Leg *out)
 		Copy(S, T);
 
 		// NOTE: This assumes that modulus_c < 16384 = 2^(w-2)
-		int one_frames = (RegBytes()*8 - w*2) / w;
+		int one_frames = (RegBytes() * 8 - w * 2) / w;
 		while (one_frames--)
 		{
 			// Just multiply once re-using the first result, every 16 bits
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
 			MrMultiply(S, T, S);
 		}
 
@@ -86,7 +98,7 @@ void CAT_FASTCALL BigPseudoMersenne::MrSquareRoot(const Leg *in, Leg *out)
 	}
 	else if ((CachedModulus[0] & 7) == 5)
 	{
-	    // Square root for modulus p = 5 mod 8 using Atkin's method:
+		// Square root for modulus p = 5 mod 8 using Atkin's method:
 		// D = 2 * in
 		// S = D ^ (p - 5)/8
 		// out = in * S * ((D * S^2) - 1)
@@ -106,14 +118,26 @@ void CAT_FASTCALL BigPseudoMersenne::MrSquareRoot(const Leg *in, Leg *out)
 		Copy(S, T);
 
 		// NOTE: This assumes that modulus_c < 8192 = 2^(w-3)
-		int one_frames = (RegBytes()*8 - w*2) / w;
+		int one_frames = (RegBytes() * 8 - w * 2) / w;
 		while (one_frames--)
 		{
 			// Just multiply once re-using the first result, every 16 bits
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
-			MrSquare(S, S); MrSquare(S, S); MrSquare(S, S); MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
+			MrSquare(S, S);
 			MrMultiply(S, T, S);
 		}
 

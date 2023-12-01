@@ -32,82 +32,173 @@
 #include <cat/Platform.hpp>
 #include <cat/port/EndianNeutral.hpp>
 
-namespace cat {
-
-
-/*
-	BufferStream
-
-	Extremely light-weight wrapper for a buffer data insertion and extraction.
-
-	Performs automatic endian conversion into and out of the buffer (sometimes).
-
-	Performs no checking for buffer overruns.
-	This class does not add any security to your code; it just makes it shorter.
-	Use at your peril.
-*/
-class BufferStream
+namespace cat
 {
-protected:
-	u8 *_buffer;
 
-public:
-	CAT_INLINE BufferStream(u8 *buffer) { _buffer = buffer; }
-	CAT_INLINE BufferStream &operator=(u8 *buffer) { _buffer = buffer; }
+	/*
+		BufferStream
 
-	CAT_INLINE u32 GetOffset(void *buffer) { return (u32)(_buffer - reinterpret_cast<u8*>( buffer )); }
+		Extremely light-weight wrapper for a buffer data insertion and extraction.
 
-public:
-	// Auto-cast to u8* or char*
-	CAT_INLINE operator u8*() { return _buffer; }
-	CAT_INLINE char *c_str() { return reinterpret_cast<char*>( _buffer ); }
+		Performs automatic endian conversion into and out of the buffer (sometimes).
 
-	CAT_INLINE BufferStream &operator++() { _buffer++; return *this; }
-	CAT_INLINE BufferStream &operator+=(int skip_bytes) { _buffer += skip_bytes; return *this; }
-
-public:
-	// Insertion
-	CAT_INLINE BufferStream &operator<<(s8 data) { *_buffer++ = (u8)data; return *this; }
-	CAT_INLINE BufferStream &operator<<(s16 data) { *(u16*)_buffer = getLE16((u16)data); _buffer += 2; return *this; }
-	CAT_INLINE BufferStream &operator<<(s32 data) { *(u32*)_buffer = getLE32((u32)data); _buffer += 4; return *this; }
-	CAT_INLINE BufferStream &operator<<(s64 data) { *(u64*)_buffer = getLE64((u64)data); _buffer += 8; return *this; }
-
-	CAT_INLINE BufferStream &operator<<(u8 data) { *_buffer++ = data; return *this; }
-	CAT_INLINE BufferStream &operator<<(u16 data) { *(u16*)_buffer = getLE16(data); _buffer += 2; return *this; }
-	CAT_INLINE BufferStream &operator<<(u32 data) { *(u32*)_buffer = getLE32(data); _buffer += 4; return *this; }
-	CAT_INLINE BufferStream &operator<<(u64 data) { *(u64*)_buffer = getLE64(data); _buffer += 8; return *this; }
-
-	CAT_INLINE void write(const void *data, u32 bytes)
+		Performs no checking for buffer overruns.
+		This class does not add any security to your code; it just makes it shorter.
+		Use at your peril.
+	*/
+	class BufferStream
 	{
-		memcpy(_buffer, data, bytes);
-		_buffer += bytes;
-	}
+	protected:
+		u8 *_buffer;
 
-	template<class T>
-	CAT_INLINE BufferStream &operator<<(const T &data) { write(&data, sizeof(T)); return *this; }
+	public:
+		CAT_INLINE BufferStream(u8 *buffer) { _buffer = buffer; }
+		CAT_INLINE BufferStream &operator=(u8 *buffer) { _buffer = buffer; }
 
-public:
-	// Extraction
-	CAT_INLINE BufferStream &operator>>(s8 &data) { data = (s8)*_buffer++; return *this; }
-	CAT_INLINE BufferStream &operator>>(s16 &data) { data = (s16)getLE16(*(u16*)_buffer); _buffer += 2; return *this; }
-	CAT_INLINE BufferStream &operator>>(s32 &data) { data = (s32)getLE32(*(u32*)_buffer); _buffer += 4; return *this; }
-	CAT_INLINE BufferStream &operator>>(s64 &data) { data = (s64)getLE64(*(u64*)_buffer); _buffer += 8; return *this; }
+		CAT_INLINE u32 GetOffset(void *buffer) { return (u32)(_buffer - reinterpret_cast<u8 *>(buffer)); }
 
-	CAT_INLINE BufferStream &operator>>(u8 &data) { data = *_buffer++; return *this; }
-	CAT_INLINE BufferStream &operator>>(u16 &data) { data = getLE16(*(u16*)_buffer); _buffer += 2; return *this; }
-	CAT_INLINE BufferStream &operator>>(u32 &data) { data = getLE32(*(u32*)_buffer); _buffer += 4; return *this; }
-	CAT_INLINE BufferStream &operator>>(u64 &data) { data = getLE64(*(u64*)_buffer); _buffer += 8; return *this; }
+	public:
+		// Auto-cast to u8* or char*
+		CAT_INLINE operator u8 *() { return _buffer; }
+		CAT_INLINE char *c_str() { return reinterpret_cast<char *>(_buffer); }
 
-	CAT_INLINE void read(void *data, u32 bytes)
-	{
-		memcpy(data, _buffer, bytes);
-		_buffer += bytes;
-	}
+		CAT_INLINE BufferStream &operator++()
+		{
+			_buffer++;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator+=(int skip_bytes)
+		{
+			_buffer += skip_bytes;
+			return *this;
+		}
 
-	template<class T>
-	CAT_INLINE BufferStream &operator>>(T &data) { read(&data, sizeof(T)); return *this; }
-};
+	public:
+		// Insertion
+		CAT_INLINE BufferStream &operator<<(s8 data)
+		{
+			*_buffer++ = (u8)data;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator<<(s16 data)
+		{
+			*(u16 *)_buffer = getLE16((u16)data);
+			_buffer += 2;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator<<(s32 data)
+		{
+			*(u32 *)_buffer = getLE32((u32)data);
+			_buffer += 4;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator<<(s64 data)
+		{
+			*(u64 *)_buffer = getLE64((u64)data);
+			_buffer += 8;
+			return *this;
+		}
 
+		CAT_INLINE BufferStream &operator<<(u8 data)
+		{
+			*_buffer++ = data;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator<<(u16 data)
+		{
+			*(u16 *)_buffer = getLE16(data);
+			_buffer += 2;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator<<(u32 data)
+		{
+			*(u32 *)_buffer = getLE32(data);
+			_buffer += 4;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator<<(u64 data)
+		{
+			*(u64 *)_buffer = getLE64(data);
+			_buffer += 8;
+			return *this;
+		}
+
+		CAT_INLINE void write(const void *data, u32 bytes)
+		{
+			memcpy(_buffer, data, bytes);
+			_buffer += bytes;
+		}
+
+		template <class T>
+		CAT_INLINE BufferStream &operator<<(const T &data)
+		{
+			write(&data, sizeof(T));
+			return *this;
+		}
+
+	public:
+		// Extraction
+		CAT_INLINE BufferStream &operator>>(s8 &data)
+		{
+			data = (s8)*_buffer++;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator>>(s16 &data)
+		{
+			data = (s16)getLE16(*(u16 *)_buffer);
+			_buffer += 2;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator>>(s32 &data)
+		{
+			data = (s32)getLE32(*(u32 *)_buffer);
+			_buffer += 4;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator>>(s64 &data)
+		{
+			data = (s64)getLE64(*(u64 *)_buffer);
+			_buffer += 8;
+			return *this;
+		}
+
+		CAT_INLINE BufferStream &operator>>(u8 &data)
+		{
+			data = *_buffer++;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator>>(u16 &data)
+		{
+			data = getLE16(*(u16 *)_buffer);
+			_buffer += 2;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator>>(u32 &data)
+		{
+			data = getLE32(*(u32 *)_buffer);
+			_buffer += 4;
+			return *this;
+		}
+		CAT_INLINE BufferStream &operator>>(u64 &data)
+		{
+			data = getLE64(*(u64 *)_buffer);
+			_buffer += 8;
+			return *this;
+		}
+
+		CAT_INLINE void read(void *data, u32 bytes)
+		{
+			memcpy(data, _buffer, bytes);
+			_buffer += bytes;
+		}
+
+		template <class T>
+		CAT_INLINE BufferStream &operator>>(T &data)
+		{
+			read(&data, sizeof(T));
+			return *this;
+		}
+	};
 
 } // namespace cat
 

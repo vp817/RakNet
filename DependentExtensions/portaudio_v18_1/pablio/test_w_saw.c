@@ -42,67 +42,70 @@
 #include "pablio.h"
 #include <string.h>
 
-#define SAMPLE_RATE         (44100)
-#define NUM_SECONDS            (15)
-#define SAMPLES_PER_FRAME       (2)
+#define SAMPLE_RATE (44100)
+#define NUM_SECONDS (15)
+#define SAMPLES_PER_FRAME (2)
 
-#define FREQUENCY           (220.0f)
-#define PHASE_INCREMENT     (2.0f * FREQUENCY / SAMPLE_RATE)
-#define FRAMES_PER_BLOCK    (100)
+#define FREQUENCY (220.0f)
+#define PHASE_INCREMENT (2.0f * FREQUENCY / SAMPLE_RATE)
+#define FRAMES_PER_BLOCK (100)
 
-float   samples[FRAMES_PER_BLOCK][SAMPLES_PER_FRAME];
-float   phases[SAMPLES_PER_FRAME];
+float samples[FRAMES_PER_BLOCK][SAMPLES_PER_FRAME];
+float phases[SAMPLES_PER_FRAME];
 
 /*******************************************************************/
 int main(void);
 int main(void)
 {
-    int             i,j;
-    PaError         err;
-    PABLIO_Stream  *aOutStream;
+    int i, j;
+    PaError err;
+    PABLIO_Stream *aOutStream;
 
     printf("Generate sawtooth waves using PABLIO.\n");
     fflush(stdout);
 
     /* Open simplified blocking I/O layer on top of PortAudio. */
-    err = OpenAudioStream( &aOutStream, SAMPLE_RATE, paFloat32,
-                           (PABLIO_WRITE | PABLIO_STEREO) );
-    if( err != paNoError ) goto error;
+    err = OpenAudioStream(&aOutStream, SAMPLE_RATE, paFloat32,
+                          (PABLIO_WRITE | PABLIO_STEREO));
+    if (err != paNoError)
+        goto error;
 
     /* Initialize oscillator phases. */
     phases[0] = 0.0;
     phases[1] = 0.0;
 
-    for( i=0; i<(NUM_SECONDS * SAMPLE_RATE); i += FRAMES_PER_BLOCK )
+    for (i = 0; i < (NUM_SECONDS * SAMPLE_RATE); i += FRAMES_PER_BLOCK)
     {
         /* Generate sawtooth waveforms in a block for efficiency. */
-        for( j=0; j<FRAMES_PER_BLOCK; j++ )
+        for (j = 0; j < FRAMES_PER_BLOCK; j++)
         {
             /* Generate a sawtooth wave by incrementing a variable. */
             phases[0] += PHASE_INCREMENT;
             /* The signal range is -1.0 to +1.0 so wrap around if we go over. */
-            if( phases[0] > 1.0f ) phases[0] -= 2.0f;
+            if (phases[0] > 1.0f)
+                phases[0] -= 2.0f;
             samples[j][0] = phases[0];
 
             /* On the second channel, generate a sawtooth wave a fifth higher. */
             phases[1] += PHASE_INCREMENT * (3.0f / 2.0f);
-            if( phases[1] > 1.0f ) phases[1] -= 2.0f;
+            if (phases[1] > 1.0f)
+                phases[1] -= 2.0f;
             samples[j][1] = phases[1];
         }
 
         /* Write samples to output. */
-        WriteAudioStream( aOutStream, samples, FRAMES_PER_BLOCK );
+        WriteAudioStream(aOutStream, samples, FRAMES_PER_BLOCK);
     }
 
-    CloseAudioStream( aOutStream );
+    CloseAudioStream(aOutStream);
 
-    printf("Sawtooth sound test complete.\n" );
+    printf("Sawtooth sound test complete.\n");
     fflush(stdout);
     return 0;
 
 error:
-    fprintf( stderr, "An error occured while using PABLIO\n" );
-    fprintf( stderr, "Error number: %d\n", err );
-    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+    fprintf(stderr, "An error occured while using PABLIO\n");
+    fprintf(stderr, "Error number: %d\n", err);
+    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(err));
     return -1;
 }

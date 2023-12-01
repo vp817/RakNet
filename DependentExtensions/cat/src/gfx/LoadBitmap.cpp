@@ -52,11 +52,11 @@ struct BMPHeader
 #pragma pack(pop)
 #endif
 
-
 static u32 nextHighestPOT(u32 n)
 {
 	u32 b = 2;
-	while (n >>= 1) b <<= 1;
+	while (n >>= 1)
+		b <<= 1;
 	return b;
 }
 
@@ -79,7 +79,7 @@ void BMPTokenizer::rasterizeImage(u8 *image)
 	ENFORCE(final.get()) << "Out of memory: Unable to allocate texture data";
 
 	u8 *rgba_ptr = final.get();
-	
+
 	for (int y = header.height - 1; y >= 0; --y)
 	{
 		u8 *irow = image + y * header.width * 3;
@@ -104,7 +104,7 @@ void BMPTokenizer::rasterizeImage(u8 *image)
 		rgba_ptr += (newWidth - header.width) * 4;
 	}
 
-	onImage((u32*)final.get(), newWidth, newHeight);
+	onImage((u32 *) final.get(), newWidth, newHeight);
 }
 
 void BMPTokenizer::onImage(u32 *image, u32 newWidth, u32 newHeight)
@@ -138,7 +138,7 @@ BMPTokenizer::BMPTokenizer(const string &path, bool prequirePOTS, Texture *ptext
 
 	mmf.seek(header.dataOffset);
 	ENFORCE(!mmf.underrun(3 * header.width * header.height)) << "Truncated bitmap data: " << path;
-	rasterizeImage((u8*)mmf.look());
+	rasterizeImage((u8 *)mmf.look());
 }
 
 BMPTokenizer::~BMPTokenizer()

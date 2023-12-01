@@ -57,7 +57,8 @@ bool BigMontgomery::IsRabinMillerPrime(IRandom *prng, const Leg *n, int trials)
 	while (trials--)
 	{
 		// Generate a random number [2, n-1]
-		do prng->Generate(a, library_legs * sizeof(Leg));
+		do
+			prng->Generate(a, library_legs * sizeof(Leg));
 		while (!Less(a, n) || !GreaterX(a, 2));
 
 		// Bring a into the RNS
@@ -70,8 +71,10 @@ bool BigMontgomery::IsRabinMillerPrime(IRandom *prng, const Leg *n, int trials)
 		MonOutput(a, x);
 
 		// Passes this trial if x = 1 or n-1
-		if (EqualX(x, 1)) continue;
-		if (!AddX(x, 1) && Equal(x, n)) continue;
+		if (EqualX(x, 1))
+			continue;
+		if (!AddX(x, 1) && Equal(x, n))
+			continue;
 
 		// For s-1 times,
 		for (int r = 1; r < s; ++r)
@@ -83,16 +86,18 @@ bool BigMontgomery::IsRabinMillerPrime(IRandom *prng, const Leg *n, int trials)
 			MonOutput(a, x);
 
 			// If x = 1, it is composite
-			if (EqualX(x, 1)) return false;
+			if (EqualX(x, 1))
+				return false;
 
 			// If x = n-1, it could still be prime
-			if (Equal(x, n_1)) goto SKIP_TO_NEXT_TRIAL;
+			if (Equal(x, n_1))
+				goto SKIP_TO_NEXT_TRIAL;
 		}
 
 		// If we didn't find any x = n-1, it is composite
 		return false;
 
-SKIP_TO_NEXT_TRIAL:; // yea i just went there ..|.. sue me
+	SKIP_TO_NEXT_TRIAL:; // yea i just went there ..|.. sue me
 	}
 
 	// It is probably prime

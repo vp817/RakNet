@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -16,15 +16,14 @@ using namespace RakNet;
 
 Rackspace2::Rackspace2()
 {
-	X_Auth_Token[0]=0;
-	eventCallback=0;
-	tcp=0;
-	cloudAccountNumber=0;
-	reexecuteLastRequestOnAuth=false;
+	X_Auth_Token[0] = 0;
+	eventCallback = 0;
+	tcp = 0;
+	cloudAccountNumber = 0;
+	reexecuteLastRequestOnAuth = false;
 }
 Rackspace2::~Rackspace2()
 {
-
 }
 void Rackspace2::Update(void)
 {
@@ -35,20 +34,20 @@ void Rackspace2::Update(void)
 	SystemAddress sa;
 	// This is kind of crappy, but for TCP plugins, always do HasCompletedConnectionAttempt, then Receive(), then HasFailedConnectionAttempt(),HasLostConnection()
 	sa = tcp->HasCompletedConnectionAttempt();
-	if (sa!=UNASSIGNED_SYSTEM_ADDRESS)
+	if (sa != UNASSIGNED_SYSTEM_ADDRESS)
 	{
-		//printf("Rackspace2 TCP: Connected to %s\n", sa.ToString());
-//		serverAddress = sa;
+		// printf("Rackspace2 TCP: Connected to %s\n", sa.ToString());
+		//		serverAddress = sa;
 	}
 	for (packet = tcp->Receive(); packet; tcp->DeallocatePacket(packet), packet = tcp->Receive())
 		;
 	sa = tcp->HasFailedConnectionAttempt();
-	//if (sa!=UNASSIGNED_SYSTEM_ADDRESS)
+	// if (sa!=UNASSIGNED_SYSTEM_ADDRESS)
 	//	printf("Rackspace2 TCP: Failed connection attempt to %s\n", sa.ToString());
 	sa = tcp->HasLostConnection();
-	if (sa!=UNASSIGNED_SYSTEM_ADDRESS)
+	if (sa != UNASSIGNED_SYSTEM_ADDRESS)
 	{
-		//printf("Rackspace2 TCP: Lost connection to %s\n", sa.ToString());
+		// printf("Rackspace2 TCP: Lost connection to %s\n", sa.ToString());
 		//		serverAddress=UNASSIGNED_SYSTEM_ADDRESS;
 	}
 
@@ -56,12 +55,12 @@ void Rackspace2::Update(void)
 	int contentOffset;
 	if (httpConnection2->GetResponse(stringTransmitted, hostTransmitted, responseReceived, hostReceived, contentOffset))
 	{
-		if (responseReceived.IsEmpty()==false)
+		if (responseReceived.IsEmpty() == false)
 		{
 			static FILE *fp = fopen("responses.txt", "wt");
 			fprintf(fp, responseReceived.C_String());
 			fprintf(fp, "\n");
-			if (contentOffset==-1)
+			if (contentOffset == -1)
 			{
 				if (eventCallback)
 					eventCallback->OnResponse(R2RC_NO_CONTENT, responseReceived, contentOffset);
@@ -80,63 +79,62 @@ void Rackspace2::Update(void)
 				{
 					void *iter = json_object_iter(root);
 					const char *firstKey = json_object_iter_key(iter);
-					if (stricmp(firstKey, "unauthorized")==0)
+					if (stricmp(firstKey, "unauthorized") == 0)
 					{
 						if (eventCallback)
-							eventCallback->OnResponse(R2RC_UNAUTHORIZED, responseReceived, contentOffset);					
+							eventCallback->OnResponse(R2RC_UNAUTHORIZED, responseReceived, contentOffset);
 					}
-					else if (stricmp(firstKey, "itemNotFound")==0)
+					else if (stricmp(firstKey, "itemNotFound") == 0)
 					{
 						if (eventCallback)
-							eventCallback->OnResponse(R2RC_404_NOT_FOUND, responseReceived, contentOffset);					
+							eventCallback->OnResponse(R2RC_404_NOT_FOUND, responseReceived, contentOffset);
 					}
-					else if (stricmp(firstKey, "access")==0)
+					else if (stricmp(firstKey, "access") == 0)
 					{
 						json_t *valAuthToken = json_object_get(json_object_get(json_object_get(root, "access"), "token"), "id");
 						strcpy(X_Auth_Token, json_string_value(valAuthToken));
 
 						json_t *valAccountNumber = json_object_get(json_object_get(json_object_get(json_object_get(root, "access"), "token"), "tenant"), "id");
-						cloudAccountNumber = atoi(json_string_value(valAccountNumber));	
+						cloudAccountNumber = atoi(json_string_value(valAccountNumber));
 
 						if (reexecuteLastRequestOnAuth)
 						{
-							reexecuteLastRequestOnAuth=false;
+							reexecuteLastRequestOnAuth = false;
 
-							json_t *root = json_loads(__addOpLast_dataAsStr.C_String(), 0, &error);							
-							AddOperation(__addOpLast_URL, __addOpLast_isPost, root, true);							
+							json_t *root = json_loads(__addOpLast_dataAsStr.C_String(), 0, &error);
+							AddOperation(__addOpLast_URL, __addOpLast_isPost, root, true);
 						}
 						else
 						{
 							if (eventCallback)
 								eventCallback->OnResponse(R2RC_AUTHENTICATED, responseReceived, contentOffset);
 						}
-
 					}
-					else if (stricmp(firstKey, "domains")==0)
+					else if (stricmp(firstKey, "domains") == 0)
 					{
 						if (eventCallback)
 							eventCallback->OnResponse(R2RC_GOT_DOMAINS, responseReceived, contentOffset);
 					}
-					else if (stricmp(firstKey, "records")==0)
+					else if (stricmp(firstKey, "records") == 0)
 					{
 						if (eventCallback)
 							eventCallback->OnResponse(R2RC_GOT_RECORDS, responseReceived, contentOffset);
 					}
-					else if (stricmp(firstKey, "servers")==0)
+					else if (stricmp(firstKey, "servers") == 0)
 					{
 						if (eventCallback)
 							eventCallback->OnResponse(R2RC_GOT_SERVERS, responseReceived, contentOffset);
 					}
-					else if (stricmp(firstKey, "images")==0)
+					else if (stricmp(firstKey, "images") == 0)
 					{
 						if (eventCallback)
 							eventCallback->OnResponse(R2RC_GOT_IMAGES, responseReceived, contentOffset);
 					}
-					else if (stricmp(firstKey, "message")==0)
+					else if (stricmp(firstKey, "message") == 0)
 					{
 						const char *message = json_string_value(json_object_iter_value(iter));
 
-						if (strcmp(message, "Invalid authentication token. Please renew.")==0)
+						if (strcmp(message, "Invalid authentication token. Please renew.") == 0)
 						{
 							// Sets reexecuteLastRequestOnAuth to true
 							// After authenticate completes, will rerun the last run command
@@ -167,7 +165,7 @@ void Rackspace2::Update(void)
 }
 void Rackspace2::SetEventCallback(Rackspace2EventCallback *callback)
 {
-	eventCallback=callback;
+	eventCallback = callback;
 }
 int Rackspace2::GetCloudAccountNumber(void) const
 {
@@ -175,11 +173,11 @@ int Rackspace2::GetCloudAccountNumber(void) const
 }
 const char *Rackspace2::GetAuthToken(void) const
 {
-	return (const char*) &X_Auth_Token;
+	return (const char *)&X_Auth_Token;
 }
 void Rackspace2::Reauthenticate(void)
 {
-	reexecuteLastRequestOnAuth=true;
+	reexecuteLastRequestOnAuth = true;
 	AuthenticateInt(lastAuthenticationURL.C_String(), lastRackspaceCloudUsername.C_String(), lastApiAccessKey.C_String());
 }
 void Rackspace2::AuthenticateInt(const char *authenticationURL, const char *rackspaceCloudUsername, const char *apiAccessKey)
@@ -200,18 +198,18 @@ void Rackspace2::AuthenticateInt(const char *authenticationURL, const char *rack
 }
 void Rackspace2::Authenticate(const char *authenticationURL, const char *rackspaceCloudUsername, const char *apiAccessKey)
 {
-	lastAuthenticationURL=authenticationURL;
-	lastRackspaceCloudUsername=rackspaceCloudUsername;
-	lastApiAccessKey=apiAccessKey;
-	AuthenticateInt(authenticationURL, rackspaceCloudUsername,apiAccessKey);
+	lastAuthenticationURL = authenticationURL;
+	lastRackspaceCloudUsername = rackspaceCloudUsername;
+	lastApiAccessKey = apiAccessKey;
+	AuthenticateInt(authenticationURL, rackspaceCloudUsername, apiAccessKey);
 }
 void Rackspace2::AddOperation(RakNet::RakString URL, OpType opType, json_t *data, bool setAuthToken)
 {
-	if (tcp==0)
+	if (tcp == 0)
 	{
 		tcp = RakNet::OP_NEW<TCPInterface>(_FILE_AND_LINE_);
 
-		if (tcp->Start(0, 0, 8)==false)
+		if (tcp->Start(0, 0, 8) == false)
 		{
 			if (eventCallback)
 				eventCallback->OnTCPFailure();
@@ -223,7 +221,7 @@ void Rackspace2::AddOperation(RakNet::RakString URL, OpType opType, json_t *data
 	}
 
 	RakString authURLHeader, authURLDomain, authURLPath;
-	URL.SplitURI(authURLHeader,authURLDomain,authURLPath);
+	URL.SplitURI(authURLHeader, authURLDomain, authURLPath);
 	char *jsonStr = "";
 	if (data)
 		jsonStr = json_dumps(data, 0);
@@ -233,7 +231,7 @@ void Rackspace2::AddOperation(RakNet::RakString URL, OpType opType, json_t *data
 	{
 		RakAssert(X_Auth_Token[0]);
 		// Test expired token
-		//strcpy(X_Auth_Token, "fd6ad67c-fbd3-4b35-94e2-059b6090998e");
+		// strcpy(X_Auth_Token, "fd6ad67c-fbd3-4b35-94e2-059b6090998e");
 		extraBody.Set("Accept: application/json\r\nX-Auth-Token: %s", X_Auth_Token);
 
 		__addOpLast_URL = URL;
@@ -245,16 +243,16 @@ void Rackspace2::AddOperation(RakNet::RakString URL, OpType opType, json_t *data
 		extraBody = "Accept: application/json";
 	}
 
-	if (opType==OT_POST)
+	if (opType == OT_POST)
 		requestStr = RakString::FormatForPOST(URL, "application/json", jsonStr, extraBody);
-	else if (opType==OT_GET)
+	else if (opType == OT_GET)
 		requestStr = RakString::FormatForGET(URL, extraBody);
-	else  if (opType==OT_DELETE)
+	else if (opType == OT_DELETE)
 		requestStr = RakString::FormatForDELETE(URL, extraBody);
 	else
 		requestStr = RakString::FormatForPUT(URL, "application/json", jsonStr, extraBody);
 
-	bool b = httpConnection2->TransmitRequest(requestStr,authURLDomain, 443, true);
+	bool b = httpConnection2->TransmitRequest(requestStr, authURLDomain, 443, true);
 	if (!b)
 	{
 		if (eventCallback)
@@ -266,4 +264,3 @@ void Rackspace2::AddOperation(RakNet::RakString URL, OpType opType, json_t *data
 		json_decref(data);
 	}
 }
-

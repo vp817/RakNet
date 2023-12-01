@@ -32,15 +32,14 @@
 #include <cat/crypt/tunnel/KeyAgreement.hpp>
 #include <cat/crypt/rand/Fortuna.hpp>
 
-namespace cat {
-
-
-class KeyMaker : public KeyAgreementCommon
+namespace cat
 {
-public:
-    bool GenerateKeyPair(BigTwistedEdwards *math, FortunaOutput *csprng, u8 *public_key, int public_bytes, u8 *private_key, int private_bytes);
-};
 
+	class KeyMaker : public KeyAgreementCommon
+	{
+	public:
+		bool GenerateKeyPair(BigTwistedEdwards *math, FortunaOutput *csprng, u8 *public_key, int public_bytes, u8 *private_key, int private_bytes);
+	};
 
 } // namespace cat
 

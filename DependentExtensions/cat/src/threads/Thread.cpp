@@ -36,7 +36,7 @@ using namespace cat;
 
 unsigned int __stdcall Thread::ThreadWrapper(void *this_object)
 {
-	Thread *thread_object = static_cast<Thread*>( this_object );
+	Thread *thread_object = static_cast<Thread *>(this_object);
 
 	bool success = thread_object->ThreadFunction(thread_object->caller_param);
 
@@ -54,17 +54,16 @@ unsigned int __stdcall Thread::ThreadWrapper(void *this_object)
 
 void *Thread::ThreadWrapper(void *this_object)
 {
-	Thread *thread_object = static_cast<Thread*>( this_object );
+	Thread *thread_object = static_cast<Thread *>(this_object);
 
 	bool success = thread_object->ThreadFunction(thread_object->caller_param);
 
 	thread_object->_thread_running = false;
 
-	return (void*)(success ? 0 : 1);
+	return (void *)(success ? 0 : 1);
 }
 
 #endif
-
 
 //// Thread
 
@@ -84,7 +83,7 @@ bool Thread::StartThread(void *param)
 #if defined(CAT_OS_WINDOWS)
 
 	// Using _beginthreadex() and _endthreadex() since _endthread() calls CloseHandle()
-	_thread = (HANDLE)_beginthreadex(0, 0, &Thread::ThreadWrapper, static_cast<void*>( this ), 0, 0);
+	_thread = (HANDLE)_beginthreadex(0, 0, &Thread::ThreadWrapper, static_cast<void *>(this), 0, 0);
 
 	if (!_thread)
 		_thread_running = false;
@@ -94,7 +93,7 @@ bool Thread::StartThread(void *param)
 #else
 
 	_thread_running = true;
-	if (pthread_create(&_thread, 0, &Thread::ThreadWrapper, static_cast<void*>( this )))
+	if (pthread_create(&_thread, 0, &Thread::ThreadWrapper, static_cast<void *>(this)))
 	{
 		_thread_running = false;
 		return false;

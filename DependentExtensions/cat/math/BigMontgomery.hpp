@@ -27,8 +27,8 @@
 */
 
 /*
-    Several algorithms based on ideas from the "Handbook of Applied Cryptography"
-    http://www.cacr.math.uwaterloo.ca/hac/
+	Several algorithms based on ideas from the "Handbook of Applied Cryptography"
+	http://www.cacr.math.uwaterloo.ca/hac/
 */
 
 #ifndef CAT_BIG_MONTGOMERY_HPP
@@ -37,64 +37,63 @@
 #include <cat/math/BigRTL.hpp>
 #include <cat/rand/IRandom.hpp>
 
-namespace cat {
-
-
-// Performs fast modular arithmetic in the Montgomery Residue Number System
-class BigMontgomery : public BigRTL
+namespace cat
 {
-    static const int MON_OVERHEAD = 3 + 4;
-    int mon_regs;
 
-protected:
-	Leg *TempProduct;
-	Leg *TempProductHi;
-    Leg *CachedModulus;
-	Leg mod_inv;
+	// Performs fast modular arithmetic in the Montgomery Residue Number System
+	class BigMontgomery : public BigRTL
+	{
+		static const int MON_OVERHEAD = 3 + 4;
+		int mon_regs;
 
-public:
-    BigMontgomery(int regs, int bits);
+	protected:
+		Leg *TempProduct;
+		Leg *TempProductHi;
+		Leg *CachedModulus;
+		Leg mod_inv;
 
-	// Must call SetModulus() before using this object
-	void SetModulus(const Leg *mod);
+	public:
+		BigMontgomery(int regs, int bits);
 
-public:
-    const Leg *GetModulus() { return CachedModulus; }
-    void CopyModulus(Leg *out);
+		// Must call SetModulus() before using this object
+		void SetModulus(const Leg *mod);
 
-public:
-	// Convert value in register into RNS, stored in out
-	void MonInput(const Leg *in, Leg *out);
+	public:
+		const Leg *GetModulus() { return CachedModulus; }
+		void CopyModulus(Leg *out);
 
-	// Convert value in register from RNS, stored in out
-	void MonOutput(const Leg *in, Leg *out);
+	public:
+		// Convert value in register into RNS, stored in out
+		void MonInput(const Leg *in, Leg *out);
 
-	// Note: This will clobber the input product!
-	// Reduce a double-register product to a single register in the RNS
-	void MonReduceProduct(Leg *inout_product, Leg *out);
+		// Convert value in register from RNS, stored in out
+		void MonOutput(const Leg *in, Leg *out);
 
-public:
-	// Inputs and outputs must be in the Montgomery RNS
-    void MonAdd(const Leg *in_a, const Leg *in_b, Leg *out);
-    void MonSubtract(const Leg *in_a, const Leg *in_b, Leg *out);
-    void MonNegate(const Leg *in, Leg *out);
-    void MonDouble(const Leg *in, Leg *out);
+		// Note: This will clobber the input product!
+		// Reduce a double-register product to a single register in the RNS
+		void MonReduceProduct(Leg *inout_product, Leg *out);
 
-public:
-	// Inputs and outputs must be in the Montgomery RNS
-    void MonMultiply(const Leg *in_a, const Leg *in_b, Leg *out);
-    void MonSquare(const Leg *in, Leg *out);
+	public:
+		// Inputs and outputs must be in the Montgomery RNS
+		void MonAdd(const Leg *in_a, const Leg *in_b, Leg *out);
+		void MonSubtract(const Leg *in_a, const Leg *in_b, Leg *out);
+		void MonNegate(const Leg *in, Leg *out);
+		void MonDouble(const Leg *in, Leg *out);
 
-public:
-	// Base must be in the Montgomery RNS.  in_base != out
-	void MonExpMod(const Leg *in_base, const Leg *in_exp, Leg *out);
+	public:
+		// Inputs and outputs must be in the Montgomery RNS
+		void MonMultiply(const Leg *in_a, const Leg *in_b, Leg *out);
+		void MonSquare(const Leg *in, Leg *out);
 
-public:
-	// Input is NOT in the RNS (don't call MonInput)
-	// Probably a prime, certainty = 4^-trials.  20: %99.9999999999 certainty
-	bool IsRabinMillerPrime(IRandom *prng, const Leg *n, int trials = 20);
-};
+	public:
+		// Base must be in the Montgomery RNS.  in_base != out
+		void MonExpMod(const Leg *in_base, const Leg *in_exp, Leg *out);
 
+	public:
+		// Input is NOT in the RNS (don't call MonInput)
+		// Probably a prime, certainty = 4^-trials.  20: %99.9999999999 certainty
+		bool IsRabinMillerPrime(IRandom *prng, const Leg *n, int trials = 20);
+	};
 
 } // namespace cat
 

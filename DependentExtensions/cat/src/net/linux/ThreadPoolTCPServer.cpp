@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/net/ThreadPoolSockets.hpp>
@@ -36,7 +36,6 @@
 using namespace std;
 using namespace cat;
 
-
 //// Overlapped types
 
 void AcceptExOverlapped::Set(Socket s)
@@ -44,7 +43,6 @@ void AcceptExOverlapped::Set(Socket s)
     tov.Set(OVOP_ACCEPT_EX);
     acceptSocket = s;
 }
-
 
 //// TCPServer
 
@@ -61,17 +59,17 @@ TCPServer::~TCPServer()
 bool TCPServer::Bind(Port port)
 {
     // Create an unbound, overlapped TCP socket for the listen port
-	bool ipv4;
-	Socket s;
-	if (!CreateSocket(SOCK_STREAM, IPPROTO_TCP, true, s, ipv4))
-	{
-		FATAL("TCPServer") << "Unable to create a TCP socket: " << SocketGetLastErrorString();
-		return false;
-	}
+    bool ipv4;
+    Socket s;
+    if (!CreateSocket(SOCK_STREAM, IPPROTO_TCP, true, s, ipv4))
+    {
+        FATAL("TCPServer") << "Unable to create a TCP socket: " << SocketGetLastErrorString();
+        return false;
+    }
 
     // Set SO_SNDBUF to zero for a zero-copy network stack (we maintain the buffers)
     int buffsize = 0;
-    if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char*)&buffsize, sizeof(buffsize)))
+    if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *)&buffsize, sizeof(buffsize)))
     {
         FATAL("TCPServer") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
         CloseSocket(s);
@@ -80,7 +78,7 @@ bool TCPServer::Bind(Port port)
 
     // Do not allow other applications to bind over us with SO_REUSEADDR
     int exclusive = TRUE;
-    if (setsockopt(s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char*)&exclusive, sizeof(exclusive)))
+    if (setsockopt(s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char *)&exclusive, sizeof(exclusive)))
     {
         FATAL("TCPServer") << "Unable to get exclusive port: " << SocketGetLastErrorString();
         CloseSocket(s);
@@ -103,8 +101,8 @@ bool TCPServer::Bind(Port port)
     GUID GuidGetAcceptExSockAddrs = WSAID_GETACCEPTEXSOCKADDRS;
 
     if (WSAIoctl(s, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidGetAcceptExSockAddrs,
-				 sizeof(GuidGetAcceptExSockAddrs), &_lpfnGetAcceptExSockAddrs,
-				 sizeof(_lpfnGetAcceptExSockAddrs), &copied, 0, 0))
+                 sizeof(GuidGetAcceptExSockAddrs), &_lpfnGetAcceptExSockAddrs,
+                 sizeof(_lpfnGetAcceptExSockAddrs), &copied, 0, 0))
     {
         FATAL("TCPServer") << "Unable to get GetAcceptExSockAddrs interface: " << SocketGetLastErrorString();
         CloseSocket(s);
@@ -115,8 +113,8 @@ bool TCPServer::Bind(Port port)
     GUID GuidDisconnectEx = WSAID_DISCONNECTEX;
 
     if (WSAIoctl(s, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidDisconnectEx,
-				 sizeof(GuidDisconnectEx), &_lpfnDisconnectEx, sizeof(_lpfnDisconnectEx),
-				 &copied, 0, 0))
+                 sizeof(GuidDisconnectEx), &_lpfnDisconnectEx, sizeof(_lpfnDisconnectEx),
+                 &copied, 0, 0))
     {
         FATAL("TCPServer") << "Unable to get DisconnectEx interface: " << SocketGetLastErrorString();
         CloseSocket(s);
@@ -167,7 +165,7 @@ Port TCPServer::GetPort()
     // Get bound port if it was random
     if (_port == 0)
     {
-		_port = GetBoundPort(_socket);
+        _port = GetBoundPort(_socket);
 
         if (!_port)
         {
@@ -188,21 +186,20 @@ void TCPServer::Close()
     }
 }
 
-
 bool TCPServer::QueueAcceptEx()
 {
     // Create an unbound overlapped TCP socket for AcceptEx()
-	bool ipv4;
-	Socket s;
-	if (!CreateSocket(SOCK_STREAM, IPPROTO_TCP, false, s, ipv4))
-	{
-		WARN("TCPServer") << "Unable to create an accept socket: " << SocketGetLastErrorString();
-		return false;
-	}
+    bool ipv4;
+    Socket s;
+    if (!CreateSocket(SOCK_STREAM, IPPROTO_TCP, false, s, ipv4))
+    {
+        WARN("TCPServer") << "Unable to create an accept socket: " << SocketGetLastErrorString();
+        return false;
+    }
 
     // Create a new AcceptExOverlapped structure
-    AcceptExOverlapped *overlapped = reinterpret_cast<AcceptExOverlapped*>(
-		RegionAllocator::ii->Acquire(sizeof(AcceptExOverlapped)) );
+    AcceptExOverlapped *overlapped = reinterpret_cast<AcceptExOverlapped *>(
+        RegionAllocator::ii->Acquire(sizeof(AcceptExOverlapped)));
     if (!overlapped)
     {
         WARN("TCPServer") << "Unable to allocate AcceptEx overlapped structure: Out of memory.";
@@ -218,11 +215,11 @@ bool TCPServer::QueueAcceptEx()
 
     AddRef();
 
-	const int addr_buf_len = sizeof(overlapped->addresses.addr) + 16;
+    const int addr_buf_len = sizeof(overlapped->addresses.addr) + 16;
 
-	BOOL result = _lpfnAcceptEx(_socket, s, &overlapped->addresses, 0,
-							   addr_buf_len, addr_buf_len,
-							   &received, &overlapped->tov.ov);
+    BOOL result = _lpfnAcceptEx(_socket, s, &overlapped->addresses, 0,
+                                addr_buf_len, addr_buf_len,
+                                &received, &overlapped->tov.ov);
 
     // This overlapped operation will always complete unless
     // we get an error code other than ERROR_IO_PENDING.
@@ -241,10 +238,12 @@ bool TCPServer::QueueAcceptEx()
 bool TCPServer::QueueAccepts()
 {
     u32 queueSize = Settings::ref()->getInt("TCPServer.AcceptQueueSize", 8);
-    if (queueSize > 1000) queueSize = 1000;
+    if (queueSize > 1000)
+        queueSize = 1000;
 
     u32 queued = queueSize;
-    while (QueueAcceptEx() && queueSize--);
+    while (QueueAcceptEx() && queueSize--)
+        ;
     queued -= queueSize;
 
     if (!queued)
@@ -264,7 +263,7 @@ void TCPServer::OnAcceptExComplete(int error, AcceptExOverlapped *overlapped)
         // ERROR_SEM_TIMEOUT     : This means a half-open connection has reset
         // ERROR_NETNAME_DELETED : This means a three-way handshake reset before completion
         if (error == ERROR_SEM_TIMEOUT ||
-			error == ERROR_NETNAME_DELETED)
+            error == ERROR_NETNAME_DELETED)
         {
             // Queue up another AcceptEx to fill in for this one
             QueueAcceptEx();
@@ -275,20 +274,21 @@ void TCPServer::OnAcceptExComplete(int error, AcceptExOverlapped *overlapped)
 
     // Get local and remote socket addresses
     int localLen = 0, remoteLen = 0;
-	sockaddr *local, *remote;
+    sockaddr *local, *remote;
 
-	const int addr_buf_len = sizeof(overlapped->addresses.addr) + 16;
+    const int addr_buf_len = sizeof(overlapped->addresses.addr) + 16;
 
-	_lpfnGetAcceptExSockAddrs(&overlapped->addresses, 0, addr_buf_len, addr_buf_len,
-							  &local, &localLen, &remote, &remoteLen);
+    _lpfnGetAcceptExSockAddrs(&overlapped->addresses, 0, addr_buf_len, addr_buf_len,
+                              &local, &localLen, &remote, &remoteLen);
 
     // Instantiate a server connection
     TCPServerConnection *conn = InstantiateServerConnection();
-    if (!conn) return;
+    if (!conn)
+        return;
 
     // Pass the connection parameters to the connection instance for acceptance
     if (!conn->AcceptConnection(_socket, overlapped->acceptSocket, _lpfnDisconnectEx,
-								NetAddr(local), NetAddr(remote)))
+                                NetAddr(local), NetAddr(remote)))
         conn->ReleaseRef();
 
     // Queue up another AcceptEx to fill in for this one

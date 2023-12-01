@@ -44,9 +44,15 @@ int cat::DecToString(s32 x, char *outs)
 	// max = 4294967295
 	u32 r, d, n = (u32)x;
 
-	r = (n >= 1000000000) ? 9 : (n >= 100000000) ? 8 : (n >= 10000000) ? 7 : 
-		(n >= 1000000) ? 6 : (n >= 100000) ? 5 : (n >= 10000) ? 4 : 
-		(n >= 1000) ? 3 : (n >= 100) ? 2 : (n >= 10) ? 1 : 0;
+	r = (n >= 1000000000) ? 9 : (n >= 100000000) ? 8
+							: (n >= 10000000)	 ? 7
+							: (n >= 1000000)	 ? 6
+							: (n >= 100000)		 ? 5
+							: (n >= 10000)		 ? 4
+							: (n >= 1000)		 ? 3
+							: (n >= 100)		 ? 2
+							: (n >= 10)			 ? 1
+												 : 0;
 
 	switch (r)
 	{
@@ -105,20 +111,23 @@ bool cat::iStrEqual(const char *A, const char *B)
 		char b = *B++;
 
 		// Convert to lower case if needed
-		if (a >= 'A' && a <= 'Z') a += 'a' - 'Z';
-		if (b >= 'A' && b <= 'Z') b += 'a' - 'Z';
+		if (a >= 'A' && a <= 'Z')
+			a += 'a' - 'Z';
+		if (b >= 'A' && b <= 'Z')
+			b += 'a' - 'Z';
 
 		// If characters do not match, return false
-		if (a != b) return false;
+		if (a != b)
+			return false;
 
 		// If both characters are '\0', we have reached
 		// the end and no characters were different
-		if (a == '\0') return true;
+		if (a == '\0')
+			return true;
 	}
 }
 
 #endif // CAT_UNKNOWN_BUILTIN_ISTRCMP
-
 
 // Get length of string that has a maximum length (potentially no trailing nul)
 u32 cat::GetFixedStrLen(const char *str, u32 max_len)
@@ -129,7 +138,6 @@ u32 cat::GetFixedStrLen(const char *str, u32 max_len)
 
 	return max_len;
 }
-
 
 // Set a fixed string buffer (zero-padded) from a variable-length string,
 // both either zero or length-terminated.  Returns length of copied string
@@ -160,18 +168,17 @@ u32 cat::SetFixedStr(char *dest, u32 dest_len, const char *src, u32 src_max_len)
 	return copied;
 }
 
-
 // Returns true if buffer contains any non-zero bytes
 bool cat::IsZeroFixedBuffer(const void *vbuffer, u32 bytes)
 {
-	const u8 *buffer = reinterpret_cast<const u8*>( vbuffer );
+	const u8 *buffer = reinterpret_cast<const u8 *>(vbuffer);
 
 	for (u32 ii = 0; ii < bytes; ++ii)
-		if (buffer[ii]) return false;
+		if (buffer[ii])
+			return false;
 
 	return true;
 }
-
 
 // Replaces all similar-looking glyphs with a common character
 char cat::DesimilarizeCharacter(char ch)
@@ -240,7 +247,8 @@ void cat::CopyDesimilarizeString(const char *from, char *to)
 {
 	char ch;
 
-	while ((ch = *from++)) *to++ = DesimilarizeCharacter(ch);
+	while ((ch = *from++))
+		*to++ = DesimilarizeCharacter(ch);
 
 	*to = '\0';
 }
@@ -264,7 +272,8 @@ void cat::CopyToUppercaseString(const char *from, char *to)
 {
 	char ch;
 
-	while ((ch = *from++)) *to++ = (char)std::toupper(ch);
+	while ((ch = *from++))
+		*to++ = (char)std::toupper(ch);
 
 	*to = '\0';
 }
@@ -274,7 +283,8 @@ void cat::CopyToLowercaseString(const char *from, char *to)
 {
 	char ch;
 
-	while ((ch = *from++)) *to++ = (char)std::tolower(ch);
+	while ((ch = *from++))
+		*to++ = (char)std::tolower(ch);
 
 	*to = '\0';
 }

@@ -29,21 +29,20 @@
 #include <cat/parse/MessageRouter.hpp>
 using namespace cat;
 
-
 void MessageRouter::Set(u8 opcode, const MessageHandler &handler)
 {
-    handlers[opcode] = handler;
+	handlers[opcode] = handler;
 }
 
 void MessageRouter::Clear(u8 opcode)
 {
-    handlers[opcode].clear();
+	handlers[opcode].clear();
 }
 
 void MessageRouter::Invoke(u8 opcode, BitStream &msg)
 {
-    if (handlers[opcode])
-    {
-        handlers[opcode](msg);
-    }
+	if (handlers[opcode])
+	{
+		handlers[opcode](msg);
+	}
 }

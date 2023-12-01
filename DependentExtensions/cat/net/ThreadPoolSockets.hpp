@@ -34,31 +34,29 @@
 #include <cat/threads/ThreadPool.hpp>
 #include <cat/net/Sockets.hpp>
 
-namespace cat {
+namespace cat
+{
 
+	/*
+		Thread Pool Sockets library
 
-/*
-    Thread Pool Sockets library
+		Provides a framework for rapidly developing TCP/UDP server and client objects
+		that make use of high performance APIs under various server and desktop
+		operating systems.
 
-    Provides a framework for rapidly developing TCP/UDP server and client objects
-    that make use of high performance APIs under various server and desktop
-	operating systems.
+		All network events are processed by a thread pool managed by ThreadPool.
+	*/
 
-    All network events are processed by a thread pool managed by ThreadPool.
-*/
+	class TCPServer;
+	class TCPConnexion;
+	class TCPClient;
+	class UDPEndpoint;
 
-class TCPServer;
-class TCPConnexion;
-class TCPClient;
-class UDPEndpoint;
-
-void ReportUnexpectedSocketError(int error);
-
+	void ReportUnexpectedSocketError(int error);
 
 } // namespace cat
 
-
-#if defined (CAT_OS_WINDOWS) // Windows-style IOCP
+#if defined(CAT_OS_WINDOWS) // Windows-style IOCP
 
 #include <MSWSock.h>
 #include <cat/port/WindowsInclude.hpp>
@@ -90,6 +88,5 @@ void ReportUnexpectedSocketError(int error);
 #include <cat/net/generic/UDPEndpoint.hpp>
 
 #endif
-
 
 #endif // CAT_THREAD_POOL_SOCKETS_HPP

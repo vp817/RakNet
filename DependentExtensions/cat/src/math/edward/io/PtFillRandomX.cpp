@@ -32,7 +32,8 @@ using namespace cat;
 // Fill the X coordinate of the point with a random value
 void BigTwistedEdwards::PtFillRandomX(IRandom *prng, Leg *out)
 {
-    // Generate an affine X coordinate point that is unbiased
-    do prng->Generate(out+XOFF, RegBytes());
-    while (!Less(out+XOFF, GetModulus()));
+	// Generate an affine X coordinate point that is unbiased
+	do
+		prng->Generate(out + XOFF, RegBytes());
+	while (!Less(out + XOFF, GetModulus()));
 }

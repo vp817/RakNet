@@ -6,18 +6,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -36,7 +36,7 @@
 #define DISABLE_WIDEBAND
 
 /* Allow for 2 20ms narrowband blocks per frame, plus a couple of bytes */
-#define MAX_CHARS_PER_FRAME (42/BYTES_PER_CHAR)
+#define MAX_CHARS_PER_FRAME (42 / BYTES_PER_CHAR)
 
 /* for debug */
 #undef DECODE_ONLY
@@ -47,11 +47,11 @@
 #define USER_MISC
 #define VERBOSE_ALLOC
 /* OR        Use CALLOC (heap size must be increased in linker command file) */
-//#undef MANUAL_ALLOC
-//#undef USER_MISC
+// #undef MANUAL_ALLOC
+// #undef USER_MISC
 
-#if defined (CONFIG_TI_C54X) || defined (CONFIG_TI_C55X) 
-//#define PRECISION16
+#if defined(CONFIG_TI_C54X) || defined(CONFIG_TI_C55X)
+// #define PRECISION16
 
 // These values determined by analysis for 8kbps narrowband
 #define SPEEXENC_PERSIST_STACK_SIZE 5000
@@ -70,4 +70,3 @@
 #define SPEEX_SCRATCH_STACK_SIZE SPEEXENC_SCRATCH_STACK_SIZE
 #define NB_ENC_STACK SPEEXENC_SCRATCH_STACK_SIZE
 #define NB_DEC_STACK SPEEXDEC_SCRATCH_STACK_SIZE
-

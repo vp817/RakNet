@@ -1,22 +1,22 @@
-/* Copyright (C) 2002 Jean-Marc Valin 
+/* Copyright (C) 2002 Jean-Marc Valin
    File: wav_io.c
    Routines to handle wav (RIFF) headers
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -31,7 +31,7 @@
 */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+#include "config.h"
 #endif
 
 #include <stdio.h>
@@ -40,36 +40,35 @@
 
 static spx_uint32_t le_int(spx_uint32_t i)
 {
-   spx_uint32_t ret=i;
+   spx_uint32_t ret = i;
 #ifdef WORDS_BIGENDIAN
-   ret =  i>>24;
-   ret += (i>>8)&0x0000ff00;
-   ret += (i<<8)&0x00ff0000;
-   ret += (i<<24);
+   ret = i >> 24;
+   ret += (i >> 8) & 0x0000ff00;
+   ret += (i << 8) & 0x00ff0000;
+   ret += (i << 24);
 #endif
    return ret;
 }
 
 unsigned short be_short(unsigned short s)
 {
-   unsigned short ret=s;
+   unsigned short ret = s;
 #ifndef WORDS_BIGENDIAN
-   ret =  s>>8;
-   ret += s<<8;
+   ret = s >> 8;
+   ret += s << 8;
 #endif
    return ret;
 }
 
 unsigned short le_short(unsigned short s)
 {
-   unsigned short ret=s;
+   unsigned short ret = s;
 #ifdef WORDS_BIGENDIAN
-   ret =  s>>8;
-   ret += s<<8;
+   ret = s >> 8;
+   ret += s << 8;
 #endif
    return ret;
 }
-
 
 int read_wav_header(FILE *file, int *rate, int *channels, int *format, int *size)
 {
@@ -81,7 +80,7 @@ int read_wav_header(FILE *file, int *rate, int *channels, int *format, int *size
    int skip_bytes;
    int i;
 
-   ch[4]=0;
+   ch[4] = 0;
 #if 0
    fread(ch, 1, 4, file);
    if (strcmp(ch, "RIFF")!=0)
@@ -101,19 +100,19 @@ int read_wav_header(FILE *file, int *rate, int *channels, int *format, int *size
    }
 #endif
    fread(ch, 1, 4, file);
-   while (strcmp(ch, "fmt ")!=0)
+   while (strcmp(ch, "fmt ") != 0)
    {
       fread(&itmp, 4, 1, file);
       itmp = le_int(itmp);
       /*fprintf (stderr, "skip=%d\n", itmp);*/
       /*strange way of seeking, but it works even for pipes*/
-      for (i=0;i<itmp;i++)
+      for (i = 0; i < itmp; i++)
          fgetc(file);
       /*fseek(file, itmp, SEEK_CUR);*/
       fread(ch, 1, 4, file);
       if (feof(file))
       {
-         fprintf (stderr, "Corrupted WAVE file: no \"fmt \"\n");
+         fprintf(stderr, "Corrupted WAVE file: no \"fmt \"\n");
          return -1;
       }
    }
@@ -122,27 +121,27 @@ int read_wav_header(FILE *file, int *rate, int *channels, int *format, int *size
       fprintf (stderr, "Corrupted WAVE file: no \"fmt \"\n");
       return -1;
       }*/
-   
+
    fread(&itmp, 4, 1, file);
    itmp = le_int(itmp);
-   skip_bytes=itmp-16;
+   skip_bytes = itmp - 16;
    /*fprintf (stderr, "skip=%d\n", skip_bytes);*/
-   
+
    fread(&stmp, 2, 1, file);
    stmp = le_short(stmp);
-   if (stmp!=1)
+   if (stmp != 1)
    {
-      fprintf (stderr, "Only PCM encoding is supported\n");
+      fprintf(stderr, "Only PCM encoding is supported\n");
       return -1;
    }
 
    fread(&stmp, 2, 1, file);
    stmp = le_short(stmp);
    *channels = stmp;
-   
-   if (stmp>2)
+
+   if (stmp > 2)
    {
-      fprintf (stderr, "Only mono and (intensity) stereo supported\n");
+      fprintf(stderr, "Only mono and (intensity) stereo supported\n");
       return -1;
    }
 
@@ -151,7 +150,7 @@ int read_wav_header(FILE *file, int *rate, int *channels, int *format, int *size
    *rate = itmp;
    if (*rate != 8000 && *rate != 16000 && *rate != 11025 && *rate != 22050 && *rate != 32000 && *rate != 44100 && *rate != 48000)
    {
-      fprintf (stderr, "Only 8 kHz (narrowband) and 16 kHz (wideband) supported (plus 11.025 kHz and 22.05 kHz, but your mileage may vary)\n");
+      fprintf(stderr, "Only 8 kHz (narrowband) and 16 kHz (wideband) supported (plus 11.025 kHz and 22.05 kHz, but your mileage may vary)\n");
       return -1;
    }
 
@@ -163,46 +162,45 @@ int read_wav_header(FILE *file, int *rate, int *channels, int *format, int *size
 
    fread(&stmp, 2, 1, file);
    stmp = le_short(stmp);
-   if (stmp!=16 && stmp!=8)
+   if (stmp != 16 && stmp != 8)
    {
-      fprintf (stderr, "Only 8/16-bit linear supported\n");
+      fprintf(stderr, "Only 8/16-bit linear supported\n");
       return -1;
    }
-   *format=stmp;
+   *format = stmp;
 
-   if (bpersec!=*rate**channels*stmp/8)
+   if (bpersec != *rate * *channels * stmp / 8)
    {
-      fprintf (stderr, "Corrupted header: ByteRate mismatch\n");
-      return -1;
-   }
-
-   if (balign!=*channels*stmp/8)
-   {
-      fprintf (stderr, "Corrupted header: BlockAlign mismatch\n");
+      fprintf(stderr, "Corrupted header: ByteRate mismatch\n");
       return -1;
    }
 
-   
+   if (balign != *channels * stmp / 8)
+   {
+      fprintf(stderr, "Corrupted header: BlockAlign mismatch\n");
+      return -1;
+   }
+
    /*strange way of seeking, but it works even for pipes*/
-   if (skip_bytes>0)
-      for (i=0;i<skip_bytes;i++)
+   if (skip_bytes > 0)
+      for (i = 0; i < skip_bytes; i++)
          fgetc(file);
 
    /*fseek(file, skip_bytes, SEEK_CUR);*/
 
    fread(ch, 1, 4, file);
-   while (strcmp(ch, "data")!=0)
+   while (strcmp(ch, "data") != 0)
    {
       fread(&itmp, 4, 1, file);
       itmp = le_int(itmp);
       /*strange way of seeking, but it works even for pipes*/
-      for (i=0;i<itmp;i++)
+      for (i = 0; i < itmp; i++)
          fgetc(file);
       /*fseek(file, itmp, SEEK_CUR);*/
       fread(ch, 1, 4, file);
       if (feof(file))
       {
-         fprintf (stderr, "Corrupted WAVE file: no \"data\"\n");
+         fprintf(stderr, "Corrupted WAVE file: no \"data\"\n");
          return -1;
       }
    }
@@ -211,12 +209,10 @@ int read_wav_header(FILE *file, int *rate, int *channels, int *format, int *size
    fread(&itmp, 4, 1, file);
    itmp = le_int(itmp);
 
-   *size=itmp;
+   *size = itmp;
 
    return 1;
 }
-
-
 
 void write_wav_header(FILE *file, int rate, int channels, int format, int size)
 {
@@ -224,14 +220,14 @@ void write_wav_header(FILE *file, int rate, int channels, int format, int size)
    int itmp;
    short stmp;
 
-   ch[4]=0;
+   ch[4] = 0;
 
-   fprintf (file, "RIFF");
+   fprintf(file, "RIFF");
 
    itmp = 0x7fffffff;
    fwrite(&itmp, 4, 1, file);
 
-   fprintf (file, "WAVEfmt ");
+   fprintf(file, "WAVEfmt ");
 
    itmp = le_int(16);
    fwrite(&itmp, 4, 1, file);
@@ -245,19 +241,17 @@ void write_wav_header(FILE *file, int rate, int channels, int format, int size)
    itmp = le_int(rate);
    fwrite(&itmp, 4, 1, file);
 
-   itmp = le_int(rate*channels*2);
+   itmp = le_int(rate * channels * 2);
    fwrite(&itmp, 4, 1, file);
 
-   stmp = le_short(2*channels);
+   stmp = le_short(2 * channels);
    fwrite(&stmp, 2, 1, file);
 
    stmp = le_short(16);
    fwrite(&stmp, 2, 1, file);
 
-   fprintf (file, "data");
+   fprintf(file, "data");
 
    itmp = le_int(0x7fffffff);
    fwrite(&itmp, 4, 1, file);
-
-
 }

@@ -35,29 +35,29 @@ using namespace cat;
 
 bool KeyAgreementResponder::AllocateMemory()
 {
-    FreeMemory();
+	FreeMemory();
 
-    b = new (Aligned::ii) Leg[KeyLegs * 15];
-    B = b + KeyLegs;
-	B_neutral = B + KeyLegs*2;
-	y[0] = B_neutral + KeyLegs*2;
+	b = new (Aligned::ii) Leg[KeyLegs * 15];
+	B = b + KeyLegs;
+	B_neutral = B + KeyLegs * 2;
+	y[0] = B_neutral + KeyLegs * 2;
 	y[1] = y[0] + KeyLegs;
 	Y_neutral[0] = y[1] + KeyLegs;
-	Y_neutral[1] = Y_neutral[0] + KeyLegs*4;
+	Y_neutral[1] = Y_neutral[0] + KeyLegs * 4;
 
-    return !!b;
+	return !!b;
 }
 
 void KeyAgreementResponder::FreeMemory()
 {
-    if (b)
-    {
-        CAT_CLR(b, KeyBytes);
-        CAT_CLR(y[0], KeyBytes);
-        CAT_CLR(y[1], KeyBytes);
-        Aligned::Delete(b);
-        b = 0;
-    }
+	if (b)
+	{
+		CAT_CLR(b, KeyBytes);
+		CAT_CLR(y[0], KeyBytes);
+		CAT_CLR(y[1], KeyBytes);
+		Aligned::Delete(b);
+		b = 0;
+	}
 
 	if (G_MultPrecomp)
 	{
@@ -68,8 +68,8 @@ void KeyAgreementResponder::FreeMemory()
 
 KeyAgreementResponder::KeyAgreementResponder()
 {
-    b = 0;
-    G_MultPrecomp = 0;
+	b = 0;
+	G_MultPrecomp = 0;
 }
 
 KeyAgreementResponder::~KeyAgreementResponder()
@@ -110,79 +110,84 @@ bool KeyAgreementResponder::Initialize(BigTwistedEdwards *math, FortunaOutput *c
 									   const u8 *responder_private_key, int private_bytes)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
-	if (!math || !csprng) return false;
+	if (!math || !csprng)
+		return false;
 #endif
 
 #if defined(CAT_NO_ATOMIC_RESPONDER)
-	if (!m_thread_id_mutex.Valid()) return false;
+	if (!m_thread_id_mutex.Valid())
+		return false;
 #endif // CAT_NO_ATOMIC_RESPONDER
 
 	int bits = math->RegBytes() * 8;
 
-    // Validate and accept number of bits
-    if (!KeyAgreementCommon::Initialize(bits))
-        return false;
+	// Validate and accept number of bits
+	if (!KeyAgreementCommon::Initialize(bits))
+		return false;
 
-    // Allocate memory space for the responder's key pair and generator point
-    if (!AllocateMemory())
-        return false;
+	// Allocate memory space for the responder's key pair and generator point
+	if (!AllocateMemory())
+		return false;
 
-    // Verify that inputs are of the correct length
-    if (private_bytes != KeyBytes) return false;
-    if (public_bytes != KeyBytes*2) return false;
+	// Verify that inputs are of the correct length
+	if (private_bytes != KeyBytes)
+		return false;
+	if (public_bytes != KeyBytes * 2)
+		return false;
 
 	// Precompute an 8-bit table for multiplication
 	G_MultPrecomp = math->PtMultiplyPrecompAlloc(8);
-    if (!G_MultPrecomp) return false;
-    math->PtMultiplyPrecomp(math->GetGenerator(), 8, G_MultPrecomp);
+	if (!G_MultPrecomp)
+		return false;
+	math->PtMultiplyPrecomp(math->GetGenerator(), 8, G_MultPrecomp);
 
-    // Unpack the responder's public point
-    math->Load(responder_private_key, KeyBytes, b);
-    if (!math->LoadVerifyAffineXY(responder_public_key, responder_public_key+KeyBytes, B))
-        return false;
-    math->PtUnpack(B);
+	// Unpack the responder's public point
+	math->Load(responder_private_key, KeyBytes, b);
+	if (!math->LoadVerifyAffineXY(responder_public_key, responder_public_key + KeyBytes, B))
+		return false;
+	math->PtUnpack(B);
 
 	// Verify public point is not identity element
 	if (math->IsAffineIdentity(B))
 		return false;
 
 	// Store a copy of the endian-neutral version of B for later
-	memcpy(B_neutral, responder_public_key, KeyBytes*2);
+	memcpy(B_neutral, responder_public_key, KeyBytes * 2);
 
 	// Initialize re-keying
 	ChallengeCount = 0;
 	ActiveY = 0;
 	Rekey(math, csprng);
 
-    return true;
+	return true;
 }
 
 bool KeyAgreementResponder::ProcessChallenge(BigTwistedEdwards *math, FortunaOutput *csprng,
 											 const u8 *initiator_challenge, int challenge_bytes,
-                                             u8 *responder_answer, int answer_bytes, Skein *key_hash)
+											 u8 *responder_answer, int answer_bytes, Skein *key_hash)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
 	// Verify that inputs are of the correct length
-	if (!math || !csprng || challenge_bytes != KeyBytes*2 || answer_bytes != KeyBytes*4)
+	if (!math || !csprng || challenge_bytes != KeyBytes * 2 || answer_bytes != KeyBytes * 4)
 		return false;
 #endif
 
-    Leg *A = math->Get(0);
-    Leg *S = math->Get(8);
-    Leg *T = math->Get(12);
-    Leg *hA = math->Get(16);
+	Leg *A = math->Get(0);
+	Leg *S = math->Get(8);
+	Leg *T = math->Get(12);
+	Leg *hA = math->Get(16);
 
-    // Unpack the initiator's A into registers
-    if (!math->LoadVerifyAffineXY(initiator_challenge, initiator_challenge + KeyBytes, A))
-        return false;
+	// Unpack the initiator's A into registers
+	if (!math->LoadVerifyAffineXY(initiator_challenge, initiator_challenge + KeyBytes, A))
+		return false;
 
 	// Verify the point is not the additive identity (should never happen unless being attacked)
 	if (math->IsAffineIdentity(A))
 		return false;
 
-    // hA = h * A for small subgroup attack resistance
-    math->PtDoubleZ1(A, hA);
-    math->PtEDouble(hA, hA);
+	// hA = h * A for small subgroup attack resistance
+	math->PtDoubleZ1(A, hA);
+	math->PtEDouble(hA, hA);
 
 #if defined(CAT_NO_ATOMIC_RESPONDER)
 
@@ -209,19 +214,19 @@ bool KeyAgreementResponder::ProcessChallenge(BigTwistedEdwards *math, FortunaOut
 
 	// Copy the current endian neutral Y to the responder answer
 	u32 ThisY = ActiveY;
-	memcpy(responder_answer, Y_neutral[ThisY], KeyBytes*2);
+	memcpy(responder_answer, Y_neutral[ThisY], KeyBytes * 2);
 
 	do
 	{
 		// random n-bit number r
-		csprng->Generate(responder_answer + KeyBytes*2, KeyBytes);
+		csprng->Generate(responder_answer + KeyBytes * 2, KeyBytes);
 
 		// S = H(A,B,Y,r)
 		if (!key_hash->BeginKey(KeyBits))
 			return false;
-		key_hash->Crunch(initiator_challenge, KeyBytes*2); // A
-		key_hash->Crunch(B_neutral, KeyBytes*2); // B
-		key_hash->Crunch(responder_answer, KeyBytes*3); // Y,r
+		key_hash->Crunch(initiator_challenge, KeyBytes * 2); // A
+		key_hash->Crunch(B_neutral, KeyBytes * 2);			 // B
+		key_hash->Crunch(responder_answer, KeyBytes * 3);	 // Y,r
 		key_hash->End();
 		key_hash->Generate(S, KeyBytes);
 		math->Load(S, KeyBytes, S);
@@ -238,7 +243,7 @@ bool KeyAgreementResponder::ProcessChallenge(BigTwistedEdwards *math, FortunaOut
 
 	// T = AffineX(T * hA)
 	math->PtMultiply(hA, T, 0, S);
-    math->SaveAffineX(S, T);
+	math->SaveAffineX(S, T);
 
 	// k = H(d,T)
 	if (!key_hash->BeginKDF())
@@ -249,11 +254,12 @@ bool KeyAgreementResponder::ProcessChallenge(BigTwistedEdwards *math, FortunaOut
 	// Generate responder proof of key
 	Skein mac;
 
-	if (!mac.SetKey(key_hash) || !mac.BeginMAC()) return false;
+	if (!mac.SetKey(key_hash) || !mac.BeginMAC())
+		return false;
 	mac.CrunchString("shfolder.dll");
 	mac.End();
 
-	mac.Generate(responder_answer + KeyBytes*3, KeyBytes);
+	mac.Generate(responder_answer + KeyBytes * 3, KeyBytes);
 
 	return true;
 }
@@ -265,7 +271,8 @@ bool KeyAgreementResponder::VerifyInitiatorIdentity(BigTwistedEdwards *math,
 {
 #if defined(CAT_USER_ERROR_CHECKING)
 	// Verify that inputs are of the correct length
-	if (!math || proof_bytes != KeyBytes*5 || answer_bytes != KeyBytes*4 || public_bytes != KeyBytes*2) return false;
+	if (!math || proof_bytes != KeyBytes * 5 || answer_bytes != KeyBytes * 4 || public_bytes != KeyBytes * 2)
+		return false;
 #endif
 
 	/*
@@ -308,7 +315,8 @@ bool KeyAgreementResponder::VerifyInitiatorIdentity(BigTwistedEdwards *math,
 
 	// Precompute a table for multiplication
 	Leg *I_MultPrecomp = math->PtMultiplyPrecompAlloc(8);
-	if (!I_MultPrecomp) return false;
+	if (!I_MultPrecomp)
+		return false;
 	math->PtUnpack(I_public);
 	math->PtMultiplyPrecomp(I_public, 8, I_MultPrecomp);
 
@@ -320,8 +328,9 @@ bool KeyAgreementResponder::VerifyInitiatorIdentity(BigTwistedEdwards *math,
 
 	// e' = H(IRN || RRN || K')
 	Skein H;
-	if (!H.BeginKey(KeyBits)) return false;
-	H.Crunch(proof + KeyBytes * 2, KeyBytes); // client random number
+	if (!H.BeginKey(KeyBits))
+		return false;
+	H.Crunch(proof + KeyBytes * 2, KeyBytes);			 // client random number
 	H.Crunch(responder_answer + KeyBytes * 2, KeyBytes); // server random number
 	H.Crunch(Kp, KeyBytes);
 	H.End();
@@ -331,11 +340,11 @@ bool KeyAgreementResponder::VerifyInitiatorIdentity(BigTwistedEdwards *math,
 	bool success = SecureEqual(proof + KeyBytes * 3, ep, KeyBytes);
 
 	// On successful identity verification, copy the public key to the destination
-	if (success) memcpy(public_key, proof, KeyBytes*2);
+	if (success)
+		memcpy(public_key, proof, KeyBytes * 2);
 
 	return success;
 }
-
 
 bool KeyAgreementResponder::Sign(BigTwistedEdwards *math, FortunaOutput *csprng,
 								 const u8 *message, int message_bytes,
@@ -343,17 +352,20 @@ bool KeyAgreementResponder::Sign(BigTwistedEdwards *math, FortunaOutput *csprng,
 {
 #if defined(CAT_USER_ERROR_CHECKING)
 	// Verify that inputs are of the correct length
-	if (!math || !csprng || signature_bytes != KeyBytes*2) return false;
+	if (!math || !csprng || signature_bytes != KeyBytes * 2)
+		return false;
 #endif
 
-    Leg *k = math->Get(0);
-    Leg *K = math->Get(1);
-    Leg *e = math->Get(5);
-    Leg *s = math->Get(6);
+	Leg *k = math->Get(0);
+	Leg *K = math->Get(1);
+	Leg *e = math->Get(5);
+	Leg *s = math->Get(6);
 
-	do {
+	do
+	{
 
-		do {
+		do
+		{
 
 			// k = ephemeral key
 			GenerateKey(math, csprng, k);
@@ -365,7 +377,8 @@ bool KeyAgreementResponder::Sign(BigTwistedEdwards *math, FortunaOutput *csprng,
 			// e = H(M || K)
 			Skein H;
 
-			if (!H.BeginKey(KeyBits)) return false;
+			if (!H.BeginKey(KeyBits))
+				return false;
 			H.Crunch(message, message_bytes);
 			H.Crunch(K, KeyBytes);
 			H.End();
@@ -383,11 +396,13 @@ bool KeyAgreementResponder::Sign(BigTwistedEdwards *math, FortunaOutput *csprng,
 		math->MulMod(b, e, math->GetCurveQ(), s);
 
 		// s = -s (mod q)
-		if (!math->IsZero(s)) math->Subtract(math->GetCurveQ(), s, s);
+		if (!math->IsZero(s))
+			math->Subtract(math->GetCurveQ(), s, s);
 
 		// s = s + k (mod q)
 		if (math->Add(s, k, s))
-			while (!math->Subtract(s, math->GetCurveQ(), s));
+			while (!math->Subtract(s, math->GetCurveQ(), s))
+				;
 		while (!math->Less(s, math->GetCurveQ()))
 			math->Subtract(s, math->GetCurveQ(), s);
 

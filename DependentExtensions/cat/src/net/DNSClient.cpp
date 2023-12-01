@@ -107,7 +107,6 @@ enum QClasses
 	QCLASS_INTERNET = 1
 };
 
-
 //// DNSClient
 
 bool DNSClient::GetServerAddr()
@@ -125,7 +124,7 @@ bool DNSClient::GetServerAddr()
 	// Open Tcpip Interfaces key
 	HKEY key;
 	LSTATUS err = RegOpenKey(HKEY_LOCAL_MACHINE,
-		"SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters\\Interfaces", &key);
+							 "SYSTEM\\ControlSet001\\Services\\Tcpip\\Parameters\\Interfaces", &key);
 
 	// Handle errors opening the key
 	if (err != ERROR_SUCCESS)
@@ -168,7 +167,7 @@ bool DNSClient::GetServerAddr()
 					}
 
 					// Convert address string to binary address
-					NetAddr addr((const char*)data, 53);
+					NetAddr addr((const char *)data, 53);
 
 					// If address is routable,
 					if (addr.IsRoutable())
@@ -197,7 +196,7 @@ bool DNSClient::GetServerAddr()
 		while (file.getline(line, sizeof(line)))
 		{
 			// Insure the line is nul-terminated
-			line[sizeof(line)-1] = '\0';
+			line[sizeof(line) - 1] = '\0';
 
 			int a, b, c, d;
 
@@ -250,8 +249,9 @@ bool DNSClient::PostDNSPacket(DNSRequest *req, u32 now)
 
 	// Write header
 	u8 *dns_packet = AsyncBuffer::Acquire(bytes);
-	if (!dns_packet) return false;
-	u16 *dns_hdr = reinterpret_cast<u16*>( dns_packet );
+	if (!dns_packet)
+		return false;
+	u16 *dns_hdr = reinterpret_cast<u16 *>(dns_packet);
 
 	dns_hdr[DNS_ID] = req->id; // Endianness doesn't matter
 	dns_hdr[DNS_HDR] = getBE16(1 << DNSHDR_RD);
@@ -261,7 +261,7 @@ bool DNSClient::PostDNSPacket(DNSRequest *req, u32 now)
 	dns_hdr[DNS_ARCOUNT] = 0;
 
 	// Copy hostname over
-	int last_dot = str_len-1;
+	int last_dot = str_len - 1;
 
 	dns_packet[DNS_HDRLEN + 1 + str_len] = '\0';
 
@@ -273,7 +273,7 @@ bool DNSClient::PostDNSPacket(DNSRequest *req, u32 now)
 		if (byte == '.')
 		{
 			byte = (u8)(last_dot - ii);
-			last_dot = ii-1;
+			last_dot = ii - 1;
 		}
 
 		dns_packet[DNS_HDRLEN + ii + 1] = byte;
@@ -282,7 +282,7 @@ bool DNSClient::PostDNSPacket(DNSRequest *req, u32 now)
 	dns_packet[DNS_HDRLEN] = (u8)(last_dot + 1);
 
 	// Write request footer
-	u16 *foot = reinterpret_cast<u16*>( dns_packet + DNS_HDRLEN + 1 + str_len + 1 );
+	u16 *foot = reinterpret_cast<u16 *>(dns_packet + DNS_HDRLEN + 1 + str_len + 1);
 
 	foot[DNS_FOOT_QTYPE] = getBE16(QTYPE_ADDR_IPV4);
 	foot[DNS_FOOT_QCLASS] = getBE16(QCLASS_INTERNET);
@@ -305,8 +305,10 @@ bool DNSClient::PerformLookup(DNSRequest *req)
 	// Insert at end of list
 	req->next = 0;
 	req->last = _request_tail;
-	if (_request_tail) _request_tail->next = req;
-	else _request_head = req;
+	if (_request_tail)
+		_request_tail->next = req;
+	else
+		_request_head = req;
 	_request_tail = req;
 
 	++_request_queue_size;
@@ -329,8 +331,10 @@ void DNSClient::CacheAdd(DNSRequest *req)
 			DNSRequest *last = tokill->last;
 
 			_cache_tail = last;
-			if (last) last->next = 0;
-			else _cache_head = 0;
+			if (last)
+				last->next = 0;
+			else
+				_cache_head = 0;
 
 			delete tokill;
 		}
@@ -339,8 +343,10 @@ void DNSClient::CacheAdd(DNSRequest *req)
 	// Insert at head
 	req->next = _cache_head;
 	req->last = 0;
-	if (_cache_head) _cache_head->last = req;
-	else _cache_tail = req;
+	if (_cache_head)
+		_cache_head->last = req;
+	else
+		_cache_tail = req;
 	_cache_head = req;
 
 	// Set update time
@@ -367,8 +373,10 @@ DNSRequest *DNSClient::CacheGet(const char *hostname)
 			DNSRequest *last = req->last;
 
 			_cache_tail = last;
-			if (last) last->next = 0;
-			else _cache_head = 0;
+			if (last)
+				last->next = 0;
+			else
+				_cache_head = 0;
 
 			// For each item that was unlinked,
 			for (DNSRequest *next, *tokill = req; tokill; tokill = next)
@@ -396,10 +404,14 @@ void DNSClient::CacheKill(DNSRequest *req)
 	DNSRequest *last = req->last;
 	DNSRequest *next = req->next;
 
-	if (last) last->next = next;
-	else _cache_head = next;
-	if (next) next->last = last;
-	else _cache_tail = last;
+	if (last)
+		last->next = next;
+	else
+		_cache_head = next;
+	if (next)
+		next->last = last;
+	else
+		_cache_tail = last;
 
 	--_cache_size;
 
@@ -430,10 +442,14 @@ bool DNSClient::ThreadFunction(void *param)
 				DNSRequest *next = req->next;
 				DNSRequest *last = req->last;
 
-				if (next) next->last = last;
-				else _request_tail = last;
-				if (last) last->next = next;
-				else _request_head = next;
+				if (next)
+					next->last = last;
+				else
+					_request_tail = last;
+				if (last)
+					last->next = next;
+				else
+					_request_head = next;
 
 				NotifyRequesters(req);
 			}
@@ -538,7 +554,7 @@ bool DNSClient::GetUnusedID(u16 &unused_id)
 	bool already_used;
 	int tries = 0;
 	u16 id;
-	do 
+	do
 	{
 		// If we have been sitting here trying for a long time,
 		if (++tries >= INCREMENT_THRESHOLD)
@@ -597,12 +613,14 @@ bool DNSClient::IsValidHostname(const char *hostname)
 		else if (symbol == '-') // Dash
 		{
 			// Don't allow strings of - or start with -
-			if (last_char == '-' || last_char == '\0') return false;
+			if (last_char == '-' || last_char == '\0')
+				return false;
 		}
 		else if (symbol == '.' || symbol == '\0') // End of a label
 		{
 			// If we didn't see an alphabetic character in this label,
-			if (!seen_alphabetic) return false;
+			if (!seen_alphabetic)
+				return false;
 
 			// If last character in label was not alphanumeric,
 			if ((last_char < 'A' || last_char > 'Z') &&
@@ -682,9 +700,11 @@ bool DNSClient::Resolve(const char *hostname, DNSResultCallback callback, Thread
 		if (iStrEqual(req->hostname, hostname))
 		{
 			DNSCallback *cb = new DNSCallback;
-			if (!cb) return false;
+			if (!cb)
+				return false;
 
-			if (holdRef) holdRef->AddRef();
+			if (holdRef)
+				holdRef->AddRef();
 
 			cb->cb = callback;
 			cb->ref = holdRef;
@@ -705,7 +725,8 @@ bool DNSClient::Resolve(const char *hostname, DNSResultCallback callback, Thread
 
 	// Create a new request
 	DNSRequest *request = new DNSRequest;
-	if (!request) return false;
+	if (!request)
+		return false;
 
 	// Fill request
 	CAT_STRNCPY(request->hostname, hostname, sizeof(request->hostname));
@@ -714,7 +735,8 @@ bool DNSClient::Resolve(const char *hostname, DNSResultCallback callback, Thread
 	request->callback_head.next = 0;
 	request->id = id;
 
-	if (holdRef) holdRef->AddRef();
+	if (holdRef)
+		holdRef->AddRef();
 
 	// Attempt to perform lookup
 	if (!PerformLookup(request))
@@ -752,10 +774,14 @@ DNSRequest *DNSClient::PullRequest(u16 id)
 			DNSRequest *last = req->last;
 			DNSRequest *next = req->next;
 
-			if (last) last->next = next;
-			else _request_head = next;
-			if (next) next->last = last;
-			else _request_tail = last;
+			if (last)
+				last->next = next;
+			else
+				_request_head = next;
+			if (next)
+				next->last = last;
+			else
+				_request_tail = last;
 
 			return req;
 		}
@@ -810,7 +836,8 @@ void DNSClient::ProcessDNSResponse(DNSRequest *req, int qdcount, int ancount, u8
 		while (offset < bytes)
 		{
 			u8 byte = data[offset++];
-			if (!byte) break;
+			if (!byte)
+				break;
 
 			offset += byte;
 		}
@@ -829,12 +856,12 @@ void DNSClient::ProcessDNSResponse(DNSRequest *req, int qdcount, int ancount, u8
 	{
 		while (offset < bytes)
 		{
-			u16 *words = reinterpret_cast<u16*>( data + offset );
+			u16 *words = reinterpret_cast<u16 *>(data + offset);
 
-			//u16 name_offset = getBE(words[0]);
+			// u16 name_offset = getBE(words[0]);
 			u16 name_type = getBE(words[1]);
 			u16 name_class = getBE(words[2]);
-			//u32 name_ttl = getBE(words[3] | words[4]);
+			// u32 name_ttl = getBE(words[3] | words[4]);
 			u16 addr_len = getBE(words[5]);
 			u8 *addr_data = data + offset + DNS_ANS_HDRLEN;
 
@@ -883,17 +910,18 @@ void DNSClient::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data
 	if (bytes < DNS_HDRLEN)
 		return;
 
-	u16 *hdr_words = reinterpret_cast<u16*>( data );
+	u16 *hdr_words = reinterpret_cast<u16 *>(data);
 
 	// QR(1) OPCODE(4) AA(1) TC(1) RD(1) RA(1) Z(3) RCODE(4) [=16]
 	u16 hdr = getBE(hdr_words[DNS_HDR]);
 
 	// Header bits
-	u16 qr = (hdr >> DNSHDR_QR) & 1; // Response
+	u16 qr = (hdr >> DNSHDR_QR) & 1;			  // Response
 	u16 opcode = (hdr >> DNSHDR_OPCODE) & 0x000F; // Opcode
 
 	// If header is invalid, ignore this packet
-	if (!qr || opcode != 0) return;
+	if (!qr || opcode != 0)
+		return;
 
 	// Extract ID; endian agnostic
 	u16 id = hdr_words[DNS_ID];
@@ -904,16 +932,17 @@ void DNSClient::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data
 	DNSRequest *req = PullRequest(id);
 
 	// If request was not found to match ID,
-	if (!req) return;
+	if (!req)
+		return;
 
 	// Initialize number of responses to zero
 	req->num_responses = 0;
 
-	//u16 aa = (hdr >> DNSHDR_AA) & 1; // Authoritative
-	//u16 tc = (hdr >> DNSHDR_TC) & 1; // Truncated
-	//u16 rd = (hdr >> DNSHDR_RD) & 1; // Recursion desired
-	//u16 ra = (hdr >> DNSHDR_RA) & 1; // Recursion available
-	//u16 z = (hdr >> DNSHDR_Z) & 0x0007; // Reserved
+	// u16 aa = (hdr >> DNSHDR_AA) & 1; // Authoritative
+	// u16 tc = (hdr >> DNSHDR_TC) & 1; // Truncated
+	// u16 rd = (hdr >> DNSHDR_RD) & 1; // Recursion desired
+	// u16 ra = (hdr >> DNSHDR_RA) & 1; // Recursion available
+	// u16 z = (hdr >> DNSHDR_Z) & 0x0007; // Reserved
 	u16 rcode = hdr & 0x000F; // Reply code
 
 	// If non-error result,
@@ -921,8 +950,8 @@ void DNSClient::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data
 	{
 		int qdcount = getBE(hdr_words[DNS_QDCOUNT]); // Question count
 		int ancount = getBE(hdr_words[DNS_ANCOUNT]); // Answer RRs
-		//int nscount = getBE(hdr_words[DNS_NSCOUNT]); // Authority RRs
-		//int arcount = getBE(hdr_words[DNS_ARCOUNT]); // Additional RRs
+		// int nscount = getBE(hdr_words[DNS_NSCOUNT]); // Authority RRs
+		// int arcount = getBE(hdr_words[DNS_ARCOUNT]); // Additional RRs
 
 		ProcessDNSResponse(req, qdcount, ancount, data, bytes);
 	}

@@ -33,38 +33,37 @@
 #include <string>
 #include <cat/threads/Mutex.hpp>
 
-namespace cat {
-
-
-class Clock
+namespace cat
 {
+
+	class Clock
+	{
 #ifdef CAT_OS_WINDOWS
-	static Mutex init_lock;
-	static u32 initialized; // Number of times initialized
-    static u32 period; // timegettime() and Windows scheduler period
-	static double inv_freq; // Performance counter frequency (does not change, so cache it)
+		static Mutex init_lock;
+		static u32 initialized; // Number of times initialized
+		static u32 period;		// timegettime() and Windows scheduler period
+		static double inv_freq; // Performance counter frequency (does not change, so cache it)
 #endif
 
-public:
-	static bool Initialize();
-	static bool Shutdown();
+	public:
+		static bool Initialize();
+		static bool Shutdown();
 
-    static u32 sec();     // timestamp in seconds
-    static u32 msec_fast(); // timestamp in milliseconds, less accurate than msec() but faster
-    static u32 msec();    // timestamp in milliseconds, must call Initialize() first
-	static double usec(); // timestamp in microseconds, must call Initialize() first
-	static u32 cycles();  // timestamp in cycles
+		static u32 sec();		// timestamp in seconds
+		static u32 msec_fast(); // timestamp in milliseconds, less accurate than msec() but faster
+		static u32 msec();		// timestamp in milliseconds, must call Initialize() first
+		static double usec();	// timestamp in microseconds, must call Initialize() first
+		static u32 cycles();	// timestamp in cycles
 
-    static std::string format(const char *format_string);
+		static std::string format(const char *format_string);
 
-    static void sleep(u32 milliseconds);
+		static void sleep(u32 milliseconds);
 
-    static bool SetHighPriority();
-    static bool SetNormalPriority();
+		static bool SetHighPriority();
+		static bool SetNormalPriority();
 
-    static u32 MeasureClocks(int iterations, void (*FunctionPtr)());
-};
-
+		static u32 MeasureClocks(int iterations, void (*FunctionPtr)());
+	};
 
 } // namespace cat
 

@@ -31,12 +31,12 @@
 using namespace cat;
 
 BigMontgomery::BigMontgomery(int regs, int bits)
-    : BigRTL(regs + MON_OVERHEAD, bits)
+	: BigRTL(regs + MON_OVERHEAD, bits)
 {
-    mon_regs = regs + MON_OVERHEAD;
+	mon_regs = regs + MON_OVERHEAD;
 
-    // Reserve a register to contain the full modulus
-    CachedModulus = Get(mon_regs - 1);
+	// Reserve a register to contain the full modulus
+	CachedModulus = Get(mon_regs - 1);
 	TempProduct = Get(mon_regs - 3);
 	TempProductHi = TempProduct + library_legs;
 }

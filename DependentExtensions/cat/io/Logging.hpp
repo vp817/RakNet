@@ -35,159 +35,159 @@
 #include <cat/port/WindowsInclude.hpp>
 #endif
 
-namespace cat {
-
-
-//// Enumerations
-
-enum EventSeverity
+namespace cat
 {
-    LVL_INANE,
-    LVL_INFO,
-    LVL_WARN,
-    LVL_OOPS,
-    LVL_FATAL,
 
-    LVL_SILENT, // invalid for an actual event's level, valid value for a threshold
-};
+	//// Enumerations
 
+	enum EventSeverity
+	{
+		LVL_INANE,
+		LVL_INFO,
+		LVL_WARN,
+		LVL_OOPS,
+		LVL_FATAL,
 
-//// Utility
+		LVL_SILENT, // invalid for an actual event's level, valid value for a threshold
+	};
 
-region_string HexDumpString(const void *vdata, u32 bytes);
+	//// Utility
 
-// Write to console (and debug log in windows) then trigger a breakpoint and exit
-void FatalStop(const char *message);
+	region_string HexDumpString(const void *vdata, u32 bytes);
 
-void DefaultLogCallback(EventSeverity severity, const char *source, region_ostringstream &msg);
+	// Write to console (and debug log in windows) then trigger a breakpoint and exit
+	void FatalStop(const char *message);
 
+	void DefaultLogCallback(EventSeverity severity, const char *source, region_ostringstream &msg);
 
-//// Logging
+	//// Logging
 
-typedef void (*LogCallback)(EventSeverity severity, const char *source, region_ostringstream &msg);
+	typedef void (*LogCallback)(EventSeverity severity, const char *source, region_ostringstream &msg);
 
-class Logging : public Singleton<Logging>
-{
-    CAT_SINGLETON(Logging);
+	class Logging : public Singleton<Logging>
+	{
+		CAT_SINGLETON(Logging);
 
-    LogCallback _callback;
+		LogCallback _callback;
 
-    friend class Recorder;
-	void LogEvent(Recorder *recorder);
+		friend class Recorder;
+		void LogEvent(Recorder *recorder);
 
-public:
-    int _log_threshold;
+	public:
+		int _log_threshold;
 
-public:
-	void Initialize(EventSeverity min_severity = LVL_INANE);
-	CAT_INLINE void SetThreshold(EventSeverity min_severity) { _log_threshold = min_severity; }
-	void ReadSettings();
-    void Shutdown();
+	public:
+		void Initialize(EventSeverity min_severity = LVL_INANE);
+		CAT_INLINE void SetThreshold(EventSeverity min_severity) { _log_threshold = min_severity; }
+		void ReadSettings();
+		void Shutdown();
 
-protected:
-	bool _service;
+	protected:
+		bool _service;
 #if defined(CAT_OS_WINDOWS)
-	HANDLE _event_source;
+		HANDLE _event_source;
 #endif
 
-public:
-	CAT_INLINE bool IsService() { return _service; }
-	void EnableServiceMode(const char *service_name);
-	void WriteServiceLog(EventSeverity severity, const char *line);
+	public:
+		CAT_INLINE bool IsService() { return _service; }
+		void EnableServiceMode(const char *service_name);
+		void WriteServiceLog(EventSeverity severity, const char *line);
 
-public:
-	// Not thread-safe
-    CAT_INLINE void SetLogCallback(LogCallback cb) { _callback = cb; }
-};
+	public:
+		// Not thread-safe
+		CAT_INLINE void SetLogCallback(LogCallback cb) { _callback = cb; }
+	};
 
+	//// Recorder
 
-//// Recorder
+	class Recorder
+	{
+		friend class Logging;
+		EventSeverity _severity;
+		const char *_subsystem;
+		region_ostringstream _msg;
 
-class Recorder
-{
-	friend class Logging;
-	EventSeverity _severity;
-	const char *_subsystem;
-	region_ostringstream _msg;
+	public:
+		Recorder(const char *subsystem, EventSeverity severity);
+		~Recorder();
 
-public:
-    Recorder(const char *subsystem, EventSeverity severity);
-    ~Recorder();
-
-public:
-    template<class T> inline Recorder &operator<<(const T &t)
-    {
-        _msg << t;
-        return *this;
-    }
-};
+	public:
+		template <class T>
+		inline Recorder &operator<<(const T &t)
+		{
+			_msg << t;
+			return *this;
+		}
+	};
 
 // Because there is an IF statement in the macro, you cannot use the
 // braceless if-else construction:
 //  if (XYZ) WARN("SS") << "ERROR!"; else INFO("SS") << "OK!";       <-- bad
 // Instead use:
 //  if (XYZ) { WARN("SS") << "ERROR!"; } else INFO("SS") << "OK!";   <-- good
-#define RECORD(subsystem, severity) \
-    if (severity >= Logging::ii->_log_threshold) Recorder(subsystem, severity)
+#define RECORD(subsystem, severity)              \
+	if (severity >= Logging::ii->_log_threshold) \
+	Recorder(subsystem, severity)
 
-#define INANE(subsystem)    RECORD(subsystem, LVL_INANE)
-#define INFO(subsystem)     RECORD(subsystem, LVL_INFO)
-#define WARN(subsystem)     RECORD(subsystem, LVL_WARN)
-#define OOPS(subsystem)     RECORD(subsystem, LVL_OOPS)
-#define FATAL(subsystem)    RECORD(subsystem, LVL_FATAL)
+#define INANE(subsystem) RECORD(subsystem, LVL_INANE)
+#define INFO(subsystem) RECORD(subsystem, LVL_INFO)
+#define WARN(subsystem) RECORD(subsystem, LVL_WARN)
+#define OOPS(subsystem) RECORD(subsystem, LVL_OOPS)
+#define FATAL(subsystem) RECORD(subsystem, LVL_FATAL)
 
+	//// Enforcer
 
-//// Enforcer
+	class Enforcer
+	{
+	protected:
+		std::ostringstream oss;
 
-class Enforcer
-{
-protected:
-    std::ostringstream oss;
+	public:
+		Enforcer(const char *locus);
+		~Enforcer();
 
-public:
-    Enforcer(const char *locus);
-    ~Enforcer();
-
-public:
-    template<class T> inline Enforcer &operator<<(const T &t)
-    {
-        oss << t;
-        return *this;
-    }
-};
-
+	public:
+		template <class T>
+		inline Enforcer &operator<<(const T &t)
+		{
+			oss << t;
+			return *this;
+		}
+	};
 
 #define USE_ENFORCE_EXPRESSION_STRING
 #define USE_ENFORCE_FILE_LINE_STRING
 
-
 #if defined(USE_ENFORCE_EXPRESSION_STRING)
-# define ENFORCE_EXPRESSION_STRING(exp) "Failed assertion (" #exp ")"
+#define ENFORCE_EXPRESSION_STRING(exp) "Failed assertion (" #exp ")"
 #else
-# define ENFORCE_EXPRESSION_STRING(exp) "Failed assertion"
+#define ENFORCE_EXPRESSION_STRING(exp) "Failed assertion"
 #endif
 
 #if defined(USE_ENFORCE_FILE_LINE_STRING)
-# define ENFORCE_FILE_LINE_STRING " at " __FILE__ ":" CAT_STRINGIZE(__LINE__)
+#define ENFORCE_FILE_LINE_STRING " at " __FILE__ ":" CAT_STRINGIZE(__LINE__)
 #else
-# define ENFORCE_FILE_LINE_STRING ""
+#define ENFORCE_FILE_LINE_STRING ""
 #endif
 
-// Because there is an IF statement in the macro, you cannot use the
-// braceless if-else construction:
-//  if (XYZ) ENFORCE(A == B) << "ERROR"; else INFO("SS") << "OK";       <-- bad!
-// Instead use:
-//  if (XYZ) { ENFORCE(A == B) << "ERROR"; } else INFO("SS") << "OK";   <-- good!
+	// Because there is an IF statement in the macro, you cannot use the
+	// braceless if-else construction:
+	//  if (XYZ) ENFORCE(A == B) << "ERROR"; else INFO("SS") << "OK";       <-- bad!
+	// Instead use:
+	//  if (XYZ) { ENFORCE(A == B) << "ERROR"; } else INFO("SS") << "OK";   <-- good!
 
-#define ENFORCE(exp) if ( (exp) == 0 ) Enforcer(ENFORCE_EXPRESSION_STRING(exp) ENFORCE_FILE_LINE_STRING "\n")
+#define ENFORCE(exp) \
+	if ((exp) == 0)  \
+	Enforcer(ENFORCE_EXPRESSION_STRING(exp) ENFORCE_FILE_LINE_STRING "\n")
 #define EXCEPTION() Enforcer("Exception" ENFORCE_FILE_LINE_STRING "\n")
 
 #if defined(CAT_DEBUG)
-# define DEBUG_ENFORCE(exp) ENFORCE(exp)
+#define DEBUG_ENFORCE(exp) ENFORCE(exp)
 #else
-# define DEBUG_ENFORCE(exp) if (0) ENFORCE(exp) /* hopefully will be optimized out of existence */
+#define DEBUG_ENFORCE(exp) \
+	if (0)                 \
+	ENFORCE(exp) /* hopefully will be optimized out of existence */
 #endif
-
 
 } // namespace cat
 

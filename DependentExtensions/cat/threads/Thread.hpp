@@ -32,48 +32,47 @@
 #include <cat/Platform.hpp>
 
 #if defined(CAT_OS_WINDOWS)
-# include <cat/port/WindowsInclude.hpp>
+#include <cat/port/WindowsInclude.hpp>
 #else // use POSIX thread library otherwise
-# include <pthread.h>
+#include <pthread.h>
 #endif
 
-namespace cat {
-
-
-/*
-	A thread that executes ThreadFunction and then exits.
-
-	Derive from this class and implement ThreadFunction().
-*/
-class Thread
+namespace cat
 {
-protected:
-	void *caller_param;
-	volatile bool _thread_running;
+
+	/*
+		A thread that executes ThreadFunction and then exits.
+
+		Derive from this class and implement ThreadFunction().
+	*/
+	class Thread
+	{
+	protected:
+		void *caller_param;
+		volatile bool _thread_running;
 
 #if defined(CAT_OS_WINDOWS)
-	volatile HANDLE _thread;
-	static unsigned int __stdcall ThreadWrapper(void *this_object);
+		volatile HANDLE _thread;
+		static unsigned int __stdcall ThreadWrapper(void *this_object);
 #else
-	pthread_t _thread;
-	static void *ThreadWrapper(void *this_object);
+		pthread_t _thread;
+		static void *ThreadWrapper(void *this_object);
 #endif
 
-public:
-	bool StartThread(void *param = 0);
-	bool WaitForThread(int milliseconds = -1); // < 0 = infinite wait
-	void AbortThread();
+	public:
+		bool StartThread(void *param = 0);
+		bool WaitForThread(int milliseconds = -1); // < 0 = infinite wait
+		void AbortThread();
 
-	CAT_INLINE bool ThreadRunning() { return _thread_running; }
+		CAT_INLINE bool ThreadRunning() { return _thread_running; }
 
-protected:
-	virtual bool ThreadFunction(void *param) = 0;
+	protected:
+		virtual bool ThreadFunction(void *param) = 0;
 
-public:
-	Thread();
-	CAT_INLINE virtual ~Thread() {}
-};
-
+	public:
+		Thread();
+		CAT_INLINE virtual ~Thread() {}
+	};
 
 } // namespace cat
 

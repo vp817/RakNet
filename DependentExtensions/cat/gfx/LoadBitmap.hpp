@@ -31,45 +31,43 @@
 
 #include <cat/Platform.hpp>
 
-namespace cat {
-
-
-/*
-	LoadBitmap() loads a memory-mapped bitmap or a file from disk into RGBA format,
-	meaning the first byte of every pixel is Red, then Green, Blue, and Alpha.
-	The output data is useful for creating an OpenGL texture using GL_RGBA format.
-	The output width and height will be powers of two.
-
-	Parameters:
-		file, bytes : Memory-mapped file pointer and number of bytes in the file
-		path : Alternatively, the path to the file to load
-		width, height : The dimensions of the loaded file, in pixels
-
-	Returns: Zero on error, or a pointer to the rasterized RGBA pixels.
-
-	Free the allocated memory using Aligned::Delete(a);
-*/
-void *LoadBitmap(void *file, u32 bytes, u32 &width, u32 &height);
-void *LoadBitmap(const char *path, u32 &width, u32 &height);
-
-
-class BMPTokenizer
+namespace cat
 {
-	u8 trans_red, trans_green, trans_blue;
 
-	bool requirePOTS; // Require Power-of-Two Size
+	/*
+		LoadBitmap() loads a memory-mapped bitmap or a file from disk into RGBA format,
+		meaning the first byte of every pixel is Red, then Green, Blue, and Alpha.
+		The output data is useful for creating an OpenGL texture using GL_RGBA format.
+		The output width and height will be powers of two.
 
-	void rasterizeImage(u8 *image);
-	void onImage(u32 *image, u32 newWidth, u32 newHeight);
+		Parameters:
+			file, bytes : Memory-mapped file pointer and number of bytes in the file
+			path : Alternatively, the path to the file to load
+			width, height : The dimensions of the loaded file, in pixels
 
-public:
-	BMPTokenizer();
-	~BMPTokenizer();
+		Returns: Zero on error, or a pointer to the rasterized RGBA pixels.
 
-public:
-	bool LoadFile(const char *path);
-};
+		Free the allocated memory using Aligned::Delete(a);
+	*/
+	void *LoadBitmap(void *file, u32 bytes, u32 &width, u32 &height);
+	void *LoadBitmap(const char *path, u32 &width, u32 &height);
 
+	class BMPTokenizer
+	{
+		u8 trans_red, trans_green, trans_blue;
+
+		bool requirePOTS; // Require Power-of-Two Size
+
+		void rasterizeImage(u8 *image);
+		void onImage(u32 *image, u32 newWidth, u32 newHeight);
+
+	public:
+		BMPTokenizer();
+		~BMPTokenizer();
+
+	public:
+		bool LoadFile(const char *path);
+	};
 
 } // namespace cat
 

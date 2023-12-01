@@ -32,69 +32,68 @@
 #include <cat/crypt/tunnel/KeyAgreement.hpp>
 #include <cat/crypt/tunnel/AuthenticatedEncryption.hpp>
 
-namespace cat {
-
-
-class CAT_EXPORT KeyAgreementInitiator : public KeyAgreementCommon
+namespace cat
 {
-    Leg *B; // Responder's public key (pre-shared with initiator)
-    Leg *a; // Initiator's private key (kept secret)
-    Leg *A; // Initiator's public key (shared with responder in Challenge message)
-    Leg *hB; // h*B
-    Leg *G_MultPrecomp; // Precomputed table for multiplication
-    Leg *B_MultPrecomp; // Precomputed table for multiplication
-    Leg *Y_MultPrecomp; // Precomputed table for multiplication
-	Leg *A_neutral; // Endian-neutral A
-	Leg *B_neutral; // Endian-neutral B
 
-	// Identity data
-	Leg *I_private; // Initiator's identity private key
-	Leg *I_public; // Endian-neutral initiator's identity public key
-
-    bool AllocateMemory();
-    void FreeMemory();
-
-public:
-    KeyAgreementInitiator();
-    ~KeyAgreementInitiator();
-
-    bool Initialize(BigTwistedEdwards *math,
-					const u8 *responder_public_key, int public_bytes);
-
-	// Call after Initialize()
-	bool SetIdentity(BigTwistedEdwards *math,
-					 const u8 *initiator_public_key, int public_bytes,
-					 const u8 *initiator_private_key, int private_bytes);
-
-public:
-    bool GenerateChallenge(BigTwistedEdwards *math, FortunaOutput *csprng,
-						   u8 *initiator_challenge, int challenge_bytes);
-
-    bool ProcessAnswer(BigTwistedEdwards *math,
-					   const u8 *responder_answer, int answer_bytes,
-                       Skein *key_hash);
-
-	// Will fail if SetIdentity() has not been called
-    bool ProcessAnswerWithIdentity(BigTwistedEdwards *math, FortunaOutput *csprng,
-								   const u8 *responder_answer, int answer_bytes,
-								   Skein *key_hash,
-								   u8 *identity_proof, int proof_bytes);
-
-	CAT_INLINE bool KeyEncryption(Skein *key_hash, AuthenticatedEncryption *auth_enc, const char *key_name)
+	class CAT_EXPORT KeyAgreementInitiator : public KeyAgreementCommon
 	{
-		return auth_enc->SetKey(KeyBytes, key_hash, true, key_name);
-	}
+		Leg *B;				// Responder's public key (pre-shared with initiator)
+		Leg *a;				// Initiator's private key (kept secret)
+		Leg *A;				// Initiator's public key (shared with responder in Challenge message)
+		Leg *hB;			// h*B
+		Leg *G_MultPrecomp; // Precomputed table for multiplication
+		Leg *B_MultPrecomp; // Precomputed table for multiplication
+		Leg *Y_MultPrecomp; // Precomputed table for multiplication
+		Leg *A_neutral;		// Endian-neutral A
+		Leg *B_neutral;		// Endian-neutral B
 
-	// Erase the private key after handshake completes
-	// Also done as this object is destroyed
-	void SecureErasePrivateKey();
+		// Identity data
+		Leg *I_private; // Initiator's identity private key
+		Leg *I_public;	// Endian-neutral initiator's identity public key
 
-public:
-	bool Verify(BigTwistedEdwards *math,
-				const u8 *message, int message_bytes,
-				const u8 *signature, int signature_bytes);
-};
+		bool AllocateMemory();
+		void FreeMemory();
 
+	public:
+		KeyAgreementInitiator();
+		~KeyAgreementInitiator();
+
+		bool Initialize(BigTwistedEdwards *math,
+						const u8 *responder_public_key, int public_bytes);
+
+		// Call after Initialize()
+		bool SetIdentity(BigTwistedEdwards *math,
+						 const u8 *initiator_public_key, int public_bytes,
+						 const u8 *initiator_private_key, int private_bytes);
+
+	public:
+		bool GenerateChallenge(BigTwistedEdwards *math, FortunaOutput *csprng,
+							   u8 *initiator_challenge, int challenge_bytes);
+
+		bool ProcessAnswer(BigTwistedEdwards *math,
+						   const u8 *responder_answer, int answer_bytes,
+						   Skein *key_hash);
+
+		// Will fail if SetIdentity() has not been called
+		bool ProcessAnswerWithIdentity(BigTwistedEdwards *math, FortunaOutput *csprng,
+									   const u8 *responder_answer, int answer_bytes,
+									   Skein *key_hash,
+									   u8 *identity_proof, int proof_bytes);
+
+		CAT_INLINE bool KeyEncryption(Skein *key_hash, AuthenticatedEncryption *auth_enc, const char *key_name)
+		{
+			return auth_enc->SetKey(KeyBytes, key_hash, true, key_name);
+		}
+
+		// Erase the private key after handshake completes
+		// Also done as this object is destroyed
+		void SecureErasePrivateKey();
+
+	public:
+		bool Verify(BigTwistedEdwards *math,
+					const u8 *message, int message_bytes,
+					const u8 *signature, int signature_bytes);
+	};
 
 } // namespace cat
 

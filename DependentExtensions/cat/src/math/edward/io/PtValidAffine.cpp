@@ -56,28 +56,28 @@ using namespace cat;
 // Verify that the affine point (x,y) exists on the given curve
 bool BigTwistedEdwards::PtValidAffine(const Leg *in)
 {
-    // 0 = 1 + d*x^2*y^2 + x^2 - y^2
+	// 0 = 1 + d*x^2*y^2 + x^2 - y^2
 
-    // A = x^2
-    MrSquare(in+XOFF, A);
+	// A = x^2
+	MrSquare(in + XOFF, A);
 
-    // B = y^2
-    MrSquare(in+YOFF, B);
+	// B = y^2
+	MrSquare(in + YOFF, B);
 
-    // C = A * B * d + 1 + A - B
-    MrMultiply(A, B, C);
-    MrMultiplyX(C, curve_d, C);
-    MrAddX(C, 1);
-    MrAdd(C, A, C);
-    MrSubtract(C, B, C);
-    MrReduce(C);
+	// C = A * B * d + 1 + A - B
+	MrMultiply(A, B, C);
+	MrMultiplyX(C, curve_d, C);
+	MrAddX(C, 1);
+	MrAdd(C, A, C);
+	MrSubtract(C, B, C);
+	MrReduce(C);
 
-    // If the result is zero, it is on the curve
-    return IsZero(C);
+	// If the result is zero, it is on the curve
+	return IsZero(C);
 }
 
 // Check if the affine point (x,y) is the additive identity x=0
 bool BigTwistedEdwards::IsAffineIdentity(const Leg *in)
 {
-	return EqualX(in+XOFF, 0);
+	return EqualX(in + XOFF, 0);
 }

@@ -31,17 +31,17 @@ using namespace cat;
 
 u8 CAT_FASTCALL BigRTL::Double(const Leg *in, Leg *out)
 {
-    // Double low leg first
-    Leg last = in[0];
-    out[0] = last << 1;
+	// Double low leg first
+	Leg last = in[0];
+	out[0] = last << 1;
 
-    // Shift up the rest by 1 bit; actually pretty fast this way!
-    for (int ii = 1; ii < library_legs; ++ii)
-    {
-        Leg next = in[ii];
-        out[ii] = (next << 1) | (last >> (CAT_LEG_BITS-1));
-        last = next;
-    }
+	// Shift up the rest by 1 bit; actually pretty fast this way!
+	for (int ii = 1; ii < library_legs; ++ii)
+	{
+		Leg next = in[ii];
+		out[ii] = (next << 1) | (last >> (CAT_LEG_BITS - 1));
+		last = next;
+	}
 
-    return (u8)(last >> (CAT_LEG_BITS-1));
+	return (u8)(last >> (CAT_LEG_BITS - 1));
 }

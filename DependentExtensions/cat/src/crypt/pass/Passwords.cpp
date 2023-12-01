@@ -38,12 +38,14 @@ bool PasswordCreator::HashPassword(const void *in_name, int name_bytes,
 								   void *out_hash /* 32 bytes */)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
-	if (!in_name || !in_password || !out_hash || name_bytes < 0 || password_bytes < 0) return false;
+	if (!in_name || !in_password || !out_hash || name_bytes < 0 || password_bytes < 0)
+		return false;
 #endif
 
 	Skein hash;
 
-	if (!hash.BeginKey(HASH_BITS)) return false;
+	if (!hash.BeginKey(HASH_BITS))
+		return false;
 	hash.Crunch(in_name, name_bytes);
 	hash.Crunch("\r:\n", 3);
 	hash.Crunch(in_password, password_bytes);
@@ -67,7 +69,7 @@ bool PasswordCreator::HashPasswordString(const char *in_name,
 
 	bool success = HashPassword(lcase_name, name_bytes, in_password, password_bytes, out_hash);
 
-	delete []lcase_name;
+	delete[] lcase_name;
 
 	return success;
 }
@@ -80,14 +82,16 @@ bool PasswordVerifier::SaltHash(IRandom *prng,
 								u32 *out_salt /* 4 bytes */)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
-	if (!prng || !in_hash || !out_salted_hash || !out_salt) return false;
+	if (!prng || !in_hash || !out_salted_hash || !out_salt)
+		return false;
 #endif
 
 	Skein hash;
 
 	*out_salt = prng->Generate();
 
-	if (!hash.BeginKey(HASH_BITS)) return false;
+	if (!hash.BeginKey(HASH_BITS))
+		return false;
 	hash.Crunch(in_hash, HASH_BYTES);
 	hash.Crunch(out_salt, sizeof(*out_salt));
 	hash.End();
@@ -101,13 +105,15 @@ bool PasswordVerifier::VerifyHash(const void *in_hash /* 32 bytes */,
 								  u32 in_salt /* 4 bytes */)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
-	if (!in_hash || !in_salted_hash) return false;
+	if (!in_hash || !in_salted_hash)
+		return false;
 #endif
 
 	Skein hash;
 	u8 Jp[HASH_BYTES];
 
-	if (!hash.BeginKey(HASH_BITS)) return false;
+	if (!hash.BeginKey(HASH_BITS))
+		return false;
 	hash.Crunch(&in_salt, sizeof(in_salt));
 	hash.Crunch(in_hash, HASH_BYTES);
 	hash.End();

@@ -32,60 +32,59 @@
 #include <cat/Platform.hpp>
 
 #if defined(CAT_OS_WINDOWS)
-# include <cat/port/WindowsInclude.hpp>
+#include <cat/port/WindowsInclude.hpp>
 #else // use POSIX thread library otherwise
-# include <pthread.h>
+#include <pthread.h>
 #endif
 
-namespace cat {
-
-
-/*
-	class WaitableFlag
-
-	Can be set, reset or waited upon.
-
-	Initially unset.
-	Flag is edge-triggered.
-	Successful waiting will reset the flag.
-	Only one thread can wait at a time.
-
-	Designed to synchronize threads:
-		One thread can wait for this flag to be raised by another thread before continuing.
-*/
-class WaitableFlag
+namespace cat
 {
-#if defined(CAT_OS_WINDOWS)
-	HANDLE _event;
-#else
-	bool _valid, _valid_cond, _valid_mutex;
-	volatile u32 _flag;
-	pthread_cond_t _cond;
-	pthread_mutex_t _mutex;
-#endif
 
-	void Cleanup();
+	/*
+		class WaitableFlag
 
-public:
-	WaitableFlag();
-	CAT_INLINE virtual ~WaitableFlag()
-	{
-		Cleanup();
-	}
+		Can be set, reset or waited upon.
 
-	CAT_INLINE bool Valid()
+		Initially unset.
+		Flag is edge-triggered.
+		Successful waiting will reset the flag.
+		Only one thread can wait at a time.
+
+		Designed to synchronize threads:
+			One thread can wait for this flag to be raised by another thread before continuing.
+	*/
+	class WaitableFlag
 	{
 #if defined(CAT_OS_WINDOWS)
-		return _event != 0;
+		HANDLE _event;
 #else
-		return _valid;
+		bool _valid, _valid_cond, _valid_mutex;
+		volatile u32 _flag;
+		pthread_cond_t _cond;
+		pthread_mutex_t _mutex;
 #endif
-	}
 
-	bool Set();
-	bool Wait(int milliseconds = -1); // < 0 = wait forever
-};
+		void Cleanup();
 
+	public:
+		WaitableFlag();
+		CAT_INLINE virtual ~WaitableFlag()
+		{
+			Cleanup();
+		}
+
+		CAT_INLINE bool Valid()
+		{
+#if defined(CAT_OS_WINDOWS)
+			return _event != 0;
+#else
+			return _valid;
+#endif
+		}
+
+		bool Set();
+		bool Wait(int milliseconds = -1); // < 0 = wait forever
+	};
 
 } // namespace cat
 

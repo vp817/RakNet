@@ -37,65 +37,65 @@ using namespace cat;
 TCPConnexion::TCPConnexion(int priorityLevel)
 	: ThreadRefObject(priorityLevel)
 {
-    // Initialize to an invalid state.
-    // Connection is invalid until AcceptConnection() runs successfully.
-    _socket = SOCKET_ERROR;
-    _disconnecting = 0;
+	// Initialize to an invalid state.
+	// Connection is invalid until AcceptConnection() runs successfully.
+	_socket = SOCKET_ERROR;
+	_disconnecting = 0;
 }
 
 TCPConnexion::~TCPConnexion()
 {
-    if (_socket != SOCKET_ERROR)
-        CloseSocket(_socket);
+	if (_socket != SOCKET_ERROR)
+		CloseSocket(_socket);
 }
 
 bool TCPConnexion::Accept(ThreadPoolLocalStorage *tls, Socket listenSocket, Socket acceptSocket,
-                          LPFN_DISCONNECTEX lpfnDisconnectEx,
-                          const NetAddr &acceptAddress, const NetAddr &remoteClientAddress)
+						  LPFN_DISCONNECTEX lpfnDisconnectEx,
+						  const NetAddr &acceptAddress, const NetAddr &remoteClientAddress)
 {
-    // If we return false here this object will be deleted.
+	// If we return false here this object will be deleted.
 
-    // Store parameters
-    _socket = acceptSocket;
-    _lpfnDisconnectEx = lpfnDisconnectEx;
+	// Store parameters
+	_socket = acceptSocket;
+	_lpfnDisconnectEx = lpfnDisconnectEx;
 
-    // Finalize the accept socket context
-    if (setsockopt(acceptSocket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
-                   (char *)&listenSocket, sizeof(listenSocket)))
-    {
-        WARN("TCPConnexion")
-            << "Unable to update accept socket context: " << SocketGetLastErrorString();
-        return false;
-    }
+	// Finalize the accept socket context
+	if (setsockopt(acceptSocket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
+				   (char *)&listenSocket, sizeof(listenSocket)))
+	{
+		WARN("TCPConnexion")
+			<< "Unable to update accept socket context: " << SocketGetLastErrorString();
+		return false;
+	}
 
-    // Set SO_SNDBUF to zero for a zero-copy network stack (we maintain the buffers)
-    int bufsize = 0;
-    if (setsockopt(acceptSocket, SOL_SOCKET, SO_SNDBUF, (char*)&bufsize, sizeof(bufsize)))
-    {
-        FATAL("TCPConnexion") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
-        return false;
-    }
+	// Set SO_SNDBUF to zero for a zero-copy network stack (we maintain the buffers)
+	int bufsize = 0;
+	if (setsockopt(acceptSocket, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize, sizeof(bufsize)))
+	{
+		FATAL("TCPConnexion") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
+		return false;
+	}
 
-    // Prepare to receive completions in the worker threads.
-    // Do this first so that if the server will send data immediately it
-    // won't block or leak memory or fail or whatever would happen.
-    if (!ThreadPool::ref()->Associate((HANDLE)acceptSocket, this))
+	// Prepare to receive completions in the worker threads.
+	// Do this first so that if the server will send data immediately it
+	// won't block or leak memory or fail or whatever would happen.
+	if (!ThreadPool::ref()->Associate((HANDLE)acceptSocket, this))
 	{
 		FATAL("TCPConnexion") << "Unable to associate with the thread pool";
-        return false;
+		return false;
 	}
 
-    // Return true past this point so connection object will not be deleted
-    // and use DisconnectClient() to abort the connection instead now.
+	// Return true past this point so connection object will not be deleted
+	// and use DisconnectClient() to abort the connection instead now.
 
-    // Let the derived class determine if the connection should be accepted
-    if (!OnConnectFromClient(tls, remoteClientAddress) ||
+	// Let the derived class determine if the connection should be accepted
+	if (!OnConnectFromClient(tls, remoteClientAddress) ||
 		!Read())
 	{
-        Disconnect();
+		Disconnect();
 	}
 
-    return true;
+	return true;
 }
 
 void TCPConnexion::Disconnect()
@@ -114,7 +114,6 @@ void TCPConnexion::Disconnect()
 	}
 }
 
-
 //// Begin Event
 
 bool TCPConnexion::Post(u8 *data, u32 data_bytes, u32 skip_bytes)
@@ -130,7 +129,7 @@ bool TCPConnexion::Post(u8 *data, u32 data_bytes, u32 skip_bytes)
 	buffer->Reset(fastdelegate::MakeDelegate(this, &TCPConnexion::OnWrite));
 
 	WSABUF wsabuf;
-	wsabuf.buf = reinterpret_cast<CHAR*>( data + skip_bytes );
+	wsabuf.buf = reinterpret_cast<CHAR *>(data + skip_bytes);
 	wsabuf.len = data_bytes;
 
 	AddRef();
@@ -155,7 +154,8 @@ bool TCPConnexion::Read(AsyncBuffer *buffer)
 {
 	if (_disconnecting)
 	{
-		if (buffer) buffer->Release();
+		if (buffer)
+			buffer->Release();
 		return false;
 	}
 
@@ -169,14 +169,14 @@ bool TCPConnexion::Read(AsyncBuffer *buffer)
 	buffer->Reset(fastdelegate::MakeDelegate(this, &TCPConnexion::OnRead));
 
 	WSABUF wsabuf;
-	wsabuf.buf = reinterpret_cast<CHAR*>( buffer->GetData() );
+	wsabuf.buf = reinterpret_cast<CHAR *>(buffer->GetData());
 	wsabuf.len = buffer->GetDataBytes();
 
 	AddRef();
 
 	// Queue up a WSARecv()
 	DWORD flags = 0, bytes;
-	int result = WSARecv(_socket, &wsabuf, 1, &bytes, &flags, buffer->GetOv(), 0); 
+	int result = WSARecv(_socket, &wsabuf, 1, &bytes, &flags, buffer->GetOv(), 0);
 
 	// This overlapped operation will always complete unless
 	// we get an error code other than ERROR_IO_PENDING.
@@ -201,24 +201,23 @@ bool TCPConnexion::Disco(AsyncBuffer *buffer)
 
 	buffer->Reset(fastdelegate::MakeDelegate(this, &TCPConnexion::OnDisco));
 
-    AddRef();
+	AddRef();
 
-    // Queue up a DisconnectEx()
-    BOOL result = _lpfnDisconnectEx(_socket, buffer->GetOv(), 0, 0); 
+	// Queue up a DisconnectEx()
+	BOOL result = _lpfnDisconnectEx(_socket, buffer->GetOv(), 0, 0);
 
-    // This overlapped operation will always complete unless
-    // we get an error code other than ERROR_IO_PENDING.
-    if (!result && WSAGetLastError() != ERROR_IO_PENDING)
-    {
-        FATAL("TCPConnexion") << "DisconnectEx error: " << SocketGetLastErrorString();
+	// This overlapped operation will always complete unless
+	// we get an error code other than ERROR_IO_PENDING.
+	if (!result && WSAGetLastError() != ERROR_IO_PENDING)
+	{
+		FATAL("TCPConnexion") << "DisconnectEx error: " << SocketGetLastErrorString();
 		buffer->Release();
-        ReleaseRef();
-        return false;
-    }
+		ReleaseRef();
+		return false;
+	}
 
-    return true;
+	return true;
 }
-
 
 //// Event Completion
 
@@ -266,7 +265,8 @@ bool TCPConnexion::OnWrite(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *
 
 bool TCPConnexion::OnDisco(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes)
 {
-	if (error) ReportUnexpectedSocketError(error);
+	if (error)
+		ReportUnexpectedSocketError(error);
 
 	// Release final reference
 	ReleaseRef();

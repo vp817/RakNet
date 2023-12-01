@@ -31,7 +31,6 @@
 #include <cat/io/Logging.hpp>
 using namespace cat;
 
-
 AsyncFile::AsyncFile(int priorityLevel)
 	: ThreadRefObject(priorityLevel)
 {
@@ -76,7 +75,8 @@ bool AsyncFile::Open(const char *file_path, u32 async_file_modes)
 		flags |= FILE_FLAG_RANDOM_ACCESS;
 
 	_file = CreateFile(_file_path, modes, 0, 0, creation, flags, 0);
-	if (!_file) return false;
+	if (!_file)
+		return false;
 
 	if (!ThreadPool::ref()->Associate(_file, this))
 	{

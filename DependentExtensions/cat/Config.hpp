@@ -29,30 +29,29 @@
 #ifndef CAT_CONFIG_HPP
 #define CAT_CONFIG_HPP
 
-namespace cat {
-
+namespace cat
+{
 
 // This definition overrides CAT_BUILD_DLL below.  Neuters CAT_EXPORT macro so symbols are
 // neither exported or imported.
-//#define CAT_NEUTER_EXPORT
+// #define CAT_NEUTER_EXPORT
 
 // This definition changes the meaning of the CAT_EXPORT macro on Windows.  When defined,
 // the CAT_EXPORT macro will export the associated symbol.  When undefined, it will import it.
-//#define CAT_BUILD_DLL
+// #define CAT_BUILD_DLL
 
 // If you want to remove server-side code from a binary distribution of a client program:
-//#define CAT_OMIT_SERVER_CODE
+// #define CAT_OMIT_SERVER_CODE
 
 // If you know the endianness of your target, uncomment one of these for better performance.
-//#define __LITTLE_ENDIAN__
-//#define __BIG_ENDIAN__
+// #define __LITTLE_ENDIAN__
+// #define __BIG_ENDIAN__
 
 // If you want to use faster 384-bit or 512-bit math, define this:
-//#define CAT_UNROLL_OVER_256_BITS
+// #define CAT_UNROLL_OVER_256_BITS
 
 // Adjust if your architecture uses larger than 128-byte cache line
 #define CAT_DEFAULT_CACHE_LINE_SIZE 128
-
 
 } // namespace cat
 

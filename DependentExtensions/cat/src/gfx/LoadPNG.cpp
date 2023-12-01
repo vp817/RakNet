@@ -30,8 +30,6 @@
 #include <cat/AllFramework.hpp>
 using namespace cat;
 
-
-
 //// CRC32Calculator
 
 CRC32Calculator::CRC32Calculator(u32 polynomial)
@@ -42,8 +40,10 @@ CRC32Calculator::CRC32Calculator(u32 polynomial)
 
 		for (u16 k = 0; k < 8; ++k)
 		{
-			if (c & 1)	c = polynomial ^ (c >> 1);
-			else		c >>= 1;
+			if (c & 1)
+				c = polynomial ^ (c >> 1);
+			else
+				c >>= 1;
 		}
 
 		table[n] = c;
@@ -52,41 +52,41 @@ CRC32Calculator::CRC32Calculator(u32 polynomial)
 
 void CRC32Calculator::perform(const void *vbuf, u32 len)
 {
-	const u8 *buf = (const u8*)vbuf;
+	const u8 *buf = (const u8 *)vbuf;
 
-	while (len--) reg = table[(reg ^ *buf++) & 0xff] ^ (reg >> 8);
+	while (len--)
+		reg = table[(reg ^ *buf++) & 0xff] ^ (reg >> 8);
 }
 const u32 PNG_CRC32_POLYNOMIAL = 0xEDB88320;
 const u8 PNG_SIGNATURE[8] = {0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'};
 
 // Critical sections
-const char *PNG_SECTION_IHDR = "IHDR";	// Image header
-const char *PNG_SECTION_PLTE = "PLTE";	// Palette
-const char *PNG_SECTION_IDAT = "IDAT";	// Image data
-const char *PNG_SECTION_IEND = "IEND";	// Image data trailer
+const char *PNG_SECTION_IHDR = "IHDR"; // Image header
+const char *PNG_SECTION_PLTE = "PLTE"; // Palette
+const char *PNG_SECTION_IDAT = "IDAT"; // Image data
+const char *PNG_SECTION_IEND = "IEND"; // Image data trailer
 
 // Transparency info
-const char *PNG_SECTION_TRNS = "tRNS";	// Transparency info
+const char *PNG_SECTION_TRNS = "tRNS"; // Transparency info
 
 // Color space information
-const char *PNG_SECTION_GAMA = "gAMA";	// Image gamma
-const char *PNG_SECTION_CHRM = "cHRM";	// Primary chromaticities
-const char *PNG_SECTION_SRGB = "sRGB";	// Standard RGB color space
-const char *PNG_SECTION_ICCP = "iCCP";	// Embedded ICC profile
+const char *PNG_SECTION_GAMA = "gAMA"; // Image gamma
+const char *PNG_SECTION_CHRM = "cHRM"; // Primary chromaticities
+const char *PNG_SECTION_SRGB = "sRGB"; // Standard RGB color space
+const char *PNG_SECTION_ICCP = "iCCP"; // Embedded ICC profile
 
 // Textual information
-const char *PNG_SECTION_TEXT = "tEXt";	// Textual data
-const char *PNG_SECTION_ZTXT = "zTXt";	// Compressed textual data
-const char *PNG_SECTION_ITXT = "iTXt";	// International-encoded textual data
+const char *PNG_SECTION_TEXT = "tEXt"; // Textual data
+const char *PNG_SECTION_ZTXT = "zTXt"; // Compressed textual data
+const char *PNG_SECTION_ITXT = "iTXt"; // International-encoded textual data
 
 // Other non-essential info
-const char *PNG_SECTION_BKGD = "bKGD";	// Background color
-const char *PNG_SECTION_PHYS = "pHYs";	// Physical pixel dimensions
-const char *PNG_SECTION_SBIT = "sBIT";	// Significant bits
-const char *PNG_SECTION_SPLT = "sPLT";	// Suggested palette
-const char *PNG_SECTION_HIST = "hIST";	// Palette histogram
-const char *PNG_SECTION_TIME = "tIME";	// Last modification time
-
+const char *PNG_SECTION_BKGD = "bKGD"; // Background color
+const char *PNG_SECTION_PHYS = "pHYs"; // Physical pixel dimensions
+const char *PNG_SECTION_SBIT = "sBIT"; // Significant bits
+const char *PNG_SECTION_SPLT = "sPLT"; // Suggested palette
+const char *PNG_SECTION_HIST = "hIST"; // Palette histogram
+const char *PNG_SECTION_TIME = "tIME"; // Last modification time
 
 PNGSkeletonTokenizer::PNGSkeletonTokenizer(const string &ppath, u32 CRC32polynomial)
 	: mmf(ppath.c_str()), calculator(CRC32polynomial), path(ppath)
@@ -94,26 +94,29 @@ PNGSkeletonTokenizer::PNGSkeletonTokenizer(const string &ppath, u32 CRC32polynom
 	ENFORCE(mmf.good()) << "Unable to read file: " << ppath;
 }
 
-
 bool PNGSkeletonTokenizer::read(const u8 signature[8])
 {
-	if (mmf.underrun(8) || memcmp(mmf.read(8), signature, 8)) return false;
+	if (mmf.underrun(8) || memcmp(mmf.read(8), signature, 8))
+		return false;
 
 	while (!mmf.underrun(sizeof(SectionHeader)))
 	{
 		SectionHeader *hdr = (SectionHeader *)mmf.read(sizeof(SectionHeader));
 		u32 len = getBE(hdr->length);
 
-		if (mmf.underrun(len + 4)) return false;
-		u8 *data = (u8*)mmf.read(len + 4);
-		u32 crc = getBE(*(u32*)(data + len));
+		if (mmf.underrun(len + 4))
+			return false;
+		u8 *data = (u8 *)mmf.read(len + 4);
+		u32 crc = getBE(*(u32 *)(data + len));
 
 		calculator.begin();
 		calculator.perform(hdr->type, 4);
 		calculator.perform(data, len);
-		if (calculator.finish() != crc) return false;
+		if (calculator.finish() != crc)
+			return false;
 
-		if (!onSection(hdr->type, data, len)) break;
+		if (!onSection(hdr->type, data, len))
+			break;
 	}
 
 	return true;
@@ -164,18 +167,18 @@ static void unfilterImage(u8 *scanline, u16 height, u16 bytes_per_scanline, u16 
 	// Unrolled first loop
 	switch (*scanline)
 	{
-	case 1:	// sub
-	case 4:	// paeth
-		{
-			for (u16 j = bpp + 1; j < bytes_per_scanline; ++j)
-				scanline[j] += scanline[j - bpp];
-		}
-		break;
-	case 3:	// average
-		{
-			for (u16 j = bpp + 1; j < bytes_per_scanline; ++j)
-				scanline[j] += scanline[j - bpp] / 2;
-		}
+	case 1: // sub
+	case 4: // paeth
+	{
+		for (u16 j = bpp + 1; j < bytes_per_scanline; ++j)
+			scanline[j] += scanline[j - bpp];
+	}
+	break;
+	case 3: // average
+	{
+		for (u16 j = bpp + 1; j < bytes_per_scanline; ++j)
+			scanline[j] += scanline[j - bpp] / 2;
+	}
 	}
 
 	u8 *lastline = scanline;
@@ -185,50 +188,62 @@ static void unfilterImage(u8 *scanline, u16 height, u16 bytes_per_scanline, u16 
 	{
 		switch (*scanline)
 		{
-		case 1:	// sub
-			{
-				for (u16 j = bpp + 1; j < bytes_per_scanline; ++j)
-					scanline[j] += scanline[j - bpp];
-			}
-			break;
-		case 2:	// up
-			{
-				u8 *to = scanline + 1, *from = lastline + 1;
-				u16 ctr = bytes_per_scanline - 1;
+		case 1: // sub
+		{
+			for (u16 j = bpp + 1; j < bytes_per_scanline; ++j)
+				scanline[j] += scanline[j - bpp];
+		}
+		break;
+		case 2: // up
+		{
+			u8 *to = scanline + 1, *from = lastline + 1;
+			u16 ctr = bytes_per_scanline - 1;
 
-				u16 ctr16 = ctr / 16;
+			u16 ctr16 = ctr / 16;
 
-				while (ctr16--)
-				{
-					to[0] += from[0]; to[1] += from[1]; to[2] += from[2]; to[3] += from[3];
-					to[4] += from[4]; to[5] += from[5]; to[6] += from[6]; to[7] += from[7];
-					to[8] += from[8]; to[9] += from[9]; to[10] += from[10]; to[11] += from[11];
-					to[12] += from[12]; to[13] += from[13]; to[14] += from[14]; to[15] += from[15];
-
-					to += 16;
-					from += 16;
-				}
-
-				ctr %= 16;
-				while (ctr--)
-					*to++ += *from++;
-			}
-			break;
-		case 3:	// average
+			while (ctr16--)
 			{
-				for (u16 j = 1; j < bpp + 1; ++j)
-					scanline[j] += lastline[j] / 2;
-				for (u16 k = bpp + 1; k < bytes_per_scanline; ++k)
-					scanline[k] += (scanline[k - bpp] + lastline[k]) / 2;
+				to[0] += from[0];
+				to[1] += from[1];
+				to[2] += from[2];
+				to[3] += from[3];
+				to[4] += from[4];
+				to[5] += from[5];
+				to[6] += from[6];
+				to[7] += from[7];
+				to[8] += from[8];
+				to[9] += from[9];
+				to[10] += from[10];
+				to[11] += from[11];
+				to[12] += from[12];
+				to[13] += from[13];
+				to[14] += from[14];
+				to[15] += from[15];
+
+				to += 16;
+				from += 16;
 			}
-			break;
-		case 4:	// paeth
-			{
-				for (u16 j = 1; j < bpp + 1; ++j)
-					scanline[j] += lastline[j];
-				for (u16 k = bpp + 1; k < bytes_per_scanline; ++k)
-					scanline[k] += paethPredictor(scanline[k - bpp], lastline[k], lastline[k - bpp]);
-			}
+
+			ctr %= 16;
+			while (ctr--)
+				*to++ += *from++;
+		}
+		break;
+		case 3: // average
+		{
+			for (u16 j = 1; j < bpp + 1; ++j)
+				scanline[j] += lastline[j] / 2;
+			for (u16 k = bpp + 1; k < bytes_per_scanline; ++k)
+				scanline[k] += (scanline[k - bpp] + lastline[k]) / 2;
+		}
+		break;
+		case 4: // paeth
+		{
+			for (u16 j = 1; j < bpp + 1; ++j)
+				scanline[j] += lastline[j];
+			for (u16 k = bpp + 1; k < bytes_per_scanline; ++k)
+				scanline[k] += paethPredictor(scanline[k - bpp], lastline[k], lastline[k - bpp]);
+		}
 		}
 
 		lastline = scanline;
@@ -239,7 +254,8 @@ static void unfilterImage(u8 *scanline, u16 height, u16 bytes_per_scanline, u16 
 static u32 nextHighestPOT(u32 n)
 {
 	u32 b = 2;
-	while (n >>= 1) b <<= 1;
+	while (n >>= 1)
+		b <<= 1;
 	return b;
 }
 
@@ -260,97 +276,109 @@ void PNGTokenizer::rasterizeImage(u8 *image)
 
 	switch (header.colorType)
 	{
-	case 2:	// RGB (3 entries)
+	case 2: // RGB (3 entries)
+	{
+		auto_ptr<u8> final(new u8[newWidth * newHeight * 4]);
+		ENFORCE(final.get()) << "Out of memory: Unable to allocate texture data";
+
+		u8 *rgba_ptr = final.get();
+		u32 hctr = header.height;
+		while (hctr--)
 		{
-			auto_ptr<u8> final(new u8[newWidth * newHeight * 4]);
-			ENFORCE(final.get()) << "Out of memory: Unable to allocate texture data";
+			++image;
 
-			u8 *rgba_ptr = final.get();
-			u32 hctr = header.height;
-			while (hctr--)
+			u32 wctr = header.width;
+			while (wctr--)
 			{
-				++image;
+				u8 r, g, b;
+				*rgba_ptr++ = r = *image++;
+				*rgba_ptr++ = g = *image++;
+				*rgba_ptr++ = b = *image++;
 
-				u32 wctr = header.width;
-				while (wctr--)
-				{
-					u8 r, g, b;
-					*rgba_ptr++ = r = *image++;
-					*rgba_ptr++ = g = *image++;
-					*rgba_ptr++ = b = *image++;
-
-					if ((r == trans_red) && (g == trans_green) && (b == trans_blue))
-						*rgba_ptr++ = 0;
-					else
-						*rgba_ptr++ = 0xff;
-				}
-
-				rgba_ptr += (newWidth - header.width) * 4;
+				if ((r == trans_red) && (g == trans_green) && (b == trans_blue))
+					*rgba_ptr++ = 0;
+				else
+					*rgba_ptr++ = 0xff;
 			}
 
-			onImage((u32*)final.get(), newWidth, newHeight);
+			rgba_ptr += (newWidth - header.width) * 4;
 		}
-		break;
 
-	case 3:	// Paletted (1 entry)
+		onImage((u32 *) final.get(), newWidth, newHeight);
+	}
+	break;
+
+	case 3: // Paletted (1 entry)
+	{
+		auto_ptr<u32> final(new u32[newWidth * newHeight]);
+		ENFORCE(final.get()) << "Out of memory: Unable to allocate texture data";
+
+		u32 *rgba_ptr = final.get();
+		u32 hctr = header.height;
+		while (hctr--)
 		{
-			auto_ptr<u32> final(new u32[newWidth * newHeight]);
-			ENFORCE(final.get()) << "Out of memory: Unable to allocate texture data";
+			++image;
 
-			u32 *rgba_ptr = final.get();
-			u32 hctr = header.height;
-			while (hctr--)
+			u32 wctr = header.width;
+
+			u32 ctr16 = wctr / 16;
+			while (ctr16--)
 			{
-				++image;
+				rgba_ptr[0] = palette[image[0]];
+				rgba_ptr[1] = palette[image[1]];
+				rgba_ptr[2] = palette[image[2]];
+				rgba_ptr[3] = palette[image[3]];
+				rgba_ptr[4] = palette[image[4]];
+				rgba_ptr[5] = palette[image[5]];
+				rgba_ptr[6] = palette[image[6]];
+				rgba_ptr[7] = palette[image[7]];
+				rgba_ptr[8] = palette[image[8]];
+				rgba_ptr[9] = palette[image[9]];
+				rgba_ptr[10] = palette[image[10]];
+				rgba_ptr[11] = palette[image[11]];
+				rgba_ptr[12] = palette[image[12]];
+				rgba_ptr[13] = palette[image[13]];
+				rgba_ptr[14] = palette[image[14]];
+				rgba_ptr[15] = palette[image[15]];
 
-				u32 wctr = header.width;
-
-				u32 ctr16 = wctr / 16;
-				while (ctr16--)
-				{
-					rgba_ptr[0] = palette[image[0]]; rgba_ptr[1] = palette[image[1]]; rgba_ptr[2] = palette[image[2]]; rgba_ptr[3] = palette[image[3]];
-					rgba_ptr[4] = palette[image[4]]; rgba_ptr[5] = palette[image[5]]; rgba_ptr[6] = palette[image[6]]; rgba_ptr[7] = palette[image[7]];
-					rgba_ptr[8] = palette[image[8]]; rgba_ptr[9] = palette[image[9]]; rgba_ptr[10] = palette[image[10]]; rgba_ptr[11] = palette[image[11]];
-					rgba_ptr[12] = palette[image[12]]; rgba_ptr[13] = palette[image[13]]; rgba_ptr[14] = palette[image[14]]; rgba_ptr[15] = palette[image[15]];
-
-					rgba_ptr += 16;
-					image += 16;
-				}
-
-				wctr %= 16;
-				while (wctr--)
-					*rgba_ptr++ = palette[*image++];
-
-				rgba_ptr += newWidth - header.width;
+				rgba_ptr += 16;
+				image += 16;
 			}
 
-			onImage(final.get(), newWidth, newHeight);
+			wctr %= 16;
+			while (wctr--)
+				*rgba_ptr++ = palette[*image++];
+
+			rgba_ptr += newWidth - header.width;
 		}
-		break;
 
-	case 6:	// RGBA (4 entries)
+		onImage(final.get(), newWidth, newHeight);
+	}
+	break;
+
+	case 6: // RGBA (4 entries)
+	{
+		auto_ptr<u32> final(new u32[newWidth * newHeight]);
+		ENFORCE(final.get()) << "Out of memory: Unable to allocate texture data";
+
+		u32 *rgba_ptr = final.get();
+		u32 hctr = header.height;
+		while (hctr--)
 		{
-			auto_ptr<u32> final(new u32[newWidth * newHeight]);
-			ENFORCE(final.get()) << "Out of memory: Unable to allocate texture data";
+			++image;
 
-			u32 *rgba_ptr = final.get();
-			u32 hctr = header.height;
-			while (hctr--)
+			u32 wctr = header.width;
+			while (wctr--)
 			{
-				++image;
-
-				u32 wctr = header.width;
-				while (wctr--)
-				{
-					*rgba_ptr++ = *(u32*)image;
-					image += 4;
-				}
-
-				rgba_ptr += newWidth - header.width;
+				*rgba_ptr++ = *(u32 *)image;
+				image += 4;
 			}
 
-			onImage(final.get(), newWidth, newHeight);
+			rgba_ptr += newWidth - header.width;
 		}
+
+		onImage(final.get(), newWidth, newHeight);
+	}
 	}
 }
 
@@ -366,13 +394,13 @@ bool PNGTokenizer::onSection(char type[4], u8 data[], u32 len)
 	{
 		switch (header.colorType)
 		{
-		case 2:	// R16G16B16 color specification
+		case 2: // R16G16B16 color specification
 			if (len == 6)
-			onTRNS_Color2(getBE(*(u16*)data),
-						  getBE(*(u16*)(data + 2)),
-						  getBE(*(u16*)(data + 4)));
+				onTRNS_Color2(getBE(*(u16 *)data),
+							  getBE(*(u16 *)(data + 2)),
+							  getBE(*(u16 *)(data + 4)));
 			break;
-		case 3:	// Indexed color (1by x palette)
+		case 3: // Indexed color (1by x palette)
 			onTRNS_Color3(data, len);
 		}
 	}
@@ -388,8 +416,8 @@ void PNGTokenizer::onImage(u32 *image, u32 newWidth, u32 newHeight)
 {
 	INFO("Test") << "Read file";
 
-	u8 *src = (u8*)image;
-	size_t srcLen = (newWidth*newHeight) * 4;
+	u8 *src = (u8 *)image;
+	size_t srcLen = (newWidth * newHeight) * 4;
 
 	double t0, t1;
 	int result;
@@ -406,9 +434,9 @@ void PNGTokenizer::onImage(u32 *image, u32 newWidth, u32 newHeight)
 	params.ilv = ILV_LINE;
 	params.colorTransform = 2; // 0..3
 	params.outputBgr = 0;
-	//params.custom.T1 = 3;
-	//params.custom.T2 = 7;
-	//params.custom.T3 = 21;
+	// params.custom.T1 = 3;
+	// params.custom.T2 = 7;
+	// params.custom.T3 = 21;
 
 	u8 *dest2 = new u8[srcLen];
 	size_t dest2Len = srcLen;
@@ -434,7 +462,7 @@ void PNGTokenizer::onImage(u32 *image, u32 newWidth, u32 newHeight)
 	}
 	else
 	{
-		file.write((char*)dest2, dest2Len);
+		file.write((char *)dest2, dest2Len);
 		file.close();
 	}
 
@@ -477,7 +505,6 @@ void PNGTokenizer::onImage(u32 *image, u32 newWidth, u32 newHeight)
 	}
 	*/
 
-
 	u8 *cdest = new u8[srcLen];
 	uLongf cdest_len = srcLen;
 
@@ -518,14 +545,15 @@ void PNGTokenizer::onIHDR(PNG_IHDR *infohdr)
 
 	switch (header.colorType)
 	{
-	default: EXCEPTION() << "Invalid image format for " << path << ": Must be RGB, RGBA or paletted";
-	case 2:	// RGB (3 entries)
+	default:
+		EXCEPTION() << "Invalid image format for " << path << ": Must be RGB, RGBA or paletted";
+	case 2: // RGB (3 entries)
 		bpp = 3;
 		break;
-	case 3:	// Paletted (1 entry)
+	case 3: // Paletted (1 entry)
 		bpp = 1;
 		break;
-	case 6:	// RGBA (4 entries)
+	case 6: // RGBA (4 entries)
 		bpp = 4;
 	}
 
@@ -556,13 +584,13 @@ void PNGTokenizer::onIDAT(u8 *data, u32 len)
 void PNGTokenizer::onIEND()
 {
 	ENFORCE(lastZlibResult == Z_STREAM_END) << "Incomplete image data from " << path;
-	if (zstream.avail_out) WARN("PNGTokenizer") << "Overallocated " << zstream.avail_out << " bytes for " << path;
+	if (zstream.avail_out)
+		WARN("PNGTokenizer") << "Overallocated " << zstream.avail_out << " bytes for " << path;
 
 	unfilterImage(obuf, (u16)header.height, (u16)header.width * bpp + 1, bpp);
 
 	rasterizeImage(obuf);
 }
-
 
 //// Transparency info ////
 

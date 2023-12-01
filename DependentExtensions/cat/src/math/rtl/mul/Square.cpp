@@ -43,7 +43,7 @@ using namespace cat;
 */
 
 // This is (slightly) faster than normal 4x4 multiplication
-CAT_INLINE void CAT_FASTCALL Square4(const Leg * CAT_RESTRICT input, Leg * CAT_RESTRICT output)
+CAT_INLINE void CAT_FASTCALL Square4(const Leg *CAT_RESTRICT input, Leg *CAT_RESTRICT output)
 {
 	Leg a = input[3], b = input[2], c = input[1], d = input[0];
 
@@ -80,7 +80,7 @@ CAT_INLINE void CAT_FASTCALL Square4(const Leg * CAT_RESTRICT input, Leg * CAT_R
 }
 
 // This is significantly faster than normal 8x8 Comba multiplication (67% runtime)
-CAT_INLINE void CAT_FASTCALL Square8(const Leg * CAT_RESTRICT input, Leg * CAT_RESTRICT output)
+CAT_INLINE void CAT_FASTCALL Square8(const Leg *CAT_RESTRICT input, Leg *CAT_RESTRICT output)
 {
 	// Calculate square products
 	Square4(input, output);
@@ -120,7 +120,6 @@ CAT_INLINE void CAT_FASTCALL Square8(const Leg * CAT_RESTRICT input, Leg * CAT_R
 
 #endif // CAT_NO_LEGPAIR
 
-
 void CAT_FASTCALL BigRTL::Square(const Leg *input, Leg *output)
 {
 #if !defined(CAT_NO_LEGPAIR)
@@ -134,15 +133,15 @@ void CAT_FASTCALL BigRTL::Square(const Leg *input, Leg *output)
 
 	Leg *cross = Get(library_regs - 2);
 
-    // Calculate square products
-    for (int ii = 0; ii < library_legs; ++ii)
-        CAT_LEG_MUL(input[ii], input[ii], output[ii*2+1], output[ii*2]);
+	// Calculate square products
+	for (int ii = 0; ii < library_legs; ++ii)
+		CAT_LEG_MUL(input[ii], input[ii], output[ii * 2 + 1], output[ii * 2]);
 
-    // Calculate cross products
-    cross[library_legs] = MultiplyX(library_legs-1, input+1, input[0], cross+1);
-    for (int ii = 1; ii < library_legs-1; ++ii)
-        cross[library_legs + ii] = MultiplyXAdd(library_legs-1-ii, input+1+ii, input[ii], cross+1+ii*2, cross+1+ii*2);
+	// Calculate cross products
+	cross[library_legs] = MultiplyX(library_legs - 1, input + 1, input[0], cross + 1);
+	for (int ii = 1; ii < library_legs - 1; ++ii)
+		cross[library_legs + ii] = MultiplyXAdd(library_legs - 1 - ii, input + 1 + ii, input[ii], cross + 1 + ii * 2, cross + 1 + ii * 2);
 
-    // Multiply the cross product by 2 and add it to the square products
-    output[library_legs*2-1] += DoubleAdd(library_legs*2-2, cross+1, output+1, output+1);
+	// Multiply the cross product by 2 and add it to the square products
+	output[library_legs * 2 - 1] += DoubleAdd(library_legs * 2 - 2, cross + 1, output + 1, output + 1);
 }

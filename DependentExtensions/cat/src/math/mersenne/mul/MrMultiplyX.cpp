@@ -33,14 +33,14 @@ using namespace cat;
 void CAT_FASTCALL BigPseudoMersenne::MrMultiplyX(const Leg *in_a, Leg in_b, Leg *out)
 {
 #if defined(CAT_USE_LEGS_ASM64)
-    if (library_legs == 4)
-    {
-        bpm_mulx_4(modulus_c, in_a, in_b, out);
-        return;
-    }
+	if (library_legs == 4)
+	{
+		bpm_mulx_4(modulus_c, in_a, in_b, out);
+		return;
+	}
 #endif
 
-    Leg overflow = MultiplyX(in_a, in_b, out);
+	Leg overflow = MultiplyX(in_a, in_b, out);
 
-    MrReduceProductX(overflow, out);
+	MrReduceProductX(overflow, out);
 }

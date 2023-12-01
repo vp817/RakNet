@@ -29,7 +29,6 @@
 #include <cat/threads/Mutex.hpp>
 using namespace cat;
 
-
 //// Mutex
 
 Mutex::Mutex()
@@ -53,7 +52,8 @@ Mutex::~Mutex()
 
 #else
 
-	if (!init_failure) pthread_mutex_destroy(&mx);
+	if (!init_failure)
+		pthread_mutex_destroy(&mx);
 
 #endif
 }
@@ -85,7 +85,8 @@ bool Mutex::Enter()
 
 #else
 
-	if (init_failure) return false;
+	if (init_failure)
+		return false;
 
 	CAT_FENCE_COMPILER
 
@@ -112,7 +113,8 @@ bool Mutex::Leave()
 
 #else
 
-	if (init_failure) return false;
+	if (init_failure)
+		return false;
 
 	CAT_FENCE_COMPILER
 
@@ -125,29 +127,28 @@ bool Mutex::Leave()
 #endif
 }
 
-
 //// AutoMutex
 
 AutoMutex::AutoMutex(Mutex &mutex)
 {
-    _mutex = &mutex;
-    mutex.Enter();
+	_mutex = &mutex;
+	mutex.Enter();
 }
 
 AutoMutex::~AutoMutex()
 {
-    Release();
+	Release();
 }
 
 bool AutoMutex::Release()
 {
 	bool success = false;
 
-    if (_mutex)
-    {
-        success = _mutex->Leave();
-        _mutex = 0;
-    }
+	if (_mutex)
+	{
+		success = _mutex->Leave();
+		_mutex = 0;
+	}
 
 	return success;
 }

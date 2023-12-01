@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 Psi Systems, Inc.
-   Author:  Jean-Marc Valin 
+   Author:  Jean-Marc Valin
    File: testenc-TI-C64x.c
    Encoder/Decoder Loop Main file for TI TMS320C64xx processor
    for use with TI Code Composer (TM) DSP development tools.
@@ -9,18 +9,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -48,21 +48,21 @@ extern long long spx_mips;
 #endif
 
 #ifdef MANUAL_ALLOC
-#pragma DATA_SECTION(spxHeap, ".myheap"); 
+#pragma DATA_SECTION(spxHeap, ".myheap");
 static char spxHeap[SPEEX_PERSIST_STACK_SIZE];
 
-#pragma DATA_SECTION(spxScratch, ".myheap"); 
+#pragma DATA_SECTION(spxScratch, ".myheap");
 static char spxScratch[SPEEX_SCRATCH_STACK_SIZE];
 
 char *spxGlobalHeapPtr, *spxGlobalHeapEnd;
 char *spxGlobalScratchPtr, *spxGlobalScratchEnd;
-#endif    /* MANUAL_ALLOC */
+#endif /* MANUAL_ALLOC */
 
 #include <math.h>
 void main()
 {
    char *outFile, *bitsFile;
-   FILE *fout, *fbits=NULL;
+   FILE *fout, *fbits = NULL;
 #ifndef DECODE_ONLY
    char *inFile;
    FILE *fin;
@@ -74,7 +74,7 @@ void main()
    short out_short[FRAME_SIZE];
 #ifndef DECODE_ONLY
    short in_short[FRAME_SIZE];
-   float sigpow,errpow,snr, seg_snr=0;
+   float sigpow, errpow, snr, seg_snr = 0;
    int snr_frames = 0;
    int nbBits;
    int i;
@@ -84,7 +84,7 @@ void main()
    void *dec;
    SpeexBits bits;
    int tmp;
-   int bitCount=0;
+   int bitCount = 0;
    int skip_group_delay;
    SpeexCallback callback;
 
@@ -94,15 +94,15 @@ void main()
 #endif
 
 #ifdef MANUAL_ALLOC
-	spxGlobalHeapPtr = spxHeap;
-	spxGlobalHeapEnd = spxHeap + sizeof(spxHeap);
+   spxGlobalHeapPtr = spxHeap;
+   spxGlobalHeapEnd = spxHeap + sizeof(spxHeap);
 
-	spxGlobalScratchPtr = spxScratch;
-	spxGlobalScratchEnd = spxScratch + sizeof(spxScratch);
+   spxGlobalScratchPtr = spxScratch;
+   spxGlobalScratchEnd = spxScratch + sizeof(spxScratch);
 #endif
    st = speex_encoder_init(&speex_nb_mode);
 #ifdef MANUAL_ALLOC
-	spxGlobalScratchPtr = spxScratch;		/* Reuse scratch for decoder */
+   spxGlobalScratchPtr = spxScratch; /* Reuse scratch for decoder */
 #endif
    dec = speex_decoder_init(&speex_nb_mode);
 
@@ -116,17 +116,17 @@ void main()
    callback.data = st;
    speex_decoder_ctl(dec, SPEEX_SET_HANDLER, &callback);
 
-   tmp=0;
+   tmp = 0;
    speex_decoder_ctl(dec, SPEEX_SET_ENH, &tmp);
-   tmp=0;
+   tmp = 0;
    speex_encoder_ctl(st, SPEEX_SET_VBR, &tmp);
-   tmp=4;
+   tmp = 4;
    speex_encoder_ctl(st, SPEEX_SET_QUALITY, &tmp);
-   tmp=1;
+   tmp = 1;
    speex_encoder_ctl(st, SPEEX_SET_COMPLEXITY, &tmp);
 
    speex_mode_query(&speex_nb_mode, SPEEX_MODE_FRAME_SIZE, &tmp);
-   fprintf (stderr, "frame size: %d\n", tmp);
+   fprintf(stderr, "frame size: %d\n", tmp);
    skip_group_delay = tmp / 2;
 
 #ifdef DECODE_ONLY
@@ -144,7 +144,7 @@ void main()
    dbgoutFile = "e:\\speextrunktest\\samples\\maledbgout.snd";
    fdbgout = fopen(dbgoutFile, "wb+");
 #endif
- 
+
    speex_bits_init(&bits);
 #ifndef DECODE_ONLY
    while (!feof(fin))
@@ -159,7 +159,7 @@ void main()
 
       speex_encode_int(st, in_short, &bits);
       nbBits = speex_bits_write(&bits, cbits, 200);
-      bitCount+=bits.nbBits;
+      bitCount += bits.nbBits;
 
       fwrite(cbits, 1, nbBits, fbits);
       speex_bits_rewind(&bits);
@@ -173,19 +173,19 @@ void main()
          break;
 
       speex_bits_read_from(&bits, cbits, 20);
-      bitCount+=160;
+      bitCount += 160;
 #endif
-      
+
       speex_decode_int(dec, &bits, out_short);
       speex_bits_reset(&bits);
 
-      fwrite(&out_short[skip_group_delay], sizeof(short), FRAME_SIZE-skip_group_delay, fout);
+      fwrite(&out_short[skip_group_delay], sizeof(short), FRAME_SIZE - skip_group_delay, fout);
       skip_group_delay = 0;
 #if 1
-   fprintf (stderr, "Bits so far: %d \n", bitCount);
+      fprintf(stderr, "Bits so far: %d \n", bitCount);
 #endif
    }
-   fprintf (stderr, "Total encoded size: %d bits\n", bitCount);
+   fprintf(stderr, "Total encoded size: %d bits\n", bitCount);
    speex_encoder_destroy(st);
    speex_decoder_destroy(dec);
 
@@ -193,19 +193,19 @@ void main()
    rewind(fin);
    rewind(fout);
 
-   while ( FRAME_SIZE == fread(in_short, sizeof(short), FRAME_SIZE, fin) 
-           &&
-           FRAME_SIZE ==  fread(out_short, sizeof(short), FRAME_SIZE,fout) )
+   while (FRAME_SIZE == fread(in_short, sizeof(short), FRAME_SIZE, fin) &&
+          FRAME_SIZE == fread(out_short, sizeof(short), FRAME_SIZE, fout))
    {
-	float s=0, e=0;
-        for (i=0;i<FRAME_SIZE;++i) {
-            s += (float)in_short[i] * in_short[i];
-            e += ((float)in_short[i]-out_short[i]) * ((float)in_short[i]-out_short[i]);
-        }
-	seg_snr += 10*log10((s+160)/(e+160));
-	sigpow += s;
-	errpow += e;
-	snr_frames++;
+      float s = 0, e = 0;
+      for (i = 0; i < FRAME_SIZE; ++i)
+      {
+         s += (float)in_short[i] * in_short[i];
+         e += ((float)in_short[i] - out_short[i]) * ((float)in_short[i] - out_short[i]);
+      }
+      seg_snr += 10 * log10((s + 160) / (e + 160));
+      sigpow += s;
+      errpow += e;
+      snr_frames++;
    }
    fclose(fin);
 #endif
@@ -213,12 +213,12 @@ void main()
    fclose(fbits);
 
 #ifndef DECODE_ONLY
-   snr = 10 * log10( sigpow / errpow );
+   snr = 10 * log10(sigpow / errpow);
    seg_snr /= snr_frames;
-   fprintf(stderr,"SNR = %f\nsegmental SNR = %f\n",snr, seg_snr);
+   fprintf(stderr, "SNR = %f\nsegmental SNR = %f\n", snr, seg_snr);
 
 #ifdef FIXED_DEBUG
-   printf ("Total: %f MIPS\n", (float)(1e-6*50*spx_mips/snr_frames));
+   printf("Total: %f MIPS\n", (float)(1e-6 * 50 * spx_mips / snr_frames));
 #endif
-#endif   
+#endif
 }

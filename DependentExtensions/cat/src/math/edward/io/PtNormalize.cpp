@@ -32,16 +32,16 @@ using namespace cat;
 // Compute affine coordinates for (X,Y), set Z=1, and compute T = xy
 void BigTwistedEdwards::PtNormalize(const Leg *in, Leg *out)
 {
-    // A = 1 / in.Z
-    MrInvert(in+ZOFF, A);
+	// A = 1 / in.Z
+	MrInvert(in + ZOFF, A);
 
-    // out.X = A * in.X
-    MrMultiply(in+XOFF, A, out+XOFF);
-    MrReduce(out+XOFF);
+	// out.X = A * in.X
+	MrMultiply(in + XOFF, A, out + XOFF);
+	MrReduce(out + XOFF);
 
-    // out.Y = A * in.Y
-    MrMultiply(in+YOFF, A, out+YOFF);
-    MrReduce(out+YOFF);
+	// out.Y = A * in.Y
+	MrMultiply(in + YOFF, A, out + YOFF);
+	MrReduce(out + YOFF);
 
-    PtUnpack(out);
+	PtUnpack(out);
 }

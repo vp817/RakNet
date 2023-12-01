@@ -32,31 +32,34 @@ using namespace cat;
 bool KeyMaker::GenerateKeyPair(BigTwistedEdwards *math, FortunaOutput *csprng, u8 *public_key, int public_bytes, u8 *private_key, int private_bytes)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
-	if (!math || !csprng) return false;
+	if (!math || !csprng)
+		return false;
 #endif
 
 	int bits = math->RegBytes() * 8;
 
-    // Validate and accept number of bits
-    if (!KeyAgreementCommon::Initialize(bits))
-        return false;
+	// Validate and accept number of bits
+	if (!KeyAgreementCommon::Initialize(bits))
+		return false;
 
-    // Verify that inputs are of the correct length
-    if (private_bytes != KeyBytes) return false;
-    if (public_bytes != KeyBytes*2) return false;
+	// Verify that inputs are of the correct length
+	if (private_bytes != KeyBytes)
+		return false;
+	if (public_bytes != KeyBytes * 2)
+		return false;
 
-    Leg *b = math->Get(0);
-    Leg *B = math->Get(1);
+	Leg *b = math->Get(0);
+	Leg *B = math->Get(1);
 
-    // Generate private key
+	// Generate private key
 	GenerateKey(math, csprng, b);
 
-    // Generate public key
+	// Generate public key
 	math->PtMultiply(math->GetGenerator(), b, 0, B);
 
-    // Save key pair and generator point
-    math->SaveAffineXY(B, public_key, public_key + KeyBytes);
-    math->Save(b, private_key, private_bytes);
+	// Save key pair and generator point
+	math->SaveAffineXY(B, public_key, public_key + KeyBytes);
+	math->Save(b, private_key, private_bytes);
 
-    return true;
+	return true;
 }

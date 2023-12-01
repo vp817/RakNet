@@ -32,26 +32,26 @@ using namespace cat;
 // out(x,y) = (X/Z,Y/Z)
 void BigTwistedEdwards::SaveAffineXY(const Leg *in, void *out_x, void *out_y)
 {
-    // If the coordinates are already normalized to affine, then we can just save what is there
-    if (EqualX(in+ZOFF, 1))
-    {
-        Save(in+XOFF, out_x, RegBytes());
-        Save(in+YOFF, out_y, RegBytes());
-    }
-    else
-    {
-        // A = 1 / in.Z
-        MrInvert(in+ZOFF, A);
+	// If the coordinates are already normalized to affine, then we can just save what is there
+	if (EqualX(in + ZOFF, 1))
+	{
+		Save(in + XOFF, out_x, RegBytes());
+		Save(in + YOFF, out_y, RegBytes());
+	}
+	else
+	{
+		// A = 1 / in.Z
+		MrInvert(in + ZOFF, A);
 
-        // B = A * in.X
-        MrMultiply(in+XOFF, A, B);
-        MrReduce(B);
+		// B = A * in.X
+		MrMultiply(in + XOFF, A, B);
+		MrReduce(B);
 
-        // C = A * in.Y
-        MrMultiply(in+YOFF, A, C);
-        MrReduce(C);
+		// C = A * in.Y
+		MrMultiply(in + YOFF, A, C);
+		MrReduce(C);
 
 		Save(B, out_x, RegBytes());
-        Save(C, out_y, RegBytes());
-    }
+		Save(C, out_y, RegBytes());
+	}
 }

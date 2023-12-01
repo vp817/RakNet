@@ -32,10 +32,9 @@
 using namespace std;
 using namespace cat;
 
-
 //// Windows-style IOCP
 
-#if defined (CAT_OS_WINDOWS)
+#if defined(CAT_OS_WINDOWS)
 
 void cat::ReportUnexpectedSocketError(int error)
 {
@@ -47,10 +46,10 @@ void cat::ReportUnexpectedSocketError(int error)
 
 	case WSA_OPERATION_ABORTED:
 	case ERROR_CONNECTION_ABORTED:
-	case ERROR_NETNAME_DELETED:  // Operation on closed socket failed
-	case ERROR_MORE_DATA:        // UDP buffer not large enough for whole packet
+	case ERROR_NETNAME_DELETED:	 // Operation on closed socket failed
+	case ERROR_MORE_DATA:		 // UDP buffer not large enough for whole packet
 	case ERROR_PORT_UNREACHABLE: // Got an ICMP response back that the destination port is unreachable
-	case ERROR_SEM_TIMEOUT:      // Half-open TCP AcceptEx() has reset
+	case ERROR_SEM_TIMEOUT:		 // Half-open TCP AcceptEx() has reset
 		// Operation failure codes (we don't differentiate between them)
 		break;
 
@@ -66,7 +65,6 @@ void cat::ReportUnexpectedSocketError(int error)
 #include "win/TCPClient.cpp"
 #include "win/UDPEndpoint.cpp"
 
-
 //// Linux-style eventfd
 
 #elif defined(CAT_OS_LINUX)
@@ -76,7 +74,6 @@ void cat::ReportUnexpectedSocketError(int error)
 #include "linux/TCPClient.cpp"
 #include "linux/UDPEndpoint.cpp"
 
-
 //// BSD-style kevent
 
 #elif defined(CAT_OS_OSX) || defined(CAT_OS_BSD)
@@ -85,7 +82,6 @@ void cat::ReportUnexpectedSocketError(int error)
 #include "bsd/TCPConnexion.cpp"
 #include "bsd/TCPClient.cpp"
 #include "bsd/UDPEndpoint.cpp"
-
 
 //// Fall-back
 

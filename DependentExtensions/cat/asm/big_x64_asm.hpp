@@ -35,19 +35,18 @@
 
 #if defined(CAT_WORD_64)
 
-namespace cat {
+namespace cat
+{
 
+	extern "C" void bpm_add_4(Leg modulus_c, const Leg *in_a, const Leg *in_b, Leg *out);
+	extern "C" void bpm_sub_4(Leg modulus_c, const Leg *in_a, const Leg *in_b, Leg *out);
+	extern "C" void bpm_mul_4(Leg modulus_c, const Leg *in_a, const Leg *in_b, Leg *out);
+	extern "C" void bpm_mulx_4(Leg modulus_c, const Leg *in_a, Leg in_b, Leg *out);
+	extern "C" void bpm_sqr_4(Leg modulus_c, const Leg *in, Leg *out);
 
-extern "C" void bpm_add_4(Leg modulus_c, const Leg *in_a, const Leg *in_b, Leg *out);
-extern "C" void bpm_sub_4(Leg modulus_c, const Leg *in_a, const Leg *in_b, Leg *out);
-extern "C" void bpm_mul_4(Leg modulus_c, const Leg *in_a, const Leg *in_b, Leg *out);
-extern "C" void bpm_mulx_4(Leg modulus_c, const Leg *in_a, Leg in_b, Leg *out);
-extern "C" void bpm_sqr_4(Leg modulus_c, const Leg *in, Leg *out);
-
-extern "C" Leg divide64_x(Leg legs, const Leg *in_a, const Leg in_b, Leg *out_q);
-extern "C" Leg modulus64_x(Leg legs, const Leg *in_a, const Leg in_b);
-extern "C" void divide64_core(Leg A_used, Leg A_overflow, const Leg *A, Leg B_used, const Leg *B, Leg *Q);
-
+	extern "C" Leg divide64_x(Leg legs, const Leg *in_a, const Leg in_b, Leg *out_q);
+	extern "C" Leg modulus64_x(Leg legs, const Leg *in_a, const Leg in_b);
+	extern "C" void divide64_core(Leg A_used, Leg A_overflow, const Leg *A, Leg B_used, const Leg *B, Leg *Q);
 
 } // namespace cat
 

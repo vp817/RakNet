@@ -32,20 +32,20 @@ using namespace cat;
 // Solve for Y given the X point on a curve
 void BigTwistedEdwards::PtSolveAffineY(Leg *inout)
 {
-    // y = sqrt[(1 + x^2) / (1 - d*x^2)]
+	// y = sqrt[(1 + x^2) / (1 - d*x^2)]
 
-    // B = x^2
-    MrSquare(inout+XOFF, B);
+	// B = x^2
+	MrSquare(inout + XOFF, B);
 
-    // A = 1/(1 - d*B)
-    MrMultiplyX(B, curve_d, A);
-    MrNegate(A, A);
-    MrAddX(A, 1);
-    MrInvert(A, A);
+	// A = 1/(1 - d*B)
+	MrMultiplyX(B, curve_d, A);
+	MrNegate(A, A);
+	MrAddX(A, 1);
+	MrInvert(A, A);
 
-    // y = sqrt(A*(B+1))
-    MrAddX(B, 1);
-    MrMultiply(A, B, inout+YOFF);
-    MrSquareRoot(inout+YOFF, inout+YOFF);
-    MrReduce(inout+YOFF);
+	// y = sqrt(A*(B+1))
+	MrAddX(B, 1);
+	MrMultiply(A, B, inout + YOFF);
+	MrSquareRoot(inout + YOFF, inout + YOFF);
+	MrReduce(inout + YOFF);
 }

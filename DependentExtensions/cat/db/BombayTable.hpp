@@ -33,138 +33,137 @@
 #include <cat/io/ThreadPoolFiles.hpp>
 #include <cat/db/BombayTableIndex.hpp>
 
-namespace cat {
-
-namespace bombay {
-
-
-static u64 INVALID_RECORD_OFFSET = ~(u64)0;
-
-struct CacheNode
+namespace cat
 {
-	CacheNode *parent, *lower, *higher;
-	u64 offset;
-};
 
-class TableIndex;
-class IHash;
-
-
-// Query() AsyncBuffer tag must derive from AsyncQueryRead
-struct AsyncQueryRead
-{
-	ThreadRefObject *_reference;
-	AsyncCallback _callback;
-
-	CAT_INLINE void SetCallback(AsyncCallback callback = 0, ThreadRefObject *reference = 0)
+	namespace bombay
 	{
-		if (reference)
-			reference->AddRef();
 
-		_callback = callback;
-		_reference = reference;
-	}
-};
+		static u64 INVALID_RECORD_OFFSET = ~(u64)0;
 
+		struct CacheNode
+		{
+			CacheNode *parent, *lower, *higher;
+			u64 offset;
+		};
 
-///// Table
+		class TableIndex;
+		class IHash;
 
-class Table : public AsyncFile
-{
-	ShutdownObserver *_shutdown_observer;
-	u32 _record_bytes; // Bytes per record (without CacheNode overhead)
-	u64 _next_record; // Next record offset
+		// Query() AsyncBuffer tag must derive from AsyncQueryRead
+		struct AsyncQueryRead
+		{
+			ThreadRefObject *_reference;
+			AsyncCallback _callback;
 
-protected:
-	RWLock _lock;
+			CAT_INLINE void SetCallback(AsyncCallback callback = 0, ThreadRefObject *reference = 0)
+			{
+				if (reference)
+					reference->AddRef();
 
-	u64 _index_database_size, _index_read_offset, _index_read_completed;
-	u32 _index_read_size;
-	static const u32 MAX_INDEX_READ_SIZE = 32768;
-	static const int NUM_PARALLEL_INDEX_READS = 3;
+				_callback = callback;
+				_reference = reference;
+			}
+		};
 
-	// Cache hash table of binary trees
-	static const u32 TARGET_TREE_SIZE = 16;
-	static const u32 MIN_TABLE_SIZE = 2048;
+		///// Table
 
-	u32 _hash_table_size;
-	CacheNode **_cache_hash_table;
+		class Table : public AsyncFile
+		{
+			ShutdownObserver *_shutdown_observer;
+			u32 _record_bytes; // Bytes per record (without CacheNode overhead)
+			u64 _next_record;  // Next record offset
 
-	u8 *_cache; // Cache memory
-	u32 _cache_bytes; // Cache bytes
-	u32 _next_cache_slot; // Offset in cache memory to next free slot
-	bool _cache_full; // Cache full flag for optimization
+		protected:
+			RWLock _lock;
 
-	TableIndex *_head_index, *_head_index_unique;
-	TableIndex *_head_index_waiting, *_head_index_update;
+			u64 _index_database_size, _index_read_offset, _index_read_completed;
+			u32 _index_read_size;
+			static const u32 MAX_INDEX_READ_SIZE = 32768;
+			static const int NUM_PARALLEL_INDEX_READS = 3;
 
-	bool AllocateCache();
-	void FreeCache();
+			// Cache hash table of binary trees
+			static const u32 TARGET_TREE_SIZE = 16;
+			static const u32 MIN_TABLE_SIZE = 2048;
 
-	// Node versions
-	CacheNode *FindNode(u64 offset);
-	void UnlinkNode(CacheNode *node);
-	void InsertNode(u64 offset, u32 key, CacheNode *hint, CacheNode *node);
+			u32 _hash_table_size;
+			CacheNode **_cache_hash_table;
 
-	// Always returns with a cache node; may re-use an old cache node
-	u8 *SetOffset(u64 offset);
-	u8 *InsertOffset(u64 offset);
-	u8 *PeekOffset(u64 offset);
-	bool RemoveOffset(u64 offset);
+			u8 *_cache;			  // Cache memory
+			u32 _cache_bytes;	  // Cache bytes
+			u32 _next_cache_slot; // Offset in cache memory to next free slot
+			bool _cache_full;	  // Cache full flag for optimization
 
-public:
-	Table(const char *file_path, u32 record_bytes, u32 cache_bytes, ShutdownObserver *shutdown_observer);
-	virtual ~Table();
+			TableIndex *_head_index, *_head_index_unique;
+			TableIndex *_head_index_waiting, *_head_index_update;
 
-private:
-	TableIndex *MakeIndex(const char *index_file_path, IHash *hash_function, bool unique);
-	u64 UniqueIndexLookup(const void *data);
+			bool AllocateCache();
+			void FreeCache();
 
-public:
-	// To initialize, run MakeIndex() for all of the desired indexing routines,
-	// and then run Initialize(), which will initialize index objects.
-	template<class THashFunc> CAT_INLINE TableIndex *MakeIndex(const char *index_file_path, bool unique)
-	{
-		return MakeIndex(index_file_path, new THashFunc, unique);
-	}
+			// Node versions
+			CacheNode *FindNode(u64 offset);
+			void UnlinkNode(CacheNode *node);
+			void InsertNode(u64 offset, u32 key, CacheNode *hint, CacheNode *node);
 
-	bool Initialize();
+			// Always returns with a cache node; may re-use an old cache node
+			u8 *SetOffset(u64 offset);
+			u8 *InsertOffset(u64 offset);
+			u8 *PeekOffset(u64 offset);
+			bool RemoveOffset(u64 offset);
 
-public:
-	CAT_INLINE u32 GetCacheBytes() { return _cache_bytes; }
-	CAT_INLINE u32 GetRecordBytes() { return _record_bytes; }
+		public:
+			Table(const char *file_path, u32 record_bytes, u32 cache_bytes, ShutdownObserver *shutdown_observer);
+			virtual ~Table();
 
-protected:
-	virtual bool OnRemoveRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
-	virtual bool OnQueryRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
+		private:
+			TableIndex *MakeIndex(const char *index_file_path, IHash *hash_function, bool unique);
+			u64 UniqueIndexLookup(const void *data);
 
-protected:
-	bool StartIndexing();
-	bool StartIndexingRead();
-	void OnIndexingDone();
+		public:
+			// To initialize, run MakeIndex() for all of the desired indexing routines,
+			// and then run Initialize(), which will initialize index objects.
+			template <class THashFunc>
+			CAT_INLINE TableIndex *MakeIndex(const char *index_file_path, bool unique)
+			{
+				return MakeIndex(index_file_path, new THashFunc, unique);
+			}
 
-	virtual bool OnIndexingRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
+			bool Initialize();
 
-public:
-	bool RequestIndexRebuild(TableIndex *index);
+		public:
+			CAT_INLINE u32 GetCacheBytes() { return _cache_bytes; }
+			CAT_INLINE u32 GetRecordBytes() { return _record_bytes; }
 
-public:
-	// Insert an AsyncBuffer data buffer
-	u64 Insert(void *data);
+		protected:
+			virtual bool OnRemoveRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
+			virtual bool OnQueryRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
 
-	// Update with an AsyncBuffer data buffer
-	bool Update(void *data, u64 offset);
+		protected:
+			bool StartIndexing();
+			bool StartIndexingRead();
+			void OnIndexingDone();
 
-	// Query with an AsyncBuffer
-	// NOTE: Query() AsyncBuffer tag must derive from AsyncQueryRead
-	bool Query(u64 offset, AsyncBuffer *buffer);
+			virtual bool OnIndexingRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
 
-	// Remove based on offset
-	bool Remove(u64 offset);
-};
+		public:
+			bool RequestIndexRebuild(TableIndex *index);
 
+		public:
+			// Insert an AsyncBuffer data buffer
+			u64 Insert(void *data);
 
-} // namespace bombay
+			// Update with an AsyncBuffer data buffer
+			bool Update(void *data, u64 offset);
+
+			// Query with an AsyncBuffer
+			// NOTE: Query() AsyncBuffer tag must derive from AsyncQueryRead
+			bool Query(u64 offset, AsyncBuffer *buffer);
+
+			// Remove based on offset
+			bool Remove(u64 offset);
+		};
+
+	} // namespace bombay
 
 } // namespace cat
 

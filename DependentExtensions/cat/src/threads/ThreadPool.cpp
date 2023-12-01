@@ -34,18 +34,17 @@ using namespace std;
 using namespace cat;
 
 #if defined(CAT_OS_WINDOWS)
-# include <process.h>
+#include <process.h>
 #else
-# include <unistd.h>
+#include <unistd.h>
 #endif
-
 
 //// Thread Pool
 
 ThreadPool::ThreadPool()
 {
-    _port = 0;
-    CAT_OBJCLR(_objectRefHead);
+	_port = 0;
+	CAT_OBJCLR(_objectRefHead);
 	_active_thread_count = 0;
 }
 
@@ -53,7 +52,7 @@ bool ThreadPool::SpawnThread()
 {
 	if (_active_thread_count >= MAX_THREADS)
 	{
-        WARN("ThreadPool") << "MAX_THREADS too low!  Limited to only " << MAX_THREADS;
+		WARN("ThreadPool") << "MAX_THREADS too low!  Limited to only " << MAX_THREADS;
 		return false;
 	}
 
@@ -64,7 +63,7 @@ bool ThreadPool::SpawnThread()
 	}
 
 	_active_thread_count++;
-    return true;
+	return true;
 }
 
 bool ThreadPool::SpawnThreads()
@@ -74,8 +73,8 @@ bool ThreadPool::SpawnThreads()
 
 #if defined(CAT_OS_WINDOWS)
 
-    ULONG_PTR ulpProcessAffinityMask, ulpSystemAffinityMask;
-    GetProcessAffinityMask(GetCurrentProcess(), &ulpProcessAffinityMask, &ulpSystemAffinityMask);
+	ULONG_PTR ulpProcessAffinityMask, ulpSystemAffinityMask;
+	GetProcessAffinityMask(GetCurrentProcess(), &ulpProcessAffinityMask, &ulpSystemAffinityMask);
 	processor_count = (int)BitCount(ulpProcessAffinityMask);
 
 #else
@@ -86,14 +85,17 @@ bool ThreadPool::SpawnThreads()
 
 #endif
 
-	if (processor_count <= 0) processor_count = 1;
+	if (processor_count <= 0)
+		processor_count = 1;
 	_processor_count = processor_count;
 
 	int threads_to_spawn = processor_count;
-	if (threads_to_spawn > MAX_THREADS) threads_to_spawn = MAX_THREADS;
+	if (threads_to_spawn > MAX_THREADS)
+		threads_to_spawn = MAX_THREADS;
 
 	int ctr = threads_to_spawn;
-	while (ctr--) SpawnThread();
+	while (ctr--)
+		SpawnThread();
 
 	if (_active_thread_count <= 0)
 	{
@@ -107,8 +109,8 @@ bool ThreadPool::SpawnThreads()
 		return false;
 	}
 
-    INFO("ThreadPool") << "Spawned " << _active_thread_count << " worker threads";
-    return true;
+	INFO("ThreadPool") << "Spawned " << _active_thread_count << " worker threads";
+	return true;
 }
 
 bool ThreadPool::Associate(ThreadPoolHandle h, ThreadRefObject *key)
@@ -120,7 +122,7 @@ bool ThreadPool::Associate(ThreadPoolHandle h, ThreadRefObject *key)
 	}
 
 #if defined(CAT_OS_WINDOWS)
-    HANDLE result = CreateIoCompletionPort(h, _port, (ULONG_PTR)key, 0);
+	HANDLE result = CreateIoCompletionPort(h, _port, (ULONG_PTR)key, 0);
 
 	if (result != _port)
 	{
@@ -131,9 +133,8 @@ bool ThreadPool::Associate(ThreadPoolHandle h, ThreadRefObject *key)
 #error TODO
 #endif
 
-    return true;
+	return true;
 }
-
 
 //// ThreadRefObject
 
@@ -162,15 +163,16 @@ void ThreadRefObject::ReleaseRef()
 void ThreadPool::TrackObject(ThreadRefObject *object)
 {
 	int level = object->_priorityLevel;
-    object->last = 0;
+	object->last = 0;
 
-    AutoMutex lock(_objectRefLock[level]);
+	AutoMutex lock(_objectRefLock[level]);
 
-    // Add to the head of a doubly-linked list of tracked sockets,
-    // used for releasing sockets during termination.
-    object->next = _objectRefHead[level];
-    if (_objectRefHead[level]) _objectRefHead[level]->last = object;
-    _objectRefHead[level] = object;
+	// Add to the head of a doubly-linked list of tracked sockets,
+	// used for releasing sockets during termination.
+	object->next = _objectRefHead[level];
+	if (_objectRefHead[level])
+		_objectRefHead[level]->last = object;
+	_objectRefHead[level] = object;
 }
 
 void ThreadPool::UntrackObject(ThreadRefObject *object)
@@ -179,14 +181,16 @@ void ThreadPool::UntrackObject(ThreadRefObject *object)
 
 	AutoMutex lock(_objectRefLock[level]);
 
-    // Remove from the middle of a doubly-linked list of tracked sockets,
-    // used for releasing sockets during termination.
-    ThreadRefObject *last = object->last, *next = object->next;
-    if (last) last->next = next;
-    else _objectRefHead[level] = next;
-    if (next) next->last = last;
+	// Remove from the middle of a doubly-linked list of tracked sockets,
+	// used for releasing sockets during termination.
+	ThreadRefObject *last = object->last, *next = object->next;
+	if (last)
+		last->next = next;
+	else
+		_objectRefHead[level] = next;
+	if (next)
+		next->last = last;
 }
-
 
 //// ThreadPool
 
@@ -227,29 +231,29 @@ bool ThreadPool::Startup()
 
 void ThreadPool::Shutdown()
 {
-    INANE("ThreadPool") << "Terminating the thread pool...";
+	INANE("ThreadPool") << "Terminating the thread pool...";
 
-    u32 count = _active_thread_count;
+	u32 count = _active_thread_count;
 
-    if (!count)
+	if (!count)
 	{
 		WARN("ThreadPool") << "Shutdown task (1/3): No threads are active";
 	}
 	else
-    {
-        INANE("ThreadPool") << "Shutdown task (1/3): Stopping threads...";
+	{
+		INANE("ThreadPool") << "Shutdown task (1/3): Stopping threads...";
 
 #if defined(CAT_OS_WINDOWS)
 
-        if (_port)
-        while (count--)
-        {
-            if (!PostQueuedCompletionStatus(_port, 0, 0, 0))
-            {
-                FATAL("ThreadPool") << "Shutdown task (1/3): !!! Shutdown post error: " << GetLastError();
-                return;
-            }
-        }
+		if (_port)
+			while (count--)
+			{
+				if (!PostQueuedCompletionStatus(_port, 0, 0, 0))
+				{
+					FATAL("ThreadPool") << "Shutdown task (1/3): !!! Shutdown post error: " << GetLastError();
+					return;
+				}
+			}
 
 #else
 #error TODO
@@ -268,9 +272,9 @@ void ThreadPool::Shutdown()
 		}
 
 		_active_thread_count = 0;
-    }
+	}
 
-    INANE("ThreadPool") << "Shutdown task (2/3): Deleting remaining reference-counted objects...";
+	INANE("ThreadPool") << "Shutdown task (2/3): Deleting remaining reference-counted objects...";
 
 	for (int ii = 0; ii < REFOBJ_PRIO_COUNT; ++ii)
 	{
@@ -285,27 +289,26 @@ void ThreadPool::Shutdown()
 
 #if defined(CAT_OS_WINDOWS)
 
-    if (!_port)
+	if (!_port)
 	{
 		WARN("ThreadPool") << "Shutdown task (3/3): IOCP port not created";
 	}
 	else
-    {
+	{
 		INANE("ThreadPool") << "Shutdown task (3/3): Closing IOCP port...";
 
 		CloseHandle(_port);
-        _port = 0;
-    }
+		_port = 0;
+	}
 
 #else
 #error TODO
 #endif
 
-    INANE("ThreadPool") << "...Termination complete.";
+	INANE("ThreadPool") << "...Termination complete.";
 
-    delete this;
+	delete this;
 }
-
 
 //// TLS
 
@@ -320,15 +323,16 @@ ThreadPoolLocalStorage::ThreadPoolLocalStorage()
 
 ThreadPoolLocalStorage::~ThreadPoolLocalStorage()
 {
-	if (math) delete math;
-	if (csprng) delete csprng;
+	if (math)
+		delete math;
+	if (csprng)
+		delete csprng;
 }
 
 bool ThreadPoolLocalStorage::Valid()
 {
 	return math && csprng;
 }
-
 
 //// Shutdown
 
@@ -349,7 +353,8 @@ void ShutdownWait::OnShutdownDone()
 
 bool ShutdownWait::WaitForShutdown(u32 milliseconds)
 {
-	if (!_observer) return false;
+	if (!_observer)
+		return false;
 
 	// Kill observer
 	ThreadRefObject::SafeRelease(_observer);
@@ -368,7 +373,6 @@ ShutdownObserver::~ShutdownObserver()
 	if (_wait)
 		_wait->OnShutdownDone();
 }
-
 
 //// Thread
 
@@ -394,15 +398,16 @@ bool ThreadPoolWorker::ThreadFunction(void *port)
 	for (;;)
 	{
 		error = GetQueuedCompletionStatus((HANDLE)port, &bytes,
-			(PULONG_PTR)&key, (OVERLAPPED**)&buffer, INFINITE)
-			? 0 : GetLastError();
+										  (PULONG_PTR)&key, (OVERLAPPED **)&buffer, INFINITE)
+					? 0
+					: GetLastError();
 
 		// Terminate thread when we receive a zeroed completion packet
 		if (!bytes && !key && !buffer)
 			return true;
 
 		// If completion object is NOT specified,
-		ThreadRefObject *obj = reinterpret_cast<ThreadRefObject*>( key );
+		ThreadRefObject *obj = reinterpret_cast<ThreadRefObject *>(key);
 		if (!obj)
 		{
 			// Release memory for overlapped object

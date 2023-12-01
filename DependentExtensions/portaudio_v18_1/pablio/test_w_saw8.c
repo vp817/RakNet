@@ -42,40 +42,40 @@
 #include "pablio.h"
 #include <string.h>
 
-#define SAMPLE_RATE         (22050)
-#define NUM_SECONDS             (6)
-#define SAMPLES_PER_FRAME       (2)
+#define SAMPLE_RATE (22050)
+#define NUM_SECONDS (6)
+#define SAMPLES_PER_FRAME (2)
 
+#define FRAMES_PER_BLOCK (100)
 
-#define FRAMES_PER_BLOCK    (100)
-
-unsigned char   samples[FRAMES_PER_BLOCK][SAMPLES_PER_FRAME];
-unsigned char   phases[SAMPLES_PER_FRAME];
+unsigned char samples[FRAMES_PER_BLOCK][SAMPLES_PER_FRAME];
+unsigned char phases[SAMPLES_PER_FRAME];
 
 /*******************************************************************/
 int main(void);
 int main(void)
 {
-    int             i,j;
-    PaError         err;
-    PABLIO_Stream  *aOutStream;
+    int i, j;
+    PaError err;
+    PABLIO_Stream *aOutStream;
 
     printf("Generate unsigned 8 bit sawtooth waves using PABLIO.\n");
     fflush(stdout);
 
     /* Open simplified blocking I/O layer on top of PortAudio. */
-    err = OpenAudioStream( &aOutStream, SAMPLE_RATE, paUInt8,
-                           (PABLIO_WRITE | PABLIO_STEREO) );
-    if( err != paNoError ) goto error;
+    err = OpenAudioStream(&aOutStream, SAMPLE_RATE, paUInt8,
+                          (PABLIO_WRITE | PABLIO_STEREO));
+    if (err != paNoError)
+        goto error;
 
     /* Initialize oscillator phases to "ground" level for paUInt8. */
     phases[0] = 128;
     phases[1] = 128;
 
-    for( i=0; i<(NUM_SECONDS * SAMPLE_RATE); i += FRAMES_PER_BLOCK )
+    for (i = 0; i < (NUM_SECONDS * SAMPLE_RATE); i += FRAMES_PER_BLOCK)
     {
         /* Generate sawtooth waveforms in a block for efficiency. */
-        for( j=0; j<FRAMES_PER_BLOCK; j++ )
+        for (j = 0; j < FRAMES_PER_BLOCK; j++)
         {
             /* Generate a sawtooth wave by incrementing a variable. */
             phases[0] += 1;
@@ -89,18 +89,18 @@ int main(void)
         }
 
         /* Write samples to output. */
-        WriteAudioStream( aOutStream, samples, FRAMES_PER_BLOCK );
+        WriteAudioStream(aOutStream, samples, FRAMES_PER_BLOCK);
     }
 
-    CloseAudioStream( aOutStream );
+    CloseAudioStream(aOutStream);
 
-    printf("Sawtooth sound test complete.\n" );
+    printf("Sawtooth sound test complete.\n");
     fflush(stdout);
     return 0;
 
 error:
-    fprintf( stderr, "An error occured while using PABLIO\n" );
-    fprintf( stderr, "Error number: %d\n", err );
-    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+    fprintf(stderr, "An error occured while using PABLIO\n");
+    fprintf(stderr, "Error number: %d\n", err);
+    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(err));
     return -1;
 }

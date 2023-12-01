@@ -31,49 +31,50 @@
 
 #include <cat/Platform.hpp>
 
-namespace cat {
-
+namespace cat
+{
 
 // Derived class should define the constructor using this macro:
-#define CAT_SINGLETON(subclass) \
-    private: \
-        friend class Singleton<subclass>; \
-        subclass()
+#define CAT_SINGLETON(subclass)       \
+private:                              \
+	friend class Singleton<subclass>; \
+	subclass()
 
+	//// Singleton
 
-//// Singleton
-
-template<class T> class Singleton
-{
-protected:
-    Singleton<T>() {}
-    Singleton<T>(Singleton<T> &) {}
-    Singleton<T> &operator=(Singleton<T> &) {}
-
-public:
-    static T *ii;
-
-public:
-    CAT_INLINE static T *ref()
-    {
-        if (ii) return ii;
-        return ii = new T;
-    }
-	CAT_INLINE static void deallocate()
+	template <class T>
+	class Singleton
 	{
-		if (ii)
+	protected:
+		Singleton<T>() {}
+		Singleton<T>(Singleton<T> &) {}
+		Singleton<T> &operator=(Singleton<T> &) {}
+
+	public:
+		static T *ii;
+
+	public:
+		CAT_INLINE static T *ref()
 		{
-			delete ii;
-			ii = 0;
+			if (ii)
+				return ii;
+			return ii = new T;
 		}
-	}
+		CAT_INLINE static void deallocate()
+		{
+			if (ii)
+			{
+				delete ii;
+				ii = 0;
+			}
+		}
 
-	virtual ~Singleton() {}
-};
+		virtual ~Singleton() {}
+	};
 
-// TODO: I'm actually not 100% sure this always works
-template<class T> T *Singleton<T>::ii = 0;
-
+	// TODO: I'm actually not 100% sure this always works
+	template <class T>
+	T *Singleton<T>::ii = 0;
 
 } // namespace cat
 

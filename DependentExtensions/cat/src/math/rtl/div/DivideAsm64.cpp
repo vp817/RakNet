@@ -35,17 +35,17 @@ using namespace cat;
 
 Leg CAT_FASTCALL BigRTL::DivideX(const Leg *in_a, Leg in_b, Leg *out)
 {
-    return divide64_x(library_legs, in_a, in_b, out);
+	return divide64_x(library_legs, in_a, in_b, out);
 }
 
 Leg CAT_FASTCALL BigRTL::ModulusX(const Leg *in_a, Leg in_b)
 {
-    return modulus64_x(library_legs, in_a, in_b);
+	return modulus64_x(library_legs, in_a, in_b);
 }
 
 void CAT_FASTCALL BigRTL::DivideCore(int A_used, Leg A_overflow, Leg *A, int B_used, Leg *B, Leg *Q)
 {
-    divide64_core(A_used, A_overflow, A, B_used, B, Q);
+	divide64_core(A_used, A_overflow, A, B_used, B, Q);
 }
 
 #endif // CAT_WORD_64

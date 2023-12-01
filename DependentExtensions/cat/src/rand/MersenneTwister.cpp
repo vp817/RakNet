@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/rand/MersenneTwister.hpp>
@@ -33,18 +33,17 @@ using namespace cat;
 using namespace std;
 
 #if defined(CAT_OS_WINDOWS)
-# include <cat/port/WindowsInclude.hpp>
-# include <wincrypt.h>
-# if defined(CAT_COMPILER_MSVC)
-#  pragma comment(lib, "advapi32")
-# endif
-#elif defined(CAT_OS_LINUX)
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <fcntl.h>
-# include <unistd.h>
+#include <cat/port/WindowsInclude.hpp>
+#include <wincrypt.h>
+#if defined(CAT_COMPILER_MSVC)
+#pragma comment(lib, "advapi32")
 #endif
-
+#elif defined(CAT_OS_LINUX)
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 
 MersenneTwister::MersenneTwister()
 {
@@ -68,7 +67,8 @@ void MersenneTwister::enforcePeriod()
     inner ^= inner >> 4;
     inner ^= inner >> 2;
     inner ^= inner >> 1;
-    if ((inner & 1)) return;
+    if ((inner & 1))
+        return;
 
     // Otherwise, flip the lowest parity bit to make it odd
     for (u32 ii = 0; ii < 4; ++ii)
@@ -87,7 +87,7 @@ bool MersenneTwister::Initialize(u32 seed)
     state32[0] = seed;
 
     for (u32 ii = 1; ii < N32; ++ii)
-        state32[ii] = 1812433253UL * (state32[ii-1] ^ (state32[ii-1] >> 30)) + ii;
+        state32[ii] = 1812433253UL * (state32[ii - 1] ^ (state32[ii - 1] >> 30)) + ii;
 
     enforcePeriod();
     used = N32;
@@ -100,20 +100,26 @@ bool MersenneTwister::Initialize(u32 *seeds, u32 words)
 {
     u32 ii, jj, r, count, mid, lag, size = N32;
 
-    if (size >= 623)        lag = 11;
-    else if (size >= 68)    lag = 7;
-    else if (size >= 39)    lag = 5;
-    else                    lag = 3;
+    if (size >= 623)
+        lag = 11;
+    else if (size >= 68)
+        lag = 7;
+    else if (size >= 39)
+        lag = 5;
+    else
+        lag = 3;
 
     mid = (size - lag) / 2;
 
     memset(state, 0x8b, sizeof(state));
 
-    if (words+1 > N32)    count = words+1;
-    else                count = N32;
+    if (words + 1 > N32)
+        count = words + 1;
+    else
+        count = N32;
 
-#define FUNC1(x) ( ((x) ^ ((x) >> 27)) * (u32)1664525UL )
-#define FUNC2(x) ( ((x) ^ ((x) >> 27)) * (u32)1566083941UL )
+#define FUNC1(x) (((x) ^ ((x) >> 27)) * (u32)1664525UL)
+#define FUNC2(x) (((x) ^ ((x) >> 27)) * (u32)1566083941UL)
 
     r = FUNC1(state32[0]);
     state32[mid] += r;
@@ -171,7 +177,7 @@ bool MersenneTwister::Initialize()
 
     if (CryptAcquireContext(&hCryptProv, 0, 0, PROV_DSS, CRYPT_VERIFYCONTEXT))
     {
-        CryptGenRandom(hCryptProv, sizeof(seeds), (BYTE*)seeds);
+        CryptGenRandom(hCryptProv, sizeof(seeds), (BYTE *)seeds);
         CryptReleaseContext(hCryptProv, 0);
     }
 #else
@@ -190,9 +196,9 @@ bool MersenneTwister::Initialize()
 void MersenneTwister::shiftLeft128(MT128 *r, MT128 *n, u32 bits)
 {
     r->u[0] = n->u[0] << bits;
-    r->u[1] = (n->u[1] << bits) | (n->u[0] >> (32 - bits)); 
-    r->u[2] = (n->u[2] << bits) | (n->u[1] >> (32 - bits)); 
-    r->u[3] = (n->u[3] << bits) | (n->u[2] >> (32 - bits)); 
+    r->u[1] = (n->u[1] << bits) | (n->u[0] >> (32 - bits));
+    r->u[2] = (n->u[2] << bits) | (n->u[1] >> (32 - bits));
+    r->u[3] = (n->u[3] << bits) | (n->u[2] >> (32 - bits));
 }
 
 // r != n, 0 < bits < 32
@@ -201,7 +207,7 @@ void MersenneTwister::shiftRight128(MT128 *r, MT128 *n, u32 bits)
     r->u[0] = (n->u[0] >> bits) | (n->u[1] << (32 - bits));
     r->u[1] = (n->u[1] >> bits) | (n->u[2] << (32 - bits));
     r->u[2] = (n->u[2] >> bits) | (n->u[3] << (32 - bits));
-    r->u[3] = n->u[3] >> bits; 
+    r->u[3] = n->u[3] >> bits;
 }
 
 // a ^= (a << SL2BITS) ^ ((b >> SR1) & MSK) ^ (c >> SR2BITS) ^ (d{0..3} << SL1)
@@ -264,12 +270,13 @@ void MersenneTwister::Generate(void *buffer, int bytes)
 
         u32 remaining = N32 - used;
         u32 copying = words;
-        if (copying > remaining) copying = remaining;
+        if (copying > remaining)
+            copying = remaining;
 
-        memcpy(buffer8, state32 + used, copying*4);
+        memcpy(buffer8, state32 + used, copying * 4);
         used += copying;
         words -= copying;
-        buffer8 += copying*4;
+        buffer8 += copying * 4;
     }
 
     switch (bytes % 4)
@@ -278,12 +285,12 @@ void MersenneTwister::Generate(void *buffer, int bytes)
         buffer8[0] = (u8)Generate();
         break;
     case 2:
-        *(u16*)buffer8 = (u16)Generate();
+        *(u16 *)buffer8 = (u16)Generate();
         break;
     case 3:
         words = Generate();
         buffer8[0] = (u8)words;
-        *(u16*)(buffer8+1) = (u16)(words >> 8);
+        *(u16 *)(buffer8 + 1) = (u16)(words >> 8);
         break;
     }
 }

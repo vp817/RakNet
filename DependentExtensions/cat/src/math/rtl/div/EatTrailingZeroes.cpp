@@ -33,7 +33,8 @@ int CAT_FASTCALL BigRTL::EatTrailingZeroes(Leg *inout)
 {
 	// Count number of trailing zero legs
 	int trailing_zero_legs = 0;
-	for (; trailing_zero_legs < library_legs && !inout[trailing_zero_legs]; ++trailing_zero_legs);
+	for (; trailing_zero_legs < library_legs && !inout[trailing_zero_legs]; ++trailing_zero_legs)
+		;
 
 	// Move out the zero legs
 	MoveLegsRight(inout, trailing_zero_legs, inout);

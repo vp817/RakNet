@@ -32,22 +32,24 @@ using namespace cat;
 
 void CAT_FASTCALL BigPseudoMersenne::MrSubtractX(Leg *inout, Leg x)
 {
-    // If the addition overflowed, add C
-    if (SubtractX(inout, x))
-        while (SubtractX(inout, modulus_c));
+	// If the addition overflowed, add C
+	if (SubtractX(inout, x))
+		while (SubtractX(inout, modulus_c))
+			;
 }
 
 void CAT_FASTCALL BigPseudoMersenne::MrSubtract(const Leg *in_a, const Leg *in_b, Leg *out)
 {
 #if defined(CAT_USE_LEGS_ASM64)
-    if (library_legs == 4)
-    {
-        bpm_sub_4(modulus_c, in_a, in_b, out);
-        return;
-    }
+	if (library_legs == 4)
+	{
+		bpm_sub_4(modulus_c, in_a, in_b, out);
+		return;
+	}
 #endif
 
-    // If the subtraction overflowed, subtract C
-    if (Subtract(in_a, in_b, out))
-        while (SubtractX(out, modulus_c));
+	// If the subtraction overflowed, subtract C
+	if (Subtract(in_a, in_b, out))
+		while (SubtractX(out, modulus_c))
+			;
 }

@@ -34,82 +34,80 @@
 #include <cat/threads/Thread.hpp>
 #include <cat/threads/WaitableFlag.hpp>
 
-namespace cat {
-
-
-namespace sphynx {
-
-
-//// sphynx::Client
-
-class Client : Thread, public UDPEndpoint, public Transport
+namespace cat
 {
-	static const int HANDSHAKE_TICK_RATE = 100; // milliseconds
-	static const int INITIAL_HELLO_POST_INTERVAL = 200; // milliseconds
-	static const int CONNECT_TIMEOUT = 6000; // milliseconds
-	static const u32 MTU_PROBE_INTERVAL = 8000; // 8 seconds
-	static const int CLIENT_THREAD_KILL_TIMEOUT = 10000; // 10 seconds
 
-	static const int SESSION_KEY_BYTES = 32;
-	char _session_key[SESSION_KEY_BYTES];
+	namespace sphynx
+	{
 
-	KeyAgreementInitiator _key_agreement_initiator;
-	u8 _server_public_key[PUBLIC_KEY_BYTES];
-	u8 _cached_challenge[CHALLENGE_BYTES];
+		//// sphynx::Client
 
-	WaitableFlag _kill_flag;
+		class Client : Thread, public UDPEndpoint, public Transport
+		{
+			static const int HANDSHAKE_TICK_RATE = 100;			 // milliseconds
+			static const int INITIAL_HELLO_POST_INTERVAL = 200;	 // milliseconds
+			static const int CONNECT_TIMEOUT = 6000;			 // milliseconds
+			static const u32 MTU_PROBE_INTERVAL = 8000;			 // 8 seconds
+			static const int CLIENT_THREAD_KILL_TIMEOUT = 10000; // 10 seconds
 
-protected:
-	u32 _last_send_mstsc;
-	NetAddr _server_addr;
-	bool _connected;
-	AuthenticatedEncryption _auth_enc;
+			static const int SESSION_KEY_BYTES = 32;
+			char _session_key[SESSION_KEY_BYTES];
 
-	// Last time a packet was received from the server -- for disconnect timeouts
-	u32 _last_recv_tsc;
+			KeyAgreementInitiator _key_agreement_initiator;
+			u8 _server_public_key[PUBLIC_KEY_BYTES];
+			u8 _cached_challenge[CHALLENGE_BYTES];
 
-public:
-	Client();
-	virtual ~Client();
+			WaitableFlag _kill_flag;
 
-	bool SetServerKey(ThreadPoolLocalStorage *tls, const void *server_key, int key_bytes, const char *session_key);
+		protected:
+			u32 _last_send_mstsc;
+			NetAddr _server_addr;
+			bool _connected;
+			AuthenticatedEncryption _auth_enc;
 
-	bool Connect(const char *hostname, Port port);
-	bool Connect(const NetAddr &addr);
+			// Last time a packet was received from the server -- for disconnect timeouts
+			u32 _last_recv_tsc;
 
-	void Disconnect();
+		public:
+			Client();
+			virtual ~Client();
 
-protected:
-	bool IsConnected() { return _connected; }
+			bool SetServerKey(ThreadPoolLocalStorage *tls, const void *server_key, int key_bytes, const char *session_key);
 
-	virtual void OnClose() = 0;
-	virtual void OnConnectFail() = 0;
-	virtual void OnConnect(ThreadPoolLocalStorage *tls) = 0;
-	virtual void OnTimestampDeltaUpdate(u32 rtt, s32 delta) {}
-	virtual void OnMessage(ThreadPoolLocalStorage *tls, BufferStream msg, u32 bytes) = 0;
-	virtual void OnDisconnect() = 0;
-	virtual void OnTick(ThreadPoolLocalStorage *tls, u32 now) = 0;
+			bool Connect(const char *hostname, Port port);
+			bool Connect(const NetAddr &addr);
 
-private:
-	virtual void OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u32 bytes);
-	virtual void OnWrite(u32 bytes);
+			void Disconnect();
 
-private:
-	bool PostHello();
-	void OnUnreachable(const NetAddr &src);
+		protected:
+			bool IsConnected() { return _connected; }
 
-	// Return false to remove resolve from cache
-	bool OnResolve(const char *hostname, const NetAddr *array, int array_length);
+			virtual void OnClose() = 0;
+			virtual void OnConnectFail() = 0;
+			virtual void OnConnect(ThreadPoolLocalStorage *tls) = 0;
+			virtual void OnTimestampDeltaUpdate(u32 rtt, s32 delta) {}
+			virtual void OnMessage(ThreadPoolLocalStorage *tls, BufferStream msg, u32 bytes) = 0;
+			virtual void OnDisconnect() = 0;
+			virtual void OnTick(ThreadPoolLocalStorage *tls, u32 now) = 0;
 
-	virtual bool PostPacket(u8 *buffer, u32 buf_bytes, u32 msg_bytes, u32 skip_bytes);
+		private:
+			virtual void OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u32 bytes);
+			virtual void OnWrite(u32 bytes);
 
-private:
-	bool ThreadFunction(void *param);
-};
+		private:
+			bool PostHello();
+			void OnUnreachable(const NetAddr &src);
 
+			// Return false to remove resolve from cache
+			bool OnResolve(const char *hostname, const NetAddr *array, int array_length);
 
-} // namespace sphynx
+			virtual bool PostPacket(u8 *buffer, u32 buf_bytes, u32 msg_bytes, u32 skip_bytes);
 
+		private:
+			bool ThreadFunction(void *param);
+		};
+
+	} // namespace sphynx
 
 } // namespace cat
 

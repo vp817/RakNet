@@ -31,13 +31,13 @@
 
 #include <cat/Platform.hpp>
 
-namespace cat {
+namespace cat
+{
 
+	// getLE() converts from little-endian word to native byte-order word
+	// getBE() converts from big-endian word to native byte-order word
 
-// getLE() converts from little-endian word to native byte-order word
-// getBE() converts from big-endian word to native byte-order word
-
-	template<typename T>
+	template <typename T>
 	CAT_INLINE T NoChangeNeeded(const T t)
 	{
 		return t;
@@ -45,63 +45,65 @@ namespace cat {
 
 #if defined(CAT_ENDIAN_LITTLE)
 
-# define swapLE(n) NoChangeNeeded(n)
-# define getLE(n) NoChangeNeeded(n)
-# define getLE16(n) NoChangeNeeded(n)
-# define getLE32(n) NoChangeNeeded(n)
-# define getLE64(n) NoChangeNeeded(n)
+#define swapLE(n) NoChangeNeeded(n)
+#define getLE(n) NoChangeNeeded(n)
+#define getLE16(n) NoChangeNeeded(n)
+#define getLE32(n) NoChangeNeeded(n)
+#define getLE64(n) NoChangeNeeded(n)
 
-    CAT_INLINE u16 swapBE(u16 &n) { return n = CAT_BOSWAP16(n); }
-    CAT_INLINE u32 swapBE(u32 &n) { return n = CAT_BOSWAP32(n); }
-    CAT_INLINE u64 swapBE(u64 &n) { return n = CAT_BOSWAP64(n); }
-    CAT_INLINE u16 getBE(u16 n) { return CAT_BOSWAP16(n); }
-    CAT_INLINE u32 getBE(u32 n) { return CAT_BOSWAP32(n); }
-    CAT_INLINE u64 getBE(u64 n) { return CAT_BOSWAP64(n); }
-    CAT_INLINE u16 getBE16(u16 n) { return CAT_BOSWAP16(n); }
-    CAT_INLINE u32 getBE32(u32 n) { return CAT_BOSWAP32(n); }
-    CAT_INLINE u64 getBE64(u64 n) { return CAT_BOSWAP64(n); }
-    CAT_INLINE s16 swapBE(s16 &n) { return n = CAT_BOSWAP16((u16)n); }
-    CAT_INLINE s32 swapBE(s32 &n) { return n = CAT_BOSWAP32((u32)n); }
-    CAT_INLINE s64 swapBE(s64 &n) { return n = CAT_BOSWAP64((u64)n); }
-    CAT_INLINE s16 getBE(s16 n) { return CAT_BOSWAP16((u16)n); }
-    CAT_INLINE s32 getBE(s32 n) { return CAT_BOSWAP32((u32)n); }
-    CAT_INLINE s64 getBE(s64 n) { return CAT_BOSWAP64((u64)n); }
+	CAT_INLINE u16 swapBE(u16 &n) { return n = CAT_BOSWAP16(n); }
+	CAT_INLINE u32 swapBE(u32 &n) { return n = CAT_BOSWAP32(n); }
+	CAT_INLINE u64 swapBE(u64 &n) { return n = CAT_BOSWAP64(n); }
+	CAT_INLINE u16 getBE(u16 n) { return CAT_BOSWAP16(n); }
+	CAT_INLINE u32 getBE(u32 n) { return CAT_BOSWAP32(n); }
+	CAT_INLINE u64 getBE(u64 n) { return CAT_BOSWAP64(n); }
+	CAT_INLINE u16 getBE16(u16 n) { return CAT_BOSWAP16(n); }
+	CAT_INLINE u32 getBE32(u32 n) { return CAT_BOSWAP32(n); }
+	CAT_INLINE u64 getBE64(u64 n) { return CAT_BOSWAP64(n); }
+	CAT_INLINE s16 swapBE(s16 &n) { return n = CAT_BOSWAP16((u16)n); }
+	CAT_INLINE s32 swapBE(s32 &n) { return n = CAT_BOSWAP32((u32)n); }
+	CAT_INLINE s64 swapBE(s64 &n) { return n = CAT_BOSWAP64((u64)n); }
+	CAT_INLINE s16 getBE(s16 n) { return CAT_BOSWAP16((u16)n); }
+	CAT_INLINE s32 getBE(s32 n) { return CAT_BOSWAP32((u32)n); }
+	CAT_INLINE s64 getBE(s64 n) { return CAT_BOSWAP64((u64)n); }
 
-    CAT_INLINE float getBE(float n) {
-        Float32 c = n;
-        c.i = CAT_BOSWAP32(c.i);
-        return c.f;
-    }
+	CAT_INLINE float getBE(float n)
+	{
+		Float32 c = n;
+		c.i = CAT_BOSWAP32(c.i);
+		return c.f;
+	}
 
 #elif defined(CAT_ENDIAN_BIG)
 
-# define swapBE(n) NoChangeNeeded(n)
-# define getBE(n) NoChangeNeeded(n)
-# define getBE16(n) NoChangeNeeded(n)
-# define getBE32(n) NoChangeNeeded(n)
-# define getBE64(n) NoChangeNeeded(n)
+#define swapBE(n) NoChangeNeeded(n)
+#define getBE(n) NoChangeNeeded(n)
+#define getBE16(n) NoChangeNeeded(n)
+#define getBE32(n) NoChangeNeeded(n)
+#define getBE64(n) NoChangeNeeded(n)
 
-    CAT_INLINE u16 swapLE(u16 &n) { return n = CAT_BOSWAP16(n); }
-    CAT_INLINE u32 swapLE(u32 &n) { return n = CAT_BOSWAP32(n); }
-    CAT_INLINE u64 swapLE(u64 &n) { return n = CAT_BOSWAP64(n); }
-    CAT_INLINE u16 getLE(u16 n) { return CAT_BOSWAP16(n); }
-    CAT_INLINE u32 getLE(u32 n) { return CAT_BOSWAP32(n); }
-    CAT_INLINE u64 getLE(u64 n) { return CAT_BOSWAP64(n); }
-    CAT_INLINE u16 getLE16(u16 n) { return CAT_BOSWAP16(n); }
-    CAT_INLINE u32 getLE32(u32 n) { return CAT_BOSWAP32(n); }
-    CAT_INLINE u64 getLE64(u64 n) { return CAT_BOSWAP64(n); }
-    CAT_INLINE s16 swapLE(s16 &n) { return n = CAT_BOSWAP16((u16)n); }
-    CAT_INLINE s32 swapLE(s32 &n) { return n = CAT_BOSWAP32((u32)n); }
-    CAT_INLINE s64 swapLE(s64 &n) { return n = CAT_BOSWAP64((u64)n); }
-    CAT_INLINE s16 getLE(s16 n) { return CAT_BOSWAP16((u16)n); }
-    CAT_INLINE s32 getLE(s32 n) { return CAT_BOSWAP32((u32)n); }
-    CAT_INLINE s64 getLE(s64 n) { return CAT_BOSWAP64((u64)n); }
+	CAT_INLINE u16 swapLE(u16 &n) { return n = CAT_BOSWAP16(n); }
+	CAT_INLINE u32 swapLE(u32 &n) { return n = CAT_BOSWAP32(n); }
+	CAT_INLINE u64 swapLE(u64 &n) { return n = CAT_BOSWAP64(n); }
+	CAT_INLINE u16 getLE(u16 n) { return CAT_BOSWAP16(n); }
+	CAT_INLINE u32 getLE(u32 n) { return CAT_BOSWAP32(n); }
+	CAT_INLINE u64 getLE(u64 n) { return CAT_BOSWAP64(n); }
+	CAT_INLINE u16 getLE16(u16 n) { return CAT_BOSWAP16(n); }
+	CAT_INLINE u32 getLE32(u32 n) { return CAT_BOSWAP32(n); }
+	CAT_INLINE u64 getLE64(u64 n) { return CAT_BOSWAP64(n); }
+	CAT_INLINE s16 swapLE(s16 &n) { return n = CAT_BOSWAP16((u16)n); }
+	CAT_INLINE s32 swapLE(s32 &n) { return n = CAT_BOSWAP32((u32)n); }
+	CAT_INLINE s64 swapLE(s64 &n) { return n = CAT_BOSWAP64((u64)n); }
+	CAT_INLINE s16 getLE(s16 n) { return CAT_BOSWAP16((u16)n); }
+	CAT_INLINE s32 getLE(s32 n) { return CAT_BOSWAP32((u32)n); }
+	CAT_INLINE s64 getLE(s64 n) { return CAT_BOSWAP64((u64)n); }
 
-    CAT_INLINE float getLE(float n) {
-        Float32 c = n;
-        c.i = CAT_BOSWAP32(c.i);
-        return c.f;
-    }
+	CAT_INLINE float getLE(float n)
+	{
+		Float32 c = n;
+		c.i = CAT_BOSWAP32(c.i);
+		return c.f;
+	}
 
 #elif defined(CAT_ENDIAN_UNKNOWN)
 
@@ -178,7 +180,6 @@ namespace cat {
 	}
 
 #endif
-
 
 } // namespace cat
 

@@ -31,7 +31,8 @@ using namespace cat;
 
 void BigMontgomery::MonNegate(const Leg *in, Leg *out)
 {
-    // -x = p - x, and handle borrow out by adding modulus
-    if (Subtract(CachedModulus, in, out))
-        while (Add(out, CachedModulus, out));
+	// -x = p - x, and handle borrow out by adding modulus
+	if (Subtract(CachedModulus, in, out))
+		while (Add(out, CachedModulus, out))
+			;
 }

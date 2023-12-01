@@ -48,7 +48,8 @@ bool cat::InitializeFramework(const char *settings_file, const char *service_nam
 
 	// Initialize logging subsystem with INFO reporting level
 	Logging::ref()->Initialize(LVL_INFO);
-	if (service_name) Logging::ii->EnableServiceMode(service_name);
+	if (service_name)
+		Logging::ii->EnableServiceMode(service_name);
 
 	// Initialize disk settings subsystem
 	Settings::ref()->readSettingsFromFile(settings_file);

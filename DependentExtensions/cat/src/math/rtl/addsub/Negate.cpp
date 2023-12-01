@@ -31,18 +31,19 @@ using namespace cat;
 
 void CAT_FASTCALL BigRTL::Negate(const Leg *in, Leg *out)
 {
-    int ii;
+	int ii;
 
-    // Ripple the borrow in as far as needed
-    for (ii = 0; ii < library_legs; ++ii)
+	// Ripple the borrow in as far as needed
+	for (ii = 0; ii < library_legs; ++ii)
 	{
 		Leg temp = ~in[ii] + 1;
 		out[ii] = temp;
 
-        if (temp) break;
+		if (temp)
+			break;
 	}
 
-    // Invert remaining bits
-    for (; ii < library_legs; ++ii)
-        out[ii] = ~in[ii];
+	// Invert remaining bits
+	for (; ii < library_legs; ++ii)
+		out[ii] = ~in[ii];
 }

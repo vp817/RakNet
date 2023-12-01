@@ -6,18 +6,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -44,27 +44,28 @@ int speex_inband_handler(SpeexBits *bits, SpeexCallback *callback_list, void *st
    int id;
    SpeexCallback *callback;
    /*speex_bits_advance(bits, 5);*/
-   id=speex_bits_unpack_unsigned(bits, 4);
-   callback = callback_list+id;
+   id = speex_bits_unpack_unsigned(bits, 4);
+   callback = callback_list + id;
 
    if (callback->func)
    {
       return callback->func(bits, state, callback->data);
-   } else
-      /*If callback is not registered, skip the right number of bits*/
+   }
+   else
+   /*If callback is not registered, skip the right number of bits*/
    {
       int adv;
-      if (id<2)
+      if (id < 2)
          adv = 1;
-      else if (id<8)
+      else if (id < 8)
          adv = 4;
-      else if (id<10)
+      else if (id < 10)
          adv = 8;
-      else if (id<12)
+      else if (id < 12)
          adv = 16;
-      else if (id<14)
+      else if (id < 14)
          adv = 32;
-      else 
+      else
          adv = 64;
       speex_bits_advance(bits, adv);
    }
@@ -119,7 +120,6 @@ int speex_std_vbr_quality_request_handler(SpeexBits *bits, void *state, void *da
    return 0;
 }
 
-
 int speex_std_char_handler(SpeexBits *bits, void *state, void *data)
 {
    unsigned char ch;
@@ -129,12 +129,10 @@ int speex_std_char_handler(SpeexBits *bits, void *state, void *data)
    return 0;
 }
 
-
-
 /* Default handler for user callbacks: skip it */
 int speex_default_user_handler(SpeexBits *bits, void *state, void *data)
 {
    int req_size = speex_bits_unpack_unsigned(bits, 4);
-   speex_bits_advance(bits, 5+8*req_size);
+   speex_bits_advance(bits, 5 + 8 * req_size);
    return 0;
 }

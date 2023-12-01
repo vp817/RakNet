@@ -37,66 +37,66 @@ using namespace cat;
 TCPClient::TCPClient(int priorityLevel)
 	: ThreadRefObject(priorityLevel)
 {
-    // Initialize to invalid socket
-    _socket = SOCKET_ERROR;
-    _disconnecting = 0;
+	// Initialize to invalid socket
+	_socket = SOCKET_ERROR;
+	_disconnecting = 0;
 }
 
 TCPClient::~TCPClient()
 {
-    if (_socket != SOCKET_ERROR)
-        CloseSocket(_socket);
+	if (_socket != SOCKET_ERROR)
+		CloseSocket(_socket);
 }
 
 bool TCPClient::Connect(bool onlySupportIPv4, const NetAddr &remoteServerAddress)
 {
-    // Create an unbound, overlapped TCP socket for the listen port
+	// Create an unbound, overlapped TCP socket for the listen port
 	Socket s;
 	if (!CreateSocket(SOCK_STREAM, IPPROTO_TCP, true, s, onlySupportIPv4))
 	{
 		FATAL("TCPClient") << "Unable to create a TCP socket: " << SocketGetLastErrorString();
 		return false;
-    }
+	}
 	_ipv6 = !onlySupportIPv4;
 
-    // Set SO_SNDBUF to zero for a zero-copy network stack (we maintain the buffers)
-    int buffsize = 0;
-    if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char*)&buffsize, sizeof(buffsize)))
-    {
-        FATAL("TCPClient") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
-        CloseSocket(s);
-        return false;
-    }
+	// Set SO_SNDBUF to zero for a zero-copy network stack (we maintain the buffers)
+	int buffsize = 0;
+	if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *)&buffsize, sizeof(buffsize)))
+	{
+		FATAL("TCPClient") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
+		CloseSocket(s);
+		return false;
+	}
 
-    // Bind the socket to a random port as required by ConnectEx()
-    if (!NetBind(s, 0, onlySupportIPv4))
-    {
-        FATAL("TCPClient") << "Unable to bind to port: " << SocketGetLastErrorString();
-        CloseSocket(s);
-        return false;
-    }
+	// Bind the socket to a random port as required by ConnectEx()
+	if (!NetBind(s, 0, onlySupportIPv4))
+	{
+		FATAL("TCPClient") << "Unable to bind to port: " << SocketGetLastErrorString();
+		CloseSocket(s);
+		return false;
+	}
 
-    _socket = s;
+	_socket = s;
 
-    // Prepare to receive completions in the worker threads
-    // Connect to server asynchronously
-    if (!ThreadPool::ref()->Associate((HANDLE)s, this) ||
-        !ConnectEx(remoteServerAddress))
-    {
-        CloseSocket(s);
-        _socket = SOCKET_ERROR;
-        return false;
-    }
+	// Prepare to receive completions in the worker threads
+	// Connect to server asynchronously
+	if (!ThreadPool::ref()->Associate((HANDLE)s, this) ||
+		!ConnectEx(remoteServerAddress))
+	{
+		CloseSocket(s);
+		_socket = SOCKET_ERROR;
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 void TCPClient::Disconnect()
 {
-    // Only allow disconnect to run once
-    if (Atomic::Add(&_disconnecting, 1) == 0)
-    {
-        OnDisconnectFromServer();
+	// Only allow disconnect to run once
+	if (Atomic::Add(&_disconnecting, 1) == 0)
+	{
+		OnDisconnectFromServer();
 
 		if (!Disco())
 		{
@@ -104,25 +104,24 @@ void TCPClient::Disconnect()
 			// objects are maintaining a reference to this one.
 			ReleaseRef();
 		}
-    }
+	}
 }
-
 
 //// Begin Event
 
 bool TCPClient::ConnectEx(const NetAddr &remoteServerAddress)
 {
-    // Get ConnectEx() interface
-    GUID GuidConnectEx = WSAID_CONNECTEX;
-    LPFN_CONNECTEX lpfnConnectEx;
-    DWORD copied;
+	// Get ConnectEx() interface
+	GUID GuidConnectEx = WSAID_CONNECTEX;
+	LPFN_CONNECTEX lpfnConnectEx;
+	DWORD copied;
 
-    if (WSAIoctl(_socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidConnectEx,
-                 sizeof(GuidConnectEx), &lpfnConnectEx, sizeof(lpfnConnectEx), &copied, 0, 0))
-    {
-        FATAL("TCPClient") << "Unable to get ConnectEx interface: " << SocketGetLastErrorString();
-        return false;
-    }
+	if (WSAIoctl(_socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidConnectEx,
+				 sizeof(GuidConnectEx), &lpfnConnectEx, sizeof(lpfnConnectEx), &copied, 0, 0))
+	{
+		FATAL("TCPClient") << "Unable to get ConnectEx interface: " << SocketGetLastErrorString();
+		return false;
+	}
 
 	// Unwrap NetAddr
 	NetAddr::SockAddr addr_out;
@@ -143,23 +142,23 @@ bool TCPClient::ConnectEx(const NetAddr &remoteServerAddress)
 
 	buffer->Reset(fastdelegate::MakeDelegate(this, &TCPClient::OnConnectEx));
 
-    AddRef();
+	AddRef();
 
-    // Queue up a ConnectEx()
-    BOOL result = lpfnConnectEx(_socket, reinterpret_cast<sockaddr*>( &addr_out ),
-                                addr_len, 0, 0, 0, buffer->GetOv()); 
+	// Queue up a ConnectEx()
+	BOOL result = lpfnConnectEx(_socket, reinterpret_cast<sockaddr *>(&addr_out),
+								addr_len, 0, 0, 0, buffer->GetOv());
 
-    // This overlapped operation will always complete unless
-    // we get an error code other than ERROR_IO_PENDING.
-    if (!result && WSAGetLastError() != ERROR_IO_PENDING)
-    {
-        FATAL("TCPClient") << "ConnectEx error: " << SocketGetLastErrorString();
-        buffer->Release();
-        ReleaseRef();
-        return false;
-    }
+	// This overlapped operation will always complete unless
+	// we get an error code other than ERROR_IO_PENDING.
+	if (!result && WSAGetLastError() != ERROR_IO_PENDING)
+	{
+		FATAL("TCPClient") << "ConnectEx error: " << SocketGetLastErrorString();
+		buffer->Release();
+		ReleaseRef();
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 bool TCPClient::Post(u8 *data, u32 data_bytes, u32 skip_bytes)
@@ -175,7 +174,7 @@ bool TCPClient::Post(u8 *data, u32 data_bytes, u32 skip_bytes)
 	buffer->Reset(fastdelegate::MakeDelegate(this, &TCPClient::OnWrite));
 
 	WSABUF wsabuf;
-	wsabuf.buf = reinterpret_cast<CHAR*>( data + skip_bytes );
+	wsabuf.buf = reinterpret_cast<CHAR *>(data + skip_bytes);
 	wsabuf.len = data_bytes;
 
 	AddRef();
@@ -200,7 +199,8 @@ bool TCPClient::Read(AsyncBuffer *buffer)
 {
 	if (_disconnecting)
 	{
-		if (buffer) buffer->Release();
+		if (buffer)
+			buffer->Release();
 		return false;
 	}
 
@@ -214,14 +214,14 @@ bool TCPClient::Read(AsyncBuffer *buffer)
 	buffer->Reset(fastdelegate::MakeDelegate(this, &TCPClient::OnRead));
 
 	WSABUF wsabuf;
-	wsabuf.buf = reinterpret_cast<CHAR*>( buffer->GetData() );
+	wsabuf.buf = reinterpret_cast<CHAR *>(buffer->GetData());
 	wsabuf.len = buffer->GetDataBytes();
 
 	AddRef();
 
 	// Queue up a WSARecv()
 	DWORD flags = 0, bytes;
-	int result = WSARecv(_socket, &wsabuf, 1, &bytes, &flags, buffer->GetOv(), 0); 
+	int result = WSARecv(_socket, &wsabuf, 1, &bytes, &flags, buffer->GetOv(), 0);
 
 	// This overlapped operation will always complete unless
 	// we get an error code other than ERROR_IO_PENDING.
@@ -238,19 +238,20 @@ bool TCPClient::Read(AsyncBuffer *buffer)
 
 bool TCPClient::Disco(AsyncBuffer *buffer)
 {
-    // Get DisconnectEx() interface
-    GUID GuidDisconnectEx = WSAID_DISCONNECTEX;
-    LPFN_DISCONNECTEX lpfnDisconnectEx;
-    DWORD copied;
+	// Get DisconnectEx() interface
+	GUID GuidDisconnectEx = WSAID_DISCONNECTEX;
+	LPFN_DISCONNECTEX lpfnDisconnectEx;
+	DWORD copied;
 
-    if (WSAIoctl(_socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidDisconnectEx,
-                 sizeof(GuidDisconnectEx), &lpfnDisconnectEx, sizeof(lpfnDisconnectEx),
+	if (WSAIoctl(_socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidDisconnectEx,
+				 sizeof(GuidDisconnectEx), &lpfnDisconnectEx, sizeof(lpfnDisconnectEx),
 				 &copied, 0, 0))
-    {
-        FATAL("TCPClient") << "Unable to get DisconnectEx interface: " << SocketGetLastErrorString();
-		if (buffer) buffer->Release();
-        return false;
-    }
+	{
+		FATAL("TCPClient") << "Unable to get DisconnectEx interface: " << SocketGetLastErrorString();
+		if (buffer)
+			buffer->Release();
+		return false;
+	}
 
 	if (!buffer && !AsyncBuffer::Acquire(buffer))
 	{
@@ -263,7 +264,7 @@ bool TCPClient::Disco(AsyncBuffer *buffer)
 	AddRef();
 
 	// Queue up a DisconnectEx()
-	BOOL result = lpfnDisconnectEx(_socket, buffer->GetOv(), 0, 0); 
+	BOOL result = lpfnDisconnectEx(_socket, buffer->GetOv(), 0, 0);
 
 	// This overlapped operation will always complete unless
 	// we get an error code other than ERROR_IO_PENDING.
@@ -277,7 +278,6 @@ bool TCPClient::Disco(AsyncBuffer *buffer)
 
 	return true;
 }
-
 
 //// Event Completion
 
@@ -355,7 +355,8 @@ bool TCPClient::OnWrite(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buf
 
 bool TCPClient::OnDisco(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes)
 {
-	if (error) ReportUnexpectedSocketError(error);
+	if (error)
+		ReportUnexpectedSocketError(error);
 
 	// Release final reference
 	ReleaseRef();
@@ -363,50 +364,51 @@ bool TCPClient::OnDisco(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buf
 	return true; // Delete overlapped object
 }
 
-
 //// TCPClientQueued
 
 TCPClientQueued::TCPClientQueued(int priorityLevel)
 	: TCPClient(priorityLevel)
 {
-    _queueBuffer = 0;
-    _queuing = true;
+	_queueBuffer = 0;
+	_queuing = true;
 }
 
 TCPClientQueued::~TCPClientQueued()
 {
-    if (_queueBuffer) _queueBuffer->Release();
+	if (_queueBuffer)
+		_queueBuffer->Release();
 }
 
 bool TCPClientQueued::Post(u8 *data, u32 data_bytes, u32 skip_bytes)
 {
-    // Try not to hold a lock if we can help it
-    if (!_queuing) return TCPClient::Post(data, data_bytes, skip_bytes);
+	// Try not to hold a lock if we can help it
+	if (!_queuing)
+		return TCPClient::Post(data, data_bytes, skip_bytes);
 
-    AutoMutex lock(_queueLock);
+	AutoMutex lock(_queueLock);
 
-    // Check to make sure we're still queuing
-    if (!_queuing)
-    {
-        lock.Release();
+	// Check to make sure we're still queuing
+	if (!_queuing)
+	{
+		lock.Release();
 
 		return TCPClient::Post(data, data_bytes, skip_bytes);
-    }
+	}
 
 	AsyncBuffer *buffer = AsyncBuffer::Promote(data);
 
 	// If queue buffer has not been created,
-    if (!_queueBuffer)
+	if (!_queueBuffer)
 	{
 		_queueBuffer = buffer;
 	}
 	else
-    {
+	{
 		// Otherwise append to the end of the queue buffer,
 		u32 queue_bytes = _queueBuffer->GetDataBytes();
 		u32 bytes = buffer->GetDataBytes();
 
-        _queueBuffer = _queueBuffer->Resize(queue_bytes + bytes);
+		_queueBuffer = _queueBuffer->Resize(queue_bytes + bytes);
 
 		if (_queueBuffer)
 		{
@@ -418,22 +420,23 @@ bool TCPClientQueued::Post(u8 *data, u32 data_bytes, u32 skip_bytes)
 		return !!_queueBuffer;
 	}
 
-    return true;
+	return true;
 }
 
 void TCPClientQueued::PostQueuedToServer()
 {
 	// Try not to hold a lock if we can help it
-	if (!_queuing) return;
+	if (!_queuing)
+		return;
 
-    AutoMutex lock(_queueLock);
+	AutoMutex lock(_queueLock);
 
 	// If queue buffer exists,
-    if (_queueBuffer)
-    {
+	if (_queueBuffer)
+	{
 		TCPClient::Post(_queueBuffer->GetData(), _queueBuffer->GetDataBytes());
-        _queueBuffer = 0;
-    }
+		_queueBuffer = 0;
+	}
 
-    _queuing = false;
+	_queuing = false;
 }

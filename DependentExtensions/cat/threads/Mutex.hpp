@@ -32,46 +32,44 @@
 #include <cat/Platform.hpp>
 
 #if defined(CAT_OS_WINDOWS)
-# include <cat/port/WindowsInclude.hpp>
+#include <cat/port/WindowsInclude.hpp>
 #else // use POSIX mutex library otherwise
-# include <pthread.h>
+#include <pthread.h>
 #endif
 
-namespace cat {
-
-
-// Implements a mutex that is NOT reentrant (for speed)
-class Mutex
+namespace cat
 {
+
+	// Implements a mutex that is NOT reentrant (for speed)
+	class Mutex
+	{
 #if defined(CAT_OS_WINDOWS)
-    CRITICAL_SECTION cs;
+		CRITICAL_SECTION cs;
 #else
-	int init_failure;
-	pthread_mutex_t mx;
+		int init_failure;
+		pthread_mutex_t mx;
 #endif
 
-public:
-    Mutex();
-    ~Mutex();
+	public:
+		Mutex();
+		~Mutex();
 
-	bool Valid();
+		bool Valid();
 
-    bool Enter();
-    bool Leave();
-};
+		bool Enter();
+		bool Leave();
+	};
 
+	class AutoMutex
+	{
+		Mutex *_mutex;
 
-class AutoMutex
-{
-    Mutex *_mutex;
+	public:
+		AutoMutex(Mutex &mutex);
+		~AutoMutex();
 
-public:
-    AutoMutex(Mutex &mutex);
-    ~AutoMutex();
-
-    bool Release();
-};
-
+		bool Release();
+	};
 
 } // namespace cat
 

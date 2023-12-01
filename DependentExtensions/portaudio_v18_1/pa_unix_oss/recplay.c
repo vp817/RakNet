@@ -2,7 +2,7 @@
  * recplay.c
  * Phil Burk
  * Minimal record and playback test.
- * 
+ *
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -18,29 +18,68 @@
 #endif /* __STDC__ */
 #include <sys/soundcard.h>
 
-#define NUM_BYTES   (64*1024)
-#define BLOCK_SIZE   (4*1024)
+#define NUM_BYTES (64 * 1024)
+#define BLOCK_SIZE (4 * 1024)
 
 #define AUDIO "/dev/dsp"
+
+int __internal__file_exists(char *filename)
+{
+    int fd = open(filename, O_RDONLY, 0);
+
+    if (fd < 0)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+// Advanced Linux Sound Architecture (ALSA):
+//   /dev/snd/pcmC0D0p (OUTPUT)
+//   /dev/snd/pcmC0D0c (INPUT)
+void init_audio_fd()
+{
+    if (__internal__file_exists("/dev/dsp") == 0)
+    {
+        if (__internal__file_exists("/dev/snd/pcmC0D0p") == 1)
+        {
+#undef AUDIO
+#define AUDIO "/dev/snd/pcmC0D0p"
+        }
+        else if (__internal__file_exists("/dev/snd/pcmC0D0c") == 1)
+        {
+#undef AUDIO
+#define AUDIO "/dev/snd/pcmC0D0c"
+        }
+        else
+        {
+            perror(AUDIO);
+            exit(-1);
+        }
+    }
+}
 
 char buffer[NUM_BYTES];
 
 int audioDev = 0;
 
-main (int argc, char *argv[])
+main(int argc, char *argv[])
 {
-    int   numLeft;
+    int numLeft;
     char *ptr;
-    int   num;
-    int   samplesize;
+    int num;
+    int samplesize;
+
+    init_audio_fd();
 
     /********** RECORD ********************/
     /* Open audio device. */
-    audioDev = open (AUDIO, O_RDONLY, 0);
+    audioDev = open(AUDIO, O_RDONLY, 0);
     if (audioDev == -1)
     {
-        perror (AUDIO);
-        exit (-1);
+        perror(AUDIO);
+        exit(-1);
     }
 
     /* Set to 16 bit samples. */
@@ -56,12 +95,12 @@ main (int argc, char *argv[])
     printf("Begin recording.\n");
     numLeft = NUM_BYTES;
     ptr = buffer;
-    while( numLeft >= BLOCK_SIZE )
+    while (numLeft >= BLOCK_SIZE)
     {
-        if ( (num = read (audioDev, ptr, BLOCK_SIZE)) < 0 )
+        if ((num = read(audioDev, ptr, BLOCK_SIZE)) < 0)
         {
-            perror (AUDIO);
-            exit (-1);
+            perror(AUDIO);
+            exit(-1);
         }
         else
         {
@@ -71,15 +110,15 @@ main (int argc, char *argv[])
         }
     }
 
-    close( audioDev );
+    close(audioDev);
 
     /********** PLAYBACK ********************/
     /* Open audio device for writing. */
-    audioDev = open (AUDIO, O_WRONLY, 0);
+    audioDev = open(AUDIO, O_WRONLY, 0);
     if (audioDev == -1)
     {
-        perror (AUDIO);
-        exit (-1);
+        perror(AUDIO);
+        exit(-1);
     }
 
     /* Set to 16 bit samples. */
@@ -95,12 +134,12 @@ main (int argc, char *argv[])
     printf("Begin playing.\n");
     numLeft = NUM_BYTES;
     ptr = buffer;
-    while( numLeft >= BLOCK_SIZE )
+    while (numLeft >= BLOCK_SIZE)
     {
-        if ( (num = write (audioDev, ptr, BLOCK_SIZE)) < 0 )
+        if ((num = write(audioDev, ptr, BLOCK_SIZE)) < 0)
         {
-            perror (AUDIO);
-            exit (-1);
+            perror(AUDIO);
+            exit(-1);
         }
         else
         {
@@ -110,5 +149,5 @@ main (int argc, char *argv[])
         }
     }
 
-    close( audioDev );
+    close(audioDev);
 }

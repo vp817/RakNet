@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/io/Settings.hpp>
@@ -35,9 +35,7 @@
 using namespace cat;
 using namespace std;
 
-
-//#define SETTINGS_VERBOSE /* dump extra settings information to the console for debugging */
-
+// #define SETTINGS_VERBOSE /* dump extra settings information to the console for debugging */
 
 SettingsKey::SettingsKey(SettingsKey *lnodei, SettingsKey *gnodei, const char *namei)
 {
@@ -50,13 +48,16 @@ SettingsKey::SettingsKey(SettingsKey *lnodei, SettingsKey *gnodei, const char *n
 
 SettingsKey::~SettingsKey()
 {
-    if (lnode) delete lnode;
-    if (gnode) delete gnode;
+    if (lnode)
+        delete lnode;
+    if (gnode)
+        delete gnode;
 }
 
 void SettingsKey::write(std::ofstream &file)
 {
-    if (lnode) lnode->write(file);
+    if (lnode)
+        lnode->write(file);
 
     // Only write keys that had a default value and
     // have been changed from the default value.
@@ -64,17 +65,17 @@ void SettingsKey::write(std::ofstream &file)
     {
         if (value.flags & CAT_SETTINGS_INT)
         {
-			file << name << " = " << value.i << endl;
+            file << name << " = " << value.i << endl;
         }
         else
         {
-			file << name << " = " << value.s << endl;
+            file << name << " = " << value.s << endl;
         }
     }
 
-    if (gnode) gnode->write(file);
+    if (gnode)
+        gnode->write(file);
 }
-
 
 Settings::Settings()
 {
@@ -86,7 +87,7 @@ Settings::Settings()
 
 SettingsKey *Settings::addKey(const char *name)
 {
-	u32 treekey = MurmurHash32(name, (int)strlen(name)+1, KEY_HASH_SALT) % SETTINGS_HASH_BINS;
+    u32 treekey = MurmurHash32(name, (int)strlen(name) + 1, KEY_HASH_SALT) % SETTINGS_HASH_BINS;
     SettingsKey *key = hbtrees[treekey];
 
     if (!key)
@@ -95,7 +96,8 @@ SettingsKey *Settings::addKey(const char *name)
     for (;;)
     {
         int cmp = strncmp(key->name, name, sizeof(key->name));
-        if (!cmp) return key;
+        if (!cmp)
+            return key;
 
         if (cmp > 0)
         {
@@ -116,13 +118,14 @@ SettingsKey *Settings::addKey(const char *name)
 
 SettingsKey *Settings::getKey(const char *name)
 {
-	u32 treekey = MurmurHash32(name, (int)strlen(name)+1, KEY_HASH_SALT) % SETTINGS_HASH_BINS;
+    u32 treekey = MurmurHash32(name, (int)strlen(name) + 1, KEY_HASH_SALT) % SETTINGS_HASH_BINS;
     SettingsKey *key = hbtrees[treekey];
 
     while (key)
     {
         int cmp = strncmp(key->name, name, sizeof(key->name));
-        if (!cmp) return key;
+        if (!cmp)
+            return key;
 
         key = cmp > 0 ? key->lnode : key->gnode;
     }
@@ -145,7 +148,7 @@ void Settings::clear()
 
 void Settings::readSettingsFromBuffer(const char *data, int len)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
     BufferTok bt(data, len);
 
@@ -158,7 +161,8 @@ void Settings::readSettingsFromBuffer(const char *data, int len)
         if (*keyName && !bt.onNewline())
         {
             SettingsKey *key = addKey(keyName);
-            if (!key) continue;
+            if (!key)
+                continue;
 
             key->value.flags |= CAT_SETTINGS_FILLED;
             bt() >> key->value.s;
@@ -171,9 +175,9 @@ void Settings::readSettingsFromBuffer(const char *data, int len)
 
 void Settings::readSettingsFromFile(const char *file_path, const char *override_file)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
-	_settings_file = file_path;
+    _settings_file = file_path;
 
     MMapFile sfile(file_path);
     if (!sfile.good())
@@ -186,7 +190,7 @@ void Settings::readSettingsFromFile(const char *file_path, const char *override_
     INANE("Settings") << "Read: " << file_path;
 #endif
 
-    readSettingsFromBuffer((const char*)sfile.look(), sfile.size());
+    readSettingsFromBuffer((const char *)sfile.look(), sfile.size());
 
     MMapFile ofile(override_file);
     if (ofile.good())
@@ -195,7 +199,7 @@ void Settings::readSettingsFromFile(const char *file_path, const char *override_
         INANE("Settings") << "Read: " << override_file;
 #endif
 
-        readSettingsFromBuffer((const char*)ofile.look(), ofile.size());
+        readSettingsFromBuffer((const char *)ofile.look(), ofile.size());
     }
 
     // Delete the override settings file if settings request it
@@ -210,7 +214,7 @@ void Settings::readSettingsFromFile(const char *file_path, const char *override_
 
 void Settings::write()
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
     if (readSettings && !modified)
     {
@@ -227,10 +231,12 @@ void Settings::write()
         return;
     }
 
-    file << "This file is regenerated on shutdown and reread on startup" << endl << endl;
+    file << "This file is regenerated on shutdown and reread on startup" << endl
+         << endl;
 
     for (int ii = 0; ii < SETTINGS_HASH_BINS; ++ii)
-        if (hbtrees[ii]) hbtrees[ii]->write(file);
+        if (hbtrees[ii])
+            hbtrees[ii]->write(file);
 
 #ifdef SETTINGS_VERBOSE
     INANE("Settings") << "Write: Saved " << _settings_file;
@@ -241,23 +247,24 @@ void Settings::write()
 
 int Settings::getInt(const char *name)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
     SettingsKey *key = getKey(name);
-	if (!key) return 0;
+    if (!key)
+        return 0;
 
-	if (!(key->value.flags & CAT_SETTINGS_INT))
-	{
-		key->value.i = atoi(key->value.s);
-		key->value.flags |= CAT_SETTINGS_INT;
-	}
+    if (!(key->value.flags & CAT_SETTINGS_INT))
+    {
+        key->value.i = atoi(key->value.s);
+        key->value.flags |= CAT_SETTINGS_INT;
+    }
 
-	return key->value.i;
+    return key->value.i;
 }
 
 const char *Settings::getStr(const char *name)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
     SettingsKey *key = getKey(name);
     return key ? key->value.s : "";
@@ -265,7 +272,7 @@ const char *Settings::getStr(const char *name)
 
 int Settings::getInt(const char *name, int init)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
     SettingsKey *key = initInt(name, init, false);
     return key ? key->value.i : 0;
@@ -273,7 +280,7 @@ int Settings::getInt(const char *name, int init)
 
 const char *Settings::getStr(const char *name, const char *init)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
     SettingsKey *key = initStr(name, init, false);
     return key ? key->value.s : "";
@@ -281,16 +288,16 @@ const char *Settings::getStr(const char *name, const char *init)
 
 void Settings::setInt(const char *name, int n)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
     initInt(name, n, true);
 }
 
 void Settings::setStr(const char *name, const char *value)
 {
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
-	initStr(name, value, true);
+    initStr(name, value, true);
 }
 
 SettingsKey *Settings::initInt(const char *name, int n, bool overwrite)
@@ -298,17 +305,17 @@ SettingsKey *Settings::initInt(const char *name, int n, bool overwrite)
     SettingsKey *key = addKey(name);
 
     if (overwrite || !(key->value.flags & CAT_SETTINGS_FILLED))
-	{
+    {
         key->value.i = n;
-		key->value.flags = CAT_SETTINGS_FILLED|CAT_SETTINGS_INT;
+        key->value.flags = CAT_SETTINGS_FILLED | CAT_SETTINGS_INT;
 
-		modified = true;
-	}
-	else if (!(key->value.flags & CAT_SETTINGS_INT))
-	{
-		key->value.i = atoi(key->value.s);
-		key->value.flags = CAT_SETTINGS_FILLED|CAT_SETTINGS_INT;
-	}
+        modified = true;
+    }
+    else if (!(key->value.flags & CAT_SETTINGS_INT))
+    {
+        key->value.i = atoi(key->value.s);
+        key->value.flags = CAT_SETTINGS_FILLED | CAT_SETTINGS_INT;
+    }
 
     return key;
 }
@@ -317,13 +324,13 @@ SettingsKey *Settings::initStr(const char *name, const char *value, bool overwri
 {
     SettingsKey *key = addKey(name);
 
-	if (overwrite || !(key->value.flags & CAT_SETTINGS_FILLED))
-	{
-		CAT_STRNCPY(key->value.s, value, sizeof(key->value.s));
-		key->value.flags = CAT_SETTINGS_FILLED;
+    if (overwrite || !(key->value.flags & CAT_SETTINGS_FILLED))
+    {
+        CAT_STRNCPY(key->value.s, value, sizeof(key->value.s));
+        key->value.flags = CAT_SETTINGS_FILLED;
 
-		modified = true;
-	}
+        modified = true;
+    }
 
     return key;
 }

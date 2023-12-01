@@ -28,4 +28,3 @@
 
 #include <cat/io/PackageManager.hpp>
 using namespace cat;
-

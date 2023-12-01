@@ -37,7 +37,6 @@ using namespace cat;
 #include <fcntl.h>
 #include <unistd.h>
 
-
 #if !defined(CAT_NO_ENTROPY_THREAD)
 
 bool FortunaFactory::ThreadFunction(void *)
@@ -48,13 +47,12 @@ bool FortunaFactory::ThreadFunction(void *)
 
 #endif // !defined(CAT_NO_ENTROPY_THREAD)
 
-
 bool FortunaFactory::InitializeEntropySources()
 {
-    // Fire poll for entropy all goes into pool 0
-    PollInvariantSources(0);
+	// Fire poll for entropy all goes into pool 0
+	PollInvariantSources(0);
 
-    return true;
+	return true;
 }
 
 void FortunaFactory::ShutdownEntropySources()
@@ -63,16 +61,17 @@ void FortunaFactory::ShutdownEntropySources()
 
 void FortunaFactory::PollInvariantSources(int pool_index)
 {
-    Skein &pool = Pool[pool_index];
+	Skein &pool = Pool[pool_index];
 
-	struct {
+	struct
+	{
 		u32 cycles_start;
-	    u8 system_prng[32];
+		u8 system_prng[32];
 		u32 cycles_end;
 	} Sources;
 
-    // Cycles at the start
-    Sources.cycles_start = Clock::cycles();
+	// Cycles at the start
+	Sources.cycles_start = Clock::cycles();
 
 	int random_fd = open("/dev/random", O_RDONLY);
 
@@ -84,8 +83,8 @@ void FortunaFactory::PollInvariantSources(int pool_index)
 		close(random_fd);
 	}
 
-    // Cycles at the end
-    Sources.cycles_end = Clock::cycles();
+	// Cycles at the end
+	Sources.cycles_end = Clock::cycles();
 
 	pool.Crunch(&Sources, sizeof(Sources));
 }

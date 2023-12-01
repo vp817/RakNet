@@ -38,135 +38,138 @@
 #include <cat/threads/WaitableFlag.hpp>
 
 #if defined(CAT_OS_WINDOWS)
-# include <cat/port/WindowsInclude.hpp>
+#include <cat/port/WindowsInclude.hpp>
 #endif
 
-namespace cat {
-
-
-// Reference Object priorities
-enum RefObjectPriorities
+namespace cat
 {
-	REFOBJ_PRIO_0,
-	REFOBJ_PRIO_COUNT = 32,
-};
 
-
-/*
-    class ThreadRefObject
-
-    Base class for any thread-safe reference-counted thread pool object
-
-	Designed this way so that all of these objects can be automatically deleted
-*/
-class ThreadRefObject
-{
-    friend class ThreadPool;
-    ThreadRefObject *last, *next;
-
-	int _priorityLevel;
-    volatile u32 _refCount;
-
-public:
-    ThreadRefObject(int priorityLevel);
-    CAT_INLINE virtual ~ThreadRefObject() {}
-
-public:
-    void AddRef();
-    void ReleaseRef();
-
-	// Safe release -- If not null, then releases and sets to null
-	template<class T>
-	static CAT_INLINE void SafeRelease(T * &object)
+	// Reference Object priorities
+	enum RefObjectPriorities
 	{
-		if (object)
+		REFOBJ_PRIO_0,
+		REFOBJ_PRIO_COUNT = 32,
+	};
+
+	/*
+		class ThreadRefObject
+
+		Base class for any thread-safe reference-counted thread pool object
+
+		Designed this way so that all of these objects can be automatically deleted
+	*/
+	class ThreadRefObject
+	{
+		friend class ThreadPool;
+		ThreadRefObject *last, *next;
+
+		int _priorityLevel;
+		volatile u32 _refCount;
+
+	public:
+		ThreadRefObject(int priorityLevel);
+		CAT_INLINE virtual ~ThreadRefObject() {}
+
+	public:
+		void AddRef();
+		void ReleaseRef();
+
+		// Safe release -- If not null, then releases and sets to null
+		template <class T>
+		static CAT_INLINE void SafeRelease(T *&object)
 		{
-			object->ReleaseRef();
-			object = 0;
+			if (object)
+			{
+				object->ReleaseRef();
+				object = 0;
+			}
 		}
-	}
-};
+	};
 
+	// Auto release for ThreadRefObject references
+	template <class T>
+	class AutoRef
+	{
+		T *_ref;
 
-// Auto release for ThreadRefObject references
-template<class T>
-class AutoRef
-{
-	T *_ref;
+	public:
+		CAT_INLINE AutoRef(T *ref = 0) throw() { _ref = ref; }
+		CAT_INLINE ~AutoRef() throw() { ThreadRefObject::SafeRelease(_ref); }
+		CAT_INLINE AutoRef &operator=(T *ref) throw()
+		{
+			Reset(ref);
+			return *this;
+		}
 
-public:
-	CAT_INLINE AutoRef(T *ref = 0) throw() { _ref = ref; }
-	CAT_INLINE ~AutoRef() throw() { ThreadRefObject::SafeRelease(_ref); }
-	CAT_INLINE AutoRef &operator=(T *ref) throw() { Reset(ref); return *this; }
+		CAT_INLINE T *Get() throw() { return _ref; }
+		CAT_INLINE T *operator->() throw() { return _ref; }
+		CAT_INLINE T &operator*() throw() { return *_ref; }
+		CAT_INLINE operator T *() { return _ref; }
 
-	CAT_INLINE T *Get() throw() { return _ref; }
-	CAT_INLINE T *operator->() throw() { return _ref; }
-	CAT_INLINE T &operator*() throw() { return *_ref; }
-	CAT_INLINE operator T*() { return _ref; }
+		CAT_INLINE void Forget() throw() { _ref = 0; }
+		CAT_INLINE void Reset(T *ref = 0) throw()
+		{
+			ThreadRefObject::SafeRelease(_ref);
+			_ref = ref;
+		}
+	};
 
-	CAT_INLINE void Forget() throw() { _ref = 0; }
-	CAT_INLINE void Reset(T *ref = 0) throw() { ThreadRefObject::SafeRelease(_ref); _ref = ref; }
-};
+	//// TLS
 
+	class ThreadPoolLocalStorage
+	{
+	public:
+		BigTwistedEdwards *math;
+		FortunaOutput *csprng;
 
-//// TLS
+		ThreadPoolLocalStorage();
+		~ThreadPoolLocalStorage();
 
-class ThreadPoolLocalStorage
-{
-public:
-	BigTwistedEdwards *math;
-	FortunaOutput *csprng;
+		bool Valid();
+	};
 
-	ThreadPoolLocalStorage();
-	~ThreadPoolLocalStorage();
+	//// Shutdown
 
-	bool Valid();
-};
+	class ShutdownWait;
+	class ShutdownObserver;
 
+	class ShutdownWait
+	{
+		friend class ShutdownObserver;
 
-//// Shutdown
+		WaitableFlag _kill_flag;
+		ShutdownObserver *_observer;
 
-class ShutdownWait;
-class ShutdownObserver;
+		void OnShutdownDone();
 
-class ShutdownWait
-{
-	friend class ShutdownObserver;
+	public:
+		// Priority number must be higher than users'
+		ShutdownWait(int priorityLevel);
+		/*virtual*/ ~ShutdownWait();
 
-	WaitableFlag _kill_flag;
-	ShutdownObserver *_observer;
+		CAT_INLINE ShutdownObserver *GetObserver() { return _observer; }
 
-	void OnShutdownDone();
+		bool WaitForShutdown(u32 milliseconds);
+	};
 
-public:
-	// Priority number must be higher than users'
-	ShutdownWait(int priorityLevel);
-	/*virtual*/ ~ShutdownWait();
+	class ShutdownObserver : public ThreadRefObject
+	{
+		friend class ShutdownWait;
 
-	CAT_INLINE ShutdownObserver *GetObserver() { return _observer; }
+		ShutdownWait *_wait;
 
-	bool WaitForShutdown(u32 milliseconds);
-};
+	private:
+		ShutdownObserver(int priorityLevel, ShutdownWait *wait);
+		~ShutdownObserver();
+	};
 
-class ShutdownObserver : public ThreadRefObject
-{
-	friend class ShutdownWait;
+	//// ThreadPoolWorker
 
-	ShutdownWait *_wait;
-
-private:
-	ShutdownObserver(int priorityLevel, ShutdownWait *wait);
-	~ShutdownObserver();
-};
-
-
-//// ThreadPoolWorker
-
-class ThreadPoolWorker : public Thread
-{
-public:
-	virtual bool ThreadFunction(void *port);
-};
+	class ThreadPoolWorker : public Thread
+	{
+	public:
+		virtual bool ThreadFunction(void *port);
+	};
 
 #if defined(CAT_OS_WINDOWS)
 	typedef HANDLE ThreadPoolHandle;
@@ -174,47 +177,46 @@ public:
 	typedef int ThreadPoolHandle;
 #endif
 
-/*
-    class ThreadPool
+	/*
+		class ThreadPool
 
-    Startup()  : Call to start up the thread pool
-    Shutdown() : Call to destroy the thread pool and objects
-*/
-class ThreadPool : public Singleton<ThreadPool>
-{
-	friend class ThreadRefObject;
+		Startup()  : Call to start up the thread pool
+		Shutdown() : Call to destroy the thread pool and objects
+	*/
+	class ThreadPool : public Singleton<ThreadPool>
+	{
+		friend class ThreadRefObject;
 
-    CAT_SINGLETON(ThreadPool);
+		CAT_SINGLETON(ThreadPool);
 
 #if defined(CAT_OS_WINDOWS)
-    HANDLE _port;
+		HANDLE _port;
 #endif
 
-	int _processor_count, _active_thread_count;
+		int _processor_count, _active_thread_count;
 
-	static const int MAX_THREADS = 256;
-	ThreadPoolWorker _threads[MAX_THREADS];
+		static const int MAX_THREADS = 256;
+		ThreadPoolWorker _threads[MAX_THREADS];
 
-	// Track sockets for graceful termination
-    Mutex _objectRefLock[REFOBJ_PRIO_COUNT];
-    ThreadRefObject *_objectRefHead[REFOBJ_PRIO_COUNT];
+		// Track sockets for graceful termination
+		Mutex _objectRefLock[REFOBJ_PRIO_COUNT];
+		ThreadRefObject *_objectRefHead[REFOBJ_PRIO_COUNT];
 
-protected:
-    void TrackObject(ThreadRefObject *object);
-    void UntrackObject(ThreadRefObject *object);
+	protected:
+		void TrackObject(ThreadRefObject *object);
+		void UntrackObject(ThreadRefObject *object);
 
-    bool SpawnThread();
-    bool SpawnThreads();
+		bool SpawnThread();
+		bool SpawnThreads();
 
-public:
-    bool Startup();
-    void Shutdown();
-	bool Associate(ThreadPoolHandle h, ThreadRefObject *key);
+	public:
+		bool Startup();
+		void Shutdown();
+		bool Associate(ThreadPoolHandle h, ThreadRefObject *key);
 
-	int GetProcessorCount() { return _processor_count; }
-	int GetThreadCount() { return _active_thread_count; }
-};
-
+		int GetProcessorCount() { return _processor_count; }
+		int GetThreadCount() { return _active_thread_count; }
+	};
 
 } // namespace cat
 

@@ -31,72 +31,100 @@
 using namespace std;
 using namespace cat;
 
-
-#if defined (CAT_COMPILER_MSVC)
+#if defined(CAT_COMPILER_MSVC)
 #pragma comment(lib, "ws2_32.lib")
 #endif
-
 
 //// Error Codes
 
 namespace cat
 {
-    std::string SocketGetLastErrorString()
-    {
+	std::string SocketGetLastErrorString()
+	{
 #if defined(CAT_OS_WINDOWS)
-        return SocketGetErrorString(WSAGetLastError());
+		return SocketGetErrorString(WSAGetLastError());
 #else
-        return SocketGetErrorString(errno);
+		return SocketGetErrorString(errno);
 #endif
-    }
+	}
 
-    std::string SocketGetErrorString(int code)
-    {
+	std::string SocketGetErrorString(int code)
+	{
 #if defined(CAT_OS_WINDOWS)
-        switch (code)
-        {
-        case WSAEADDRNOTAVAIL:         return "[Address not available]";
-        case WSAEADDRINUSE:            return "[Address is in use]";
-        case WSANOTINITIALISED:        return "[Winsock not initialized]";
-        case WSAENETDOWN:              return "[Network is down]";
-        case WSAEINPROGRESS:           return "[Operation in progress]";
-        case WSA_NOT_ENOUGH_MEMORY:    return "[Out of memory]";
-        case WSA_INVALID_HANDLE:       return "[Invalid handle]";
-        case WSA_INVALID_PARAMETER:    return "[Invalid parameter]";
-        case WSAEFAULT:                return "[Fault]";
-        case WSAEINTR:                 return "[Interrupted]";
-        case WSAEINVAL:                return "[Invalid]";
-        case WSAEISCONN:               return "[Is connected]";
-        case WSAENETRESET:             return "[Network reset]";
-        case WSAENOTSOCK:              return "[Parameter is not a socket]";
-        case WSAEOPNOTSUPP:            return "[Operation not supported]";
-        case WSAESOCKTNOSUPPORT:       return "[Socket type not supported]";
-        case WSAESHUTDOWN:             return "[Shutdown]";
-        case WSAEWOULDBLOCK:           return "[Operation would block]";
-        case WSAEMSGSIZE:              return "[Message size]";
-        case WSAETIMEDOUT:             return "[Operation timed out]";
-        case WSAECONNRESET:            return "[Connection reset]";
-        case WSAENOTCONN:              return "[Socket not connected]";
-        case WSAEDISCON:               return "[Disconnected]";
-		case WSAENOBUFS:               return "[No buffer space available]";
-        case ERROR_IO_PENDING:         return "[IO operation will complete in IOCP worker thread]";
-        case WSA_OPERATION_ABORTED:    return "[Operation aborted]";
-        case ERROR_CONNECTION_ABORTED: return "[Connection aborted locally]";
-        case ERROR_NETNAME_DELETED:    return "[Socket was already closed]";
-        case ERROR_PORT_UNREACHABLE:   return "[Destination port is unreachable]";
-        case ERROR_MORE_DATA:          return "[More data is available]";
-        };
+		switch (code)
+		{
+		case WSAEADDRNOTAVAIL:
+			return "[Address not available]";
+		case WSAEADDRINUSE:
+			return "[Address is in use]";
+		case WSANOTINITIALISED:
+			return "[Winsock not initialized]";
+		case WSAENETDOWN:
+			return "[Network is down]";
+		case WSAEINPROGRESS:
+			return "[Operation in progress]";
+		case WSA_NOT_ENOUGH_MEMORY:
+			return "[Out of memory]";
+		case WSA_INVALID_HANDLE:
+			return "[Invalid handle]";
+		case WSA_INVALID_PARAMETER:
+			return "[Invalid parameter]";
+		case WSAEFAULT:
+			return "[Fault]";
+		case WSAEINTR:
+			return "[Interrupted]";
+		case WSAEINVAL:
+			return "[Invalid]";
+		case WSAEISCONN:
+			return "[Is connected]";
+		case WSAENETRESET:
+			return "[Network reset]";
+		case WSAENOTSOCK:
+			return "[Parameter is not a socket]";
+		case WSAEOPNOTSUPP:
+			return "[Operation not supported]";
+		case WSAESOCKTNOSUPPORT:
+			return "[Socket type not supported]";
+		case WSAESHUTDOWN:
+			return "[Shutdown]";
+		case WSAEWOULDBLOCK:
+			return "[Operation would block]";
+		case WSAEMSGSIZE:
+			return "[Message size]";
+		case WSAETIMEDOUT:
+			return "[Operation timed out]";
+		case WSAECONNRESET:
+			return "[Connection reset]";
+		case WSAENOTCONN:
+			return "[Socket not connected]";
+		case WSAEDISCON:
+			return "[Disconnected]";
+		case WSAENOBUFS:
+			return "[No buffer space available]";
+		case ERROR_IO_PENDING:
+			return "[IO operation will complete in IOCP worker thread]";
+		case WSA_OPERATION_ABORTED:
+			return "[Operation aborted]";
+		case ERROR_CONNECTION_ABORTED:
+			return "[Connection aborted locally]";
+		case ERROR_NETNAME_DELETED:
+			return "[Socket was already closed]";
+		case ERROR_PORT_UNREACHABLE:
+			return "[Destination port is unreachable]";
+		case ERROR_MORE_DATA:
+			return "[More data is available]";
+		};
 #endif
 
-        ostringstream oss;
-        oss << "[Error code: " << code << " (0x" << hex << code << ")]";
-        return oss.str();
-    }
+		ostringstream oss;
+		oss << "[Error code: " << code << " (0x" << hex << code << ")]";
+		return oss.str();
+	}
 
 #if defined(CAT_OS_WINDOWS)
 	static bool IsWindowsVistaOrNewer()
 	{
-		DWORD dwVersion = 0; 
+		DWORD dwVersion = 0;
 		DWORD dwMajorVersion = 0;
 
 		dwVersion = GetVersion();
@@ -114,7 +142,7 @@ namespace cat
 		int on = 0;
 
 		// Turn off IPV6_V6ONLY so that IPv4 is able to communicate with the socket also
-		return 0 == setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&on, sizeof(on));
+		return 0 == setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&on, sizeof(on));
 	}
 
 	bool CreateSocket(int type, int protocol, bool SupportIPv4, Socket &out_s, bool &inout_OnlyIPv4)
@@ -170,7 +198,7 @@ namespace cat
 		if (OnlyIPv4)
 		{
 			// Fill in IPv4 sockaddr within IPv6 addr
-			sockaddr_in *addr4 = reinterpret_cast<sockaddr_in*>( &addr );
+			sockaddr_in *addr4 = reinterpret_cast<sockaddr_in *>(&addr);
 
 			addr4->sin_family = AF_INET;
 			addr4->sin_addr.S_un.S_addr = INADDR_ANY;
@@ -191,20 +219,20 @@ namespace cat
 		}
 
 		// Attempt to bind
-		return 0 == bind(s, reinterpret_cast<sockaddr*>( &addr ), addr_len);
+		return 0 == bind(s, reinterpret_cast<sockaddr *>(&addr), addr_len);
 	}
 
 	Port GetBoundPort(Socket s)
 	{
-        sockaddr_in6 addr;
-        int namelen = sizeof(addr);
+		sockaddr_in6 addr;
+		int namelen = sizeof(addr);
 
 		// If socket name cannot be determined,
-        if (getsockname(s, reinterpret_cast<sockaddr*>( &addr ), &namelen))
-            return 0;
+		if (getsockname(s, reinterpret_cast<sockaddr *>(&addr), &namelen))
+			return 0;
 
 		// Port is placed in the same location for IPv4 and IPv6
-        return ntohs(addr.sin6_port);
+		return ntohs(addr.sin6_port);
 	}
 
 	// Run startup and cleanup functions needed under some OS
@@ -214,7 +242,7 @@ namespace cat
 		WSADATA wsaData;
 
 		// Request Winsock 2.2
-		return NO_ERROR == WSAStartup(MAKEWORD(2,2), &wsaData);
+		return NO_ERROR == WSAStartup(MAKEWORD(2, 2), &wsaData);
 #else
 		return true;
 #endif
@@ -227,7 +255,6 @@ namespace cat
 #endif
 	}
 }
-
 
 NetAddr::NetAddr(const char *ip_str, Port port)
 {
@@ -271,7 +298,7 @@ NetAddr &NetAddr::operator=(const NetAddr &addr)
 bool NetAddr::Wrap(const sockaddr_in6 &addr)
 {
 	// May be IPv4 that has been stuffed into an IPv6 sockaddr
-	return Wrap(reinterpret_cast<const sockaddr*>( &addr ));
+	return Wrap(reinterpret_cast<const sockaddr *>(&addr));
 }
 bool NetAddr::Wrap(const sockaddr_in &addr)
 {
@@ -296,7 +323,7 @@ bool NetAddr::Wrap(const sockaddr *addr)
 	// Based on the family of the sockaddr,
 	if (family == AF_INET)
 	{
-		const sockaddr_in *addr4 = reinterpret_cast<const sockaddr_in*>( addr );
+		const sockaddr_in *addr4 = reinterpret_cast<const sockaddr_in *>(addr);
 
 		_family = AF_INET;
 		_port = ntohs(addr4->sin_port);
@@ -305,7 +332,7 @@ bool NetAddr::Wrap(const sockaddr *addr)
 	}
 	else if (family == AF_INET6)
 	{
-		const sockaddr_in6 *addr6 = reinterpret_cast<const sockaddr_in6*>( addr );
+		const sockaddr_in6 *addr6 = reinterpret_cast<const sockaddr_in6 *>(addr);
 
 		_family = AF_INET6;
 		_port = ntohs(addr6->sin6_port);
@@ -367,8 +394,8 @@ bool NetAddr::IsInternetRoutable()
 
 		switch ((u8)(ipv4 >> 24))
 		{
-		case   0: // This Net: 0.0.0.0
-		case  10: // Private: 10/8
+		case 0:	  // This Net: 0.0.0.0
+		case 10:  // Private: 10/8
 		case 127: // Loopback: 127/8
 		case 255: // Broadcast: 255.255.255.255
 			return false;
@@ -377,11 +404,11 @@ bool NetAddr::IsInternetRoutable()
 			return ((ipv4 & 0xFFFF0000) != 0xC0A80000);
 
 		case 172: // Private: 172.16.0.0 ... 172.31.0.0
-			{
-				u8 b = (u8)(ipv4 >> 16);
+		{
+			u8 b = (u8)(ipv4 >> 16);
 
-				return b < 16 || b > 31;
-			}
+			return b < 16 || b > 31;
+		}
 
 		default:
 			// Otherwise it is Internet routable
@@ -391,13 +418,16 @@ bool NetAddr::IsInternetRoutable()
 	else if (_family == AF_INET6)
 	{
 		// Site-local addresses (fec0:/16) [may be deprecated now...]
-		if (_ip.v6_words[0] == 0xfec0) return false;
+		if (_ip.v6_words[0] == 0xfec0)
+			return false;
 
 		// Link-local addresses (fe80:/16)
-		if (_ip.v6_words[0] == 0xfe80) return false;
+		if (_ip.v6_words[0] == 0xfe80)
+			return false;
 
 		// Unique local addresses (fc00:/7)
-		if ((_ip.v6_words[0] & 0xfe00) == 0xfc00) return false;
+		if ((_ip.v6_words[0] & 0xfe00) == 0xfc00)
+			return false;
 
 		// Loopback address (::1)
 		if (_ip.v6[0] == 0 && _ip.v6_words[4] == 0 &&
@@ -424,7 +454,7 @@ bool NetAddr::IsRoutable()
 
 		switch ((u8)(ipv4 >> 24))
 		{
-		case   0: // This Net: 0.0.0.0
+		case 0:	  // This Net: 0.0.0.0
 		case 127: // Loopback: 127/8
 		case 255: // Broadcast: 255.255.255.255
 			return false;
@@ -468,8 +498,8 @@ bool NetAddr::SetFromString(const char *ip_str, Port port)
 	sockaddr_in6 addr6;
 	int out_addr_len6 = sizeof(addr6);
 
-	if (!WSAStringToAddress((char*)ip_str, AF_INET6, 0,
-							(sockaddr*)&addr6, &out_addr_len6))
+	if (!WSAStringToAddress((char *)ip_str, AF_INET6, 0,
+							(sockaddr *)&addr6, &out_addr_len6))
 	{
 		// Copy address from temporary object
 		_family = AF_INET6;
@@ -483,8 +513,8 @@ bool NetAddr::SetFromString(const char *ip_str, Port port)
 		sockaddr_in addr4;
 		int out_addr_len4 = sizeof(addr4);
 
-		if (!WSAStringToAddress((char*)ip_str, AF_INET, 0,
-								(sockaddr*)&addr4, &out_addr_len4))
+		if (!WSAStringToAddress((char *)ip_str, AF_INET, 0,
+								(sockaddr *)&addr4, &out_addr_len4))
 		{
 			// Copy address from temporary object
 			_family = AF_INET;
@@ -504,7 +534,7 @@ bool NetAddr::SetFromRawIP(const u8 *ip_binary, int bytes)
 {
 	if (bytes == IP4_BYTES)
 	{
-		const u32 *ipv4 = reinterpret_cast<const u32*>( ip_binary );
+		const u32 *ipv4 = reinterpret_cast<const u32 *>(ip_binary);
 
 		_family = AF_INET;
 		_ip.v4 = *ipv4; // Endian agnostic
@@ -556,7 +586,7 @@ std::string NetAddr::IPToString() const
 		DWORD str_len6 = sizeof(addr_str6);
 
 		// Because inet_ntop() is not supported in Windows XP, only Vista+
-		if (SOCKET_ERROR == WSAAddressToString((sockaddr*)&addr6, sizeof(addr6),
+		if (SOCKET_ERROR == WSAAddressToString((sockaddr *)&addr6, sizeof(addr6),
 											   0, addr_str6, &str_len6))
 			return SocketGetLastErrorString();
 
@@ -575,7 +605,7 @@ std::string NetAddr::IPToString() const
 		DWORD str_len4 = sizeof(addr_str4);
 
 		// Because inet_ntop() is not supported in Windows XP, only Vista+
-		if (SOCKET_ERROR == WSAAddressToString((sockaddr*)&addr4, sizeof(addr4),
+		if (SOCKET_ERROR == WSAAddressToString((sockaddr *)&addr4, sizeof(addr4),
 											   0, addr_str4, &str_len4))
 			return SocketGetLastErrorString();
 
@@ -595,7 +625,7 @@ bool NetAddr::Unwrap(SockAddr &addr, int &addr_len, bool PromoteToIP6) const
 		// If the user wants us to unwrap to an IPv6 address,
 		if (PromoteToIP6)
 		{
-			sockaddr_in6 *addr6 = reinterpret_cast<sockaddr_in6*>( &addr );
+			sockaddr_in6 *addr6 = reinterpret_cast<sockaddr_in6 *>(&addr);
 
 			CAT_OBJCLR(*addr6);
 			addr6->sin6_family = AF_INET6;
@@ -621,7 +651,7 @@ bool NetAddr::Unwrap(SockAddr &addr, int &addr_len, bool PromoteToIP6) const
 		}
 		else
 		{
-			sockaddr_in *addr4 = reinterpret_cast<sockaddr_in*>( &addr );
+			sockaddr_in *addr4 = reinterpret_cast<sockaddr_in *>(&addr);
 
 			addr4->sin_family = AF_INET;
 			addr4->sin_port = htons(_port);
@@ -635,7 +665,7 @@ bool NetAddr::Unwrap(SockAddr &addr, int &addr_len, bool PromoteToIP6) const
 	}
 	else if (_family == AF_INET6)
 	{
-		sockaddr_in6 *addr6 = reinterpret_cast<sockaddr_in6*>( &addr );
+		sockaddr_in6 *addr6 = reinterpret_cast<sockaddr_in6 *>(&addr);
 
 		CAT_OBJCLR(*addr6);
 		addr6->sin6_family = AF_INET6;
@@ -721,10 +751,10 @@ bool NetAddr::DemoteTo4()
 		{
 			// Embedded IPv4 address
 			_family = AF_INET;
-			_ip.v4 = htonl( ((u32)_ip.v6_bytes[12] << 24) |
-							((u32)_ip.v6_bytes[13] << 16) |
-							((u32)_ip.v6_bytes[14] << 8) |
-							((u32)_ip.v6_bytes[15]) );
+			_ip.v4 = htonl(((u32)_ip.v6_bytes[12] << 24) |
+						   ((u32)_ip.v6_bytes[13] << 16) |
+						   ((u32)_ip.v6_bytes[14] << 8) |
+						   ((u32)_ip.v6_bytes[15]));
 			return true;
 		}
 		else

@@ -30,13 +30,13 @@
 using namespace cat;
 
 #if defined(EXTENDED_T)
-# undef PT_FN
-# define PT_FN PtEAdd /* Version that does produce the T coord */
+#undef PT_FN
+#define PT_FN PtEAdd /* Version that does produce the T coord */
 #else
-# define EXTENDED_T
-# include "PtAdd.cpp"
-# undef PT_FN
-# define PT_FN PtAdd /* Version that does not produce the T coord */
+#define EXTENDED_T
+#include "PtAdd.cpp"
+#undef PT_FN
+#define PT_FN PtAdd /* Version that does not produce the T coord */
 #endif
 
 /*
@@ -58,37 +58,37 @@ using namespace std;
 // Extended Twisted Edwards Unified Addition Formula (works when both inputs are the same) in 8M 1D 9a
 void BigTwistedEdwards::PT_FN(const Leg *in_a, const Leg *in_b, Leg *out)
 {
-    // A = (Y1 - X1) * (Y2 - X2)
-    MrSubtract(in_a+YOFF, in_a+XOFF, C);
-    MrSubtract(in_b+YOFF, in_b+XOFF, D);
+	// A = (Y1 - X1) * (Y2 - X2)
+	MrSubtract(in_a + YOFF, in_a + XOFF, C);
+	MrSubtract(in_b + YOFF, in_b + XOFF, D);
 	MrMultiply(C, D, A);
 
-    // B = (Y1 + X1) * (Y2 + X2)
-    MrAdd(in_a+YOFF, in_a+XOFF, G);
-    MrAdd(in_b+YOFF, in_b+XOFF, H);
+	// B = (Y1 + X1) * (Y2 + X2)
+	MrAdd(in_a + YOFF, in_a + XOFF, G);
+	MrAdd(in_b + YOFF, in_b + XOFF, H);
 	MrMultiply(G, H, B);
 
-    // C = 2 * d * T1 * T2 (can remove multiplication by d if inputs are known to be different)
-    MrMultiply(in_a+TOFF, in_b+TOFF, C);
+	// C = 2 * d * T1 * T2 (can remove multiplication by d if inputs are known to be different)
+	MrMultiply(in_a + TOFF, in_b + TOFF, C);
 	MrMultiplyX(C, curve_d * 2, C);
 
-    // D = 2 * Z1 * Z2
-    MrMultiply(in_a+ZOFF, in_b+ZOFF, D);
+	// D = 2 * Z1 * Z2
+	MrMultiply(in_a + ZOFF, in_b + ZOFF, D);
 	MrDouble(D, D);
 
-    // E = B - A, F = D - C, G = D + C, H = B + A
-    MrSubtract(B, A, E);
-    MrSubtract(D, C, F);
-    MrAdd(D, C, G);
-    MrAdd(B, A, H);
+	// E = B - A, F = D - C, G = D + C, H = B + A
+	MrSubtract(B, A, E);
+	MrSubtract(D, C, F);
+	MrAdd(D, C, G);
+	MrAdd(B, A, H);
 
-    // X3 = E * F, Y3 = G * H, T3 = E * H, Z3 = F * G
-    MrMultiply(E, F, out+XOFF);
-    MrMultiply(G, H, out+YOFF);
+	// X3 = E * F, Y3 = G * H, T3 = E * H, Z3 = F * G
+	MrMultiply(E, F, out + XOFF);
+	MrMultiply(G, H, out + YOFF);
 #if defined(EXTENDED_T)
-    MrMultiply(E, H, out+TOFF);
+	MrMultiply(E, H, out + TOFF);
 #endif
-    MrMultiply(F, G, out+ZOFF);
+	MrMultiply(F, G, out + ZOFF);
 }
 
 #undef EXTENDED_T

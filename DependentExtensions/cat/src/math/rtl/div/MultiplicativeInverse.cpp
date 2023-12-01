@@ -32,11 +32,12 @@ using namespace cat;
 Leg CAT_FASTCALL BigRTL::MultiplicativeInverseX(Leg n)
 {
 	// {u1, g1} = 2^bits / n
-	Leg hb = (~(n - 1) >> (CAT_LEG_BITS-1));
+	Leg hb = (~(n - 1) >> (CAT_LEG_BITS - 1));
 	Leg u1 = -(LegSigned)(CAT_LEG_LARGEST / n + hb);
 	Leg g1 = ((-(LegSigned)hb) & (CAT_LEG_LARGEST % n + 1)) - n;
 
-	if (!g1) return n != 1 ? 0 : 1;
+	if (!g1)
+		return n != 1 ? 0 : 1;
 
 	Leg q, u = 1, g = n;
 
@@ -45,14 +46,16 @@ Leg CAT_FASTCALL BigRTL::MultiplicativeInverseX(Leg n)
 		q = g / g1;
 		g %= g1;
 
-		if (!g) return g1 != 1 ? 0 : u1;
+		if (!g)
+			return g1 != 1 ? 0 : u1;
 
-		u -= q*u1;
+		u -= q * u1;
 		q = g1 / g;
 		g1 %= g;
 
-		if (!g1) return g != 1 ? 0 : u;
+		if (!g1)
+			return g != 1 ? 0 : u;
 
-		u1 -= q*u;
+		u1 -= q * u;
 	}
 }

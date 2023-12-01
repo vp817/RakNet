@@ -32,7 +32,7 @@ using namespace cat;
 
 #if !defined(CAT_OS_WINDOWS)
 #include <sys/time.h> // gettimeofday
-#include <errno.h> // ETIMEDOUT
+#include <errno.h>	  // ETIMEDOUT
 #endif
 
 WaitableFlag::WaitableFlag()
@@ -49,10 +49,12 @@ WaitableFlag::WaitableFlag()
 	_valid_mutex = false;
 
 	_valid_cond = pthread_cond_init(&_cond, 0) == 0;
-	if (!_valid_cond) return;
+	if (!_valid_cond)
+		return;
 
 	_valid_mutex = pthread_mutex_init(&_mutex, 0) == 0;
-	if (!_valid_mutex) return;
+	if (!_valid_mutex)
+		return;
 
 	_valid = true;
 
@@ -117,13 +119,15 @@ bool WaitableFlag::Wait(int milliseconds)
 {
 #if defined(CAT_OS_WINDOWS)
 
-	if (_event == 0) return false;
+	if (_event == 0)
+		return false;
 
 	return WaitForSingleObject(_event, (milliseconds >= 0) ? milliseconds : INFINITE) != WAIT_TIMEOUT;
 
 #else
 
-	if (!_valid) return false;
+	if (!_valid)
+		return false;
 
 	bool triggered = false;
 

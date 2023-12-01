@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -27,7 +27,7 @@ using namespace RakNet;
 class ConnectionStatePlugin : public SQLite3ServerPlugin
 {
 public:
-	ConnectionStatePlugin() {lastTimeRemovedDeadRows=0;}
+	ConnectionStatePlugin() { lastTimeRemovedDeadRows = 0; }
 
 	// Custom function to create the table we want
 	// Assumes the database was already added with AddDBHandle
@@ -35,11 +35,11 @@ public:
 	{
 		// dbHandles is a member variable of SQLite3Plugin and contains the mappings of identifiers to sql database pointers
 		unsigned int idx = dbHandles.GetIndexOf(dbIdentifier);
-		if (idx==(unsigned int)-1)
+		if (idx == (unsigned int)-1)
 			return false;
 
 		// Store the identifier for the connection state table for use in OnClosedConnection and OnNewConnection
-		connectionStateIdentifier=dbIdentifier;
+		connectionStateIdentifier = dbIdentifier;
 
 		// Create the table.
 		sqlite3_exec(
@@ -51,28 +51,28 @@ public:
 			"lastRowUpdateTime timestamp DATE DEFAULT (datetime('now','localtime')),"
 			"rakNetGUID varchar(64))",
 			// Ignore per-row callback, callback parameter, and error message destination
-			0,0,0);
+			0, 0, 0);
 
 		return true;
 	}
 
 	// Implemented event callback from base class PluginInterface2
-	virtual void OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
+	virtual void OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason)
 	{
 		// Call down to the base class in case it does anything in the future (right now it does nothing)
 		SQLite3ServerPlugin::OnClosedConnection(systemAddress, rakNetGUID, lostConnectionReason);
 
 		// Get the database index associated with the table used for this class
 		unsigned int idx = dbHandles.GetIndexOf(connectionStateIdentifier);
-		if (idx==(unsigned int)-1)
+		if (idx == (unsigned int)-1)
 			return;
 
 		// Remove dropped system by primary key system address
 		char systemAddressString[64];
-		systemAddress.ToString(true,systemAddressString);
+		systemAddress.ToString(true, systemAddressString);
 		RakNet::RakString query("DELETE FROM connectionState WHERE systemAddress='%s';",
-			RakNet::RakString(systemAddressString).SQLEscape().C_String());
-		sqlite3_exec(dbHandles[idx].dbHandle,query.C_String(),0,0,0);
+								RakNet::RakString(systemAddressString).SQLEscape().C_String());
+		sqlite3_exec(dbHandles[idx].dbHandle, query.C_String(), 0, 0, 0);
 	}
 
 	// Implemented event callback from base class PluginInterface2
@@ -83,19 +83,19 @@ public:
 
 		// Get the database index associated with the table used for this class
 		unsigned int idx = dbHandles.GetIndexOf(connectionStateIdentifier);
-		if (idx==(unsigned int)-1)
+		if (idx == (unsigned int)-1)
 			return;
 
 		// Store new system's system address and guid. rowCreationTime column is created automatically
 		char systemAddressString[64];
-		systemAddress.ToString(true,systemAddressString);
+		systemAddress.ToString(true, systemAddressString);
 		char guidString[128];
 		rakNetGUID.ToString(guidString);
 		RakNet::RakString query(
 			"INSERT INTO connectionState (systemAddress,rakNetGUID) VALUES ('%s','%s');",
 			RakNet::RakString(systemAddressString).SQLEscape().C_String(),
 			RakNet::RakString(guidString).SQLEscape().C_String());
-		sqlite3_exec(dbHandles[idx].dbHandle,query.C_String(),0,0,0);
+		sqlite3_exec(dbHandles[idx].dbHandle, query.C_String(), 0, 0, 0);
 	}
 
 	// After I wrote this I realized it's not needed. ID_CONNECTION_LOST does it for us :)
@@ -132,8 +132,8 @@ int main(void)
 	printf("System is a basis from which to add more functionality (security, etc.)\n");
 	printf("Difficulty: Intermediate\n\n");
 
-	RakNet::RakPeerInterface *rakClient=RakNet::RakPeerInterface::GetInstance();
-	RakNet::RakPeerInterface *rakServer=RakNet::RakPeerInterface::GetInstance();
+	RakNet::RakPeerInterface *rakClient = RakNet::RakPeerInterface::GetInstance();
+	RakNet::RakPeerInterface *rakServer = RakNet::RakPeerInterface::GetInstance();
 	// Client just needs the base class to do sends
 	RakNet::SQLite3ClientPlugin sqlite3ClientPlugin;
 	// Server uses our sample derived class to track logins
@@ -148,24 +148,24 @@ int main(void)
 	sqlite3 *database;
 	// Here :memory: means create the database in memory only.
 	// Normally the first parameter refers to a path on the disk to the database file
-	if (sqlite3_open_v2(":memory:", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0)!=SQLITE_OK)
+	if (sqlite3_open_v2(":memory:", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0) != SQLITE_OK)
 		return 1;
 
-	static const char* DATABASE_IDENTIFIER="ConnectionStateDBInMemory";
+	static const char *DATABASE_IDENTIFIER = "ConnectionStateDBInMemory";
 	sqlite3ServerPlugin.AddDBHandle(DATABASE_IDENTIFIER, database);
 	sqlite3ServerPlugin.CreateConnectionStateTable(DATABASE_IDENTIFIER);
 
 	// Start and connect RakNet as usual
-	RakNet::SocketDescriptor socketDescriptor(10000,0);
-	if (rakServer->Startup(1,&socketDescriptor, 1)!=RAKNET_STARTED)
+	RakNet::SocketDescriptor socketDescriptor(10000, 0);
+	if (rakServer->Startup(1, &socketDescriptor, 1) != RAKNET_STARTED)
 	{
 		printf("Start call failed!\n");
 		return 0;
 	}
 	rakServer->SetMaximumIncomingConnections(1);
-	socketDescriptor.port=0;
+	socketDescriptor.port = 0;
 	rakClient->Startup(1, &socketDescriptor, 1);
-	if (rakClient->Connect("127.0.0.1", 10000, 0, 0)!=RakNet::CONNECTION_ATTEMPT_STARTED)
+	if (rakClient->Connect("127.0.0.1", 10000, 0, 0) != RakNet::CONNECTION_ATTEMPT_STARTED)
 	{
 		printf("Connect call failed\n");
 		return 0;
@@ -174,7 +174,6 @@ int main(void)
 	// Wait for the connection to complete
 	RakSleep(500);
 
-	
 	printf("Enter QUIT to quit, anything else is sent as a query.\n");
 	while (1)
 	{
@@ -182,8 +181,8 @@ int main(void)
 		{
 			printf("Enter query: ");
 			char query[512];
-			Gets(query,sizeof(query));
-			if (stricmp(query, "QUIT")==0)
+			Gets(query, sizeof(query));
+			if (stricmp(query, "QUIT") == 0)
 			{
 				printf("Bye\n");
 				break;
@@ -193,7 +192,6 @@ int main(void)
 				// Send a query to the database through RakNet
 				// Result will be printed through SQLite3PluginResultInterface_Printf
 				sqlite3ClientPlugin._sqlite3_exec(DATABASE_IDENTIFIER, query, HIGH_PRIORITY, RELIABLE_ORDERED, 0, rakClient->GetSystemAddressFromIndex(0));
-
 			}
 		}
 
@@ -202,10 +200,10 @@ int main(void)
 
 		RakSleep(30);
 	}
-	
-	rakClient->Shutdown(100,0);
-	rakServer->Shutdown(100,0);
-	
+
+	rakClient->Shutdown(100, 0);
+	rakServer->Shutdown(100, 0);
+
 	RakNet::RakPeerInterface::DestroyInstance(rakClient);
 	RakNet::RakPeerInterface::DestroyInstance(rakServer);
 

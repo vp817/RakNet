@@ -31,15 +31,17 @@ using namespace cat;
 
 u8 CAT_FASTCALL BigRTL::SubtractX(Leg *inout, Leg x)
 {
-    Leg t = inout[0];
-    inout[0] = t - x;
+	Leg t = inout[0];
+	inout[0] = t - x;
 
-    // If the initial difference did not borrow in, return 0
-    if (t >= x) return 0;
+	// If the initial difference did not borrow in, return 0
+	if (t >= x)
+		return 0;
 
-    // Ripple the borrow in as far as needed
-    for (int ii = 1; ii < library_legs; ++ii)
-        if (inout[ii]--) return 0;
+	// Ripple the borrow in as far as needed
+	for (int ii = 1; ii < library_legs; ++ii)
+		if (inout[ii]--)
+			return 0;
 
-    return 1;
+	return 1;
 }

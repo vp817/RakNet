@@ -31,23 +31,24 @@ using namespace cat;
 
 void CAT_FASTCALL BigPseudoMersenne::MrReduceProductX(Leg overflow, Leg *inout)
 {
-    // Pseudo-Mersenne reduction
-    Leg p_hi, p_lo;
-    CAT_LEG_MULADD(overflow, modulus_c, inout[0], p_hi, p_lo);
+	// Pseudo-Mersenne reduction
+	Leg p_hi, p_lo;
+	CAT_LEG_MULADD(overflow, modulus_c, inout[0], p_hi, p_lo);
 
-    inout[0] = p_lo;
+	inout[0] = p_lo;
 
-    // If the initial sum carried out,
-    if ((inout[1] += p_hi) < p_hi)
-    {
-        // Ripple the carry out as far as needed
-        for (int ii = 2; ii < library_legs; ++ii)
-            if (++inout[ii]) return;
+	// If the initial sum carried out,
+	if ((inout[1] += p_hi) < p_hi)
+	{
+		// Ripple the carry out as far as needed
+		for (int ii = 2; ii < library_legs; ++ii)
+			if (++inout[ii])
+				return;
 
-		while (AddX(inout, modulus_c));
-    }
+		while (AddX(inout, modulus_c))
+			;
+	}
 }
-
 
 void CAT_FASTCALL BigPseudoMersenne::MrReduceProduct(const Leg *in_hi, const Leg *in_lo, Leg *output)
 {

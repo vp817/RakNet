@@ -31,14 +31,16 @@ using namespace cat;
 
 void BigMontgomery::MonAdd(const Leg *in_a, const Leg *in_b, Leg *out)
 {
-    // If the addition overflowed, subtract modulus
-    if (Add(in_a, in_b, out))
-        while (Subtract(out, CachedModulus, out));
+	// If the addition overflowed, subtract modulus
+	if (Add(in_a, in_b, out))
+		while (Subtract(out, CachedModulus, out))
+			;
 }
 
 void BigMontgomery::MonDouble(const Leg *in, Leg *out)
 {
-    // If the doubling overflowed, subtract modulus
-    if (Double(in, out))
-        while (Subtract(out, CachedModulus, out));
+	// If the doubling overflowed, subtract modulus
+	if (Double(in, out))
+		while (Subtract(out, CachedModulus, out))
+			;
 }

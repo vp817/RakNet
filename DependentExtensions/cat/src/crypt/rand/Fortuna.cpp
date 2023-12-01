@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/crypt/rand/Fortuna.hpp>
@@ -33,8 +33,6 @@ using namespace cat;
 
 u32 FortunaFactory::MasterSeedRevision = 0;
 Skein FortunaFactory::MasterSeed;
-
-
 
 //// FortunaOutput
 
@@ -53,7 +51,7 @@ FortunaOutput::~FortunaOutput()
 
 void FortunaOutput::Reseed()
 {
-	FortunaFactory::ii->GetNextKey(this);
+    FortunaFactory::ii->GetNextKey(this);
 
     OutputHash.Generate(CachedRandomBytes, OUTPUT_CACHE_BYTES);
     used_bytes = 0;
@@ -86,7 +84,7 @@ void FortunaOutput::Generate(void *buffer, int bytes)
     // Copy as much as we can from what remains
     memcpy(buffer, CachedRandomBytes + used_bytes, remaining);
     bytes -= remaining;
-    u8 *output = (u8*)buffer + remaining;
+    u8 *output = (u8 *)buffer + remaining;
 
     // Copy whole new blocks at a time
     while (bytes >= OUTPUT_CACHE_BYTES)
@@ -104,25 +102,24 @@ void FortunaOutput::Generate(void *buffer, int bytes)
     used_bytes = bytes;
 }
 
-
 //// FortunaFactory
 
 void FortunaFactory::GetNextKey(FortunaOutput *output)
 {
-	u8 key_material[POOL_BYTES];
+    u8 key_material[POOL_BYTES];
 
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
-		MasterSeed.Generate(key_material, sizeof(key_material));
+    MasterSeed.Generate(key_material, sizeof(key_material));
 
-		output->SeedRevision = MasterSeedRevision;
+    output->SeedRevision = MasterSeedRevision;
 
-	lock.Release();
+    lock.Release();
 
-	output->OutputHash.BeginKey(FortunaFactory::POOL_BITS);
-	output->OutputHash.BeginPRNG();
-	output->OutputHash.Crunch(key_material, sizeof(key_material));
-	output->OutputHash.End();
+    output->OutputHash.BeginKey(FortunaFactory::POOL_BITS);
+    output->OutputHash.BeginPRNG();
+    output->OutputHash.Crunch(key_material, sizeof(key_material));
+    output->OutputHash.End();
 }
 
 bool FortunaFactory::Reseed()
@@ -148,7 +145,7 @@ bool FortunaFactory::Reseed()
     // Pool 1 is used every other time, and so on
     for (int ii = 1; ii < ENTROPY_POOLS; ++ii)
     {
-        if (reseed_counter & (1 << (ii-1)))
+        if (reseed_counter & (1 << (ii - 1)))
         {
             Pool[ii].End();
             Pool[ii].Generate(PoolOutput, POOL_BYTES);
@@ -160,20 +157,20 @@ bool FortunaFactory::Reseed()
     // Initialize the master seed with the new seed
     NextSeed.End();
 
-	AutoMutex lock(_lock);
+    AutoMutex lock(_lock);
 
-	MasterSeed.SetKey(&NextSeed);
-	MasterSeed.BeginPRNG();
+    MasterSeed.SetKey(&NextSeed);
+    MasterSeed.BeginPRNG();
 
-	u32 material_revision = ++MasterSeedRevision;
-	u32 material_reseed_count = ++reseed_counter;
+    u32 material_revision = ++MasterSeedRevision;
+    u32 material_reseed_count = ++reseed_counter;
 
-	MasterSeed.Crunch(&material_revision, sizeof(material_revision));
-	MasterSeed.Crunch(&material_reseed_count, sizeof(material_reseed_count));
+    MasterSeed.Crunch(&material_revision, sizeof(material_revision));
+    MasterSeed.Crunch(&material_reseed_count, sizeof(material_reseed_count));
 
-	MasterSeed.End();
+    MasterSeed.End();
 
-	// MasterSeed is now ready to generate!
+    // MasterSeed is now ready to generate!
 
     return true;
 }
@@ -181,8 +178,8 @@ bool FortunaFactory::Reseed()
 // Start the entropy generator
 bool FortunaFactory::Initialize()
 {
-	if (_initialized)
-		return true;
+    if (_initialized)
+        return true;
 
     MasterSeedRevision = 0;
     reseed_counter = 0;
@@ -199,7 +196,7 @@ bool FortunaFactory::Initialize()
     if (!Reseed())
         return false;
 
-	_initialized = true;
+    _initialized = true;
 
     return true;
 }
@@ -207,13 +204,13 @@ bool FortunaFactory::Initialize()
 // Stop the entropy generator
 void FortunaFactory::Shutdown()
 {
-	if (_initialized)
-	{
-		// Block and wait for entropy collection thread to end
-		ShutdownEntropySources();
+    if (_initialized)
+    {
+        // Block and wait for entropy collection thread to end
+        ShutdownEntropySources();
 
-		_initialized = false;
-	}
+        _initialized = false;
+    }
 }
 
 // Create a new Fortuna object

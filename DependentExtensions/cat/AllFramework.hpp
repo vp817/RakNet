@@ -67,14 +67,13 @@
 #include <cat/db/BombayTableIndex.hpp>
 #include <cat/db/BombayTable.hpp>
 
-namespace cat {
+namespace cat
+{
 
+	// Specifying a service name will set up service mode
+	bool InitializeFramework(const char *settings_file, const char *service_name = 0);
 
-// Specifying a service name will set up service mode
-bool InitializeFramework(const char *settings_file, const char *service_name = 0);
-
-void ShutdownFramework(bool WriteSettings = true);
-
+	void ShutdownFramework(bool WriteSettings = true);
 
 } // namespace cat
 

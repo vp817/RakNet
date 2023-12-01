@@ -18,7 +18,6 @@ using namespace Platform;
 using namespace Windows::Foundation;
 using namespace Windows::System::Threading;
 
-
 namespace ThreadEmulation
 {
     // Stored data for CREATE_SUSPENDED and ResumeThread.
@@ -33,16 +32,14 @@ namespace ThreadEmulation
     static map<HANDLE, PendingThreadInfo> pendingThreads;
     static mutex pendingThreadsLock;
 
-    
     // Thread local storage.
-    typedef vector<void*> ThreadLocalData;
+    typedef vector<void *> ThreadLocalData;
 
-    static __declspec(thread) ThreadLocalData* currentThreadData = nullptr;
-    static set<ThreadLocalData*> allThreadData;
+    static __declspec(thread) ThreadLocalData *currentThreadData = nullptr;
+    static set<ThreadLocalData *> allThreadData;
     static DWORD nextTlsIndex = 0;
     static vector<DWORD> freeTlsIndices;
     static mutex tlsAllocationLock;
-
 
     // Converts a Win32 thread priority to WinRT format.
     static WorkItemPriority GetWorkItemPriority(int nPriority)
@@ -55,35 +52,32 @@ namespace ThreadEmulation
             return WorkItemPriority::Normal;
     }
 
-
     // Helper shared between CreateThread and ResumeThread.
     static void StartThread(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, HANDLE completionEvent, int nPriority)
     {
-        auto workItemHandler = ref new WorkItemHandler([=](IAsyncAction^)
-        {
-            // Run the user callback.
-            try
-            {
-                lpStartAddress(lpParameter);
-            }
-			catch (Exception ^e)
-			{
-				Platform::String ^exceptionString = e->ToString();
-				OutputDebugStringW(exceptionString->Data());
-			}
+        auto workItemHandler = ref new WorkItemHandler([=](IAsyncAction ^)
+                                                       {
+                                                           // Run the user callback.
+                                                           try
+                                                           {
+                                                               lpStartAddress(lpParameter);
+                                                           }
+                                                           catch (Exception ^ e)
+                                                           {
+                                                               Platform::String ^ exceptionString = e->ToString();
+                                                               OutputDebugStringW(exceptionString->Data());
+                                                           }
 
-            // Clean up any TLS allocations made by this thread.
-            TlsShutdown();
+                                                           // Clean up any TLS allocations made by this thread.
+                                                           TlsShutdown();
 
-            // Signal that the thread has completed.
-            SetEvent(completionEvent);
-            CloseHandle(completionEvent);
-
-        }, CallbackContext::Any);
+                                                           // Signal that the thread has completed.
+                                                           SetEvent(completionEvent);
+                                                           CloseHandle(completionEvent); },
+                                                       CallbackContext::Any);
 
         ThreadPool::RunAsync(workItemHandler, GetWorkItemPriority(nPriority), WorkItemOptions::TimeSliced);
     }
-
 
     _Use_decl_annotations_ HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES unusedThreadAttributes, SIZE_T unusedStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD unusedThreadId)
     {
@@ -103,7 +97,7 @@ namespace ThreadEmulation
         // the caller is responsible for closing the handle returned by CreateThread,
         // and they may do that before or after the thread has finished running.
         HANDLE completionEvent;
-        
+
         if (!DuplicateHandle(GetCurrentProcess(), threadHandle, GetCurrentProcess(), &completionEvent, 0, false, DUPLICATE_SAME_ACCESS))
         {
             CloseHandle(threadHandle);
@@ -131,7 +125,7 @@ namespace ThreadEmulation
                 // Start the thread immediately.
                 StartThread(lpStartAddress, lpParameter, completionEvent, 0);
             }
-    
+
             return threadHandle;
         }
         catch (...)
@@ -143,7 +137,6 @@ namespace ThreadEmulation
             return nullptr;
         }
     }
-
 
     _Use_decl_annotations_ DWORD WINAPI ResumeThread(HANDLE hThread)
     {
@@ -162,7 +155,7 @@ namespace ThreadEmulation
         // Start the thread.
         try
         {
-            PendingThreadInfo& info = threadInfo->second;
+            PendingThreadInfo &info = threadInfo->second;
 
             StartThread(info.lpStartAddress, info.lpParameter, info.completionEvent, info.nPriority);
         }
@@ -176,7 +169,6 @@ namespace ThreadEmulation
 
         return 0;
     }
-
 
     _Use_decl_annotations_ BOOL WINAPI SetThreadPriority(HANDLE hThread, int nPriority)
     {
@@ -198,7 +190,6 @@ namespace ThreadEmulation
         return true;
     }
 
-
     _Use_decl_annotations_ VOID WINAPI Sleep(DWORD dwMilliseconds)
     {
         static HANDLE singletonEvent = nullptr;
@@ -214,7 +205,7 @@ namespace ThreadEmulation
                 return;
 
             HANDLE previousEvent = InterlockedCompareExchangePointerRelease(&singletonEvent, sleepEvent, nullptr);
-            
+
             if (previousEvent)
             {
                 // Back out if multiple threads try to demand create at the same time.
@@ -227,11 +218,10 @@ namespace ThreadEmulation
         WaitForSingleObjectEx(sleepEvent, dwMilliseconds, false);
     }
 
-
     DWORD WINAPI TlsAlloc()
     {
         lock_guard<mutex> lock(tlsAllocationLock);
-        
+
         // Can we reuse a previously freed TLS slot?
         if (!freeTlsIndices.empty())
         {
@@ -243,7 +233,6 @@ namespace ThreadEmulation
         // Allocate a new TLS slot.
         return nextTlsIndex++;
     }
-
 
     _Use_decl_annotations_ BOOL WINAPI TlsFree(DWORD dwTlsIndex)
     {
@@ -274,10 +263,9 @@ namespace ThreadEmulation
         return true;
     }
 
-
     _Use_decl_annotations_ LPVOID WINAPI TlsGetValue(DWORD dwTlsIndex)
     {
-        ThreadLocalData* threadData = currentThreadData;
+        ThreadLocalData *threadData = currentThreadData;
 
         if (threadData && threadData->size() > dwTlsIndex)
         {
@@ -291,10 +279,9 @@ namespace ThreadEmulation
         }
     }
 
-
     _Use_decl_annotations_ BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
     {
-        ThreadLocalData* threadData = currentThreadData;
+        ThreadLocalData *threadData = currentThreadData;
 
         if (!threadData)
         {
@@ -302,7 +289,7 @@ namespace ThreadEmulation
             try
             {
                 threadData = new ThreadLocalData(dwTlsIndex + 1, nullptr);
-                
+
                 lock_guard<mutex> lock(tlsAllocationLock);
 
                 allThreadData.insert(threadData);
@@ -338,11 +325,10 @@ namespace ThreadEmulation
         return true;
     }
 
-
     // Called at thread exit to clean up TLS allocations.
     void WINAPI TlsShutdown()
     {
-        ThreadLocalData* threadData = currentThreadData;
+        ThreadLocalData *threadData = currentThreadData;
 
         if (threadData)
         {

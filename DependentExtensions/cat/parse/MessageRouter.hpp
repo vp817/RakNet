@@ -32,22 +32,21 @@
 #include <cat/parse/BitStream.hpp>
 #include <cat/port/FastDelegate.h>
 
-namespace cat {
-
-
-typedef fastdelegate::FastDelegate<void (BitStream &m)> MessageHandler;
-
-class MessageRouter
+namespace cat
 {
-    MessageHandler handlers[256];
 
-public:
-    void Set(u8 opcode, const MessageHandler &handler);
-    void Clear(u8 opcode);
+	typedef fastdelegate::FastDelegate<void(BitStream &m)> MessageHandler;
 
-    void Invoke(u8 opcode, BitStream &msg);
-};
+	class MessageRouter
+	{
+		MessageHandler handlers[256];
 
+	public:
+		void Set(u8 opcode, const MessageHandler &handler);
+		void Clear(u8 opcode);
+
+		void Invoke(u8 opcode, BitStream &msg);
+	};
 
 } // namespace cat
 

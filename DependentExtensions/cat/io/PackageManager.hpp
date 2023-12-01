@@ -32,75 +32,72 @@
 #include <cat/Platform.hpp>
 #include <cat/port/FastDelegate.h>
 
-namespace cat {
-
+namespace cat
+{
 
 // Package resource identifier macro
 #define CAT_UNCAGE(packagePath, offset, size) offset, size
 
-/*
-	All file resources are packed into one large file and each is
-	assigned a unique identifying number, starting from 0.
+	/*
+		All file resources are packed into one large file and each is
+		assigned a unique identifying number, starting from 0.
 
-	The client source code is preprocessed by a tool that replaces the
-	arguments of the CAT_UNPACK() macro with the correct ID number based
-	on the string given as the first argument.
+		The client source code is preprocessed by a tool that replaces the
+		arguments of the CAT_UNPACK() macro with the correct ID number based
+		on the string given as the first argument.
 
-	CAT_UNPACK("world1/lightmap3.png")
-	-> CAT_UNPACK("world1/lightmap3.png", 15241, 256, 0xdecryptionkey)
+		CAT_UNPACK("world1/lightmap3.png")
+		-> CAT_UNPACK("world1/lightmap3.png", 15241, 256, 0xdecryptionkey)
 
-	At runtime the client application will not be aware of the string
-	name of a resource in the package, only where to go to get it.
+		At runtime the client application will not be aware of the string
+		name of a resource in the package, only where to go to get it.
 
-	Resources that are used together during tuning will have identifiers
-	that are close together so that disk seek time is minimized.
-*/
+		Resources that are used together during tuning will have identifiers
+		that are close together so that disk seek time is minimized.
+	*/
 
+	/*
+		Kennel files are simple concatenations of all of the game resources.
 
-/*
-	Kennel files are simple concatenations of all of the game resources.
+		The goal is to reduce access time to data by cutting the operating
+		system's file-system out completely.  Furthermore, data that are
+		accessed together are stored together on disk and in the same order
+		that they are accessed.
 
-	The goal is to reduce access time to data by cutting the operating
-	system's file-system out completely.  Furthermore, data that are
-	accessed together are stored together on disk and in the same order
-	that they are accessed.
+		Textures are compressed with modified JPEG-LS, providing the fastest
+		possible access time.
+		Sounds compression hasn't been investigated yet.
 
-	Textures are compressed with modified JPEG-LS, providing the fastest
-	possible access time.
-	Sounds compression hasn't been investigated yet.
+		Each resource (sound/texture) is obfuscated with a 64-bit key, making
+		it necessary to reverse-engineer the game client to decode in-game
+		resources outside of the game.
 
-	Each resource (sound/texture) is obfuscated with a 64-bit key, making
-	it necessary to reverse-engineer the game client to decode in-game
-	resources outside of the game.
+		The KennelFile object implements optimized algorithms for performing
+		in-place modification to a large datafile (>4 GB).
+	*/
 
-	The KennelFile object implements optimized algorithms for performing
-	in-place modification to a large datafile (>4 GB).
-*/
+	class KennelPatchFile : AsyncFile
+	{
+	public:
+		KennelPatchFile();
+		~KennelPatchFile();
 
-class KennelPatchFile : AsyncFile
-{
-public:
-	KennelPatchFile();
-	~KennelPatchFile();
+	public:
+		void Insert
+	};
 
-public:
-	void Insert
-};
+	// Kennel Patch Callback (param=bool: true on successful patch, false on error)
+	typedef fastdelegate::FastDelegate1<bool, void> KennelPatchCallback;
 
+	class KennelFile : AsyncFile
+	{
+	public:
+		KennelFile();
+		virtual ~KennelFile();
 
-// Kennel Patch Callback (param=bool: true on successful patch, false on error)
-typedef fastdelegate::FastDelegate1<bool, void> KennelPatchCallback;
-
-class KennelFile : AsyncFile
-{
-public:
-	KennelFile();
-	virtual ~KennelFile();
-
-public:
-	bool Move(u64 dest, u32 region_size, u64 src, KennelPatchCallback OnComplete);
-};
-
+	public:
+		bool Move(u64 dest, u32 region_size, u64 src, KennelPatchCallback OnComplete);
+	};
 
 } // namespace cat
 

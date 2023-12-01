@@ -34,57 +34,56 @@
 using namespace std;
 using namespace cat;
 
-
 //// UDP Endpoint
 
 UDPEndpoint::UDPEndpoint(int priorityLevel)
 	: ThreadRefObject(priorityLevel)
 {
-    _port = 0;
-    _closing = 0;
-    _socket = SOCKET_ERROR;
+	_port = 0;
+	_closing = 0;
+	_socket = SOCKET_ERROR;
 }
 
 UDPEndpoint::~UDPEndpoint()
 {
-    if (_socket != SOCKET_ERROR)
-        CloseSocket(_socket);
+	if (_socket != SOCKET_ERROR)
+		CloseSocket(_socket);
 }
 
 void UDPEndpoint::Close()
 {
-    // Only allow close to run once
-    if (Atomic::Add(&_closing, 1) == 0)
-    {
-        if (_socket != SOCKET_ERROR)
-        {
-            CloseSocket(_socket);
-            _socket = SOCKET_ERROR;
-        }
+	// Only allow close to run once
+	if (Atomic::Add(&_closing, 1) == 0)
+	{
+		if (_socket != SOCKET_ERROR)
+		{
+			CloseSocket(_socket);
+			_socket = SOCKET_ERROR;
+		}
 
 		// Allow the library user to react to closure sooner than the destructor.
-        OnClose();
+		OnClose();
 
 		// Starts with reference count equal 1; so this puts the object in a state
 		// where as soon as all of the references are extinguished it is deleted.
-        ReleaseRef();
-    }
+		ReleaseRef();
+	}
 }
 
 bool UDPEndpoint::IgnoreUnreachable()
 {
-    // FALSE = Disable behavior where, after receiving an ICMP Unreachable message,
-    // WSARecvFrom() will fail.  Disables ICMP completely; normally this is good.
-    // But when you're writing a client endpoint, you probably want to listen to
-    // ICMP Port Unreachable or other failures until you get the first packet.
-    // After that call IgnoreUnreachable() to avoid spoofed ICMP exploits.
+	// FALSE = Disable behavior where, after receiving an ICMP Unreachable message,
+	// WSARecvFrom() will fail.  Disables ICMP completely; normally this is good.
+	// But when you're writing a client endpoint, you probably want to listen to
+	// ICMP Port Unreachable or other failures until you get the first packet.
+	// After that call IgnoreUnreachable() to avoid spoofed ICMP exploits.
 
 	if (_socket == SOCKET_ERROR)
 		return false;
 
 	DWORD dwBytesReturned = 0;
-    BOOL bNewBehavior = FALSE;
-    if (WSAIoctl(_socket, SIO_UDP_CONNRESET, &bNewBehavior,
+	BOOL bNewBehavior = FALSE;
+	if (WSAIoctl(_socket, SIO_UDP_CONNRESET, &bNewBehavior,
 				 sizeof(bNewBehavior), 0, 0, &dwBytesReturned, 0, 0) == SOCKET_ERROR)
 	{
 		WARN("UDPEndpoint") << "Unable to ignore ICMP Unreachable: " << SocketGetLastErrorString();
@@ -100,7 +99,7 @@ bool UDPEndpoint::DontFragment(bool df)
 		return false;
 
 	DWORD bNewBehavior = df ? TRUE : FALSE;
-	if (setsockopt(_socket, IPPROTO_IP, IP_DONTFRAGMENT, (const char*)&bNewBehavior, sizeof(bNewBehavior)))
+	if (setsockopt(_socket, IPPROTO_IP, IP_DONTFRAGMENT, (const char *)&bNewBehavior, sizeof(bNewBehavior)))
 	{
 		WARN("UDPEndpoint") << "Unable to change don't fragment bit: " << SocketGetLastErrorString();
 		return false;
@@ -112,17 +111,17 @@ bool UDPEndpoint::DontFragment(bool df)
 bool UDPEndpoint::Bind(bool onlySupportIPv4, Port port, bool ignoreUnreachable, int rcv_buffsize)
 {
 	// Create an unbound, overlapped UDP socket for the endpoint
-    Socket s;
+	Socket s;
 	if (!CreateSocket(SOCK_DGRAM, IPPROTO_UDP, true, s, onlySupportIPv4))
 	{
 		FATAL("UDPEndpoint") << "Unable to create a UDP socket: " << SocketGetLastErrorString();
 		return false;
-    }
+	}
 	_ipv6 = !onlySupportIPv4;
 
 	// Set SO_SNDBUF to zero for a zero-copy network stack (we maintain the buffers)
 	int snd_buffsize = 0;
-	if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char*)&snd_buffsize, sizeof(snd_buffsize)))
+	if (setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *)&snd_buffsize, sizeof(snd_buffsize)))
 	{
 		FATAL("UDPEndpoint") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
 		CloseSocket(s);
@@ -130,61 +129,62 @@ bool UDPEndpoint::Bind(bool onlySupportIPv4, Port port, bool ignoreUnreachable, 
 	}
 
 	// Set SO_RCVBUF as requested (often defaults are far too low for UDP servers or UDP file transfer clients)
-	if (rcv_buffsize < 64000) rcv_buffsize = 64000;
-	if (setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char*)&rcv_buffsize, sizeof(rcv_buffsize)))
+	if (rcv_buffsize < 64000)
+		rcv_buffsize = 64000;
+	if (setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char *)&rcv_buffsize, sizeof(rcv_buffsize)))
 	{
 		FATAL("UDPEndpoint") << "Unable to zero the send buffer: " << SocketGetLastErrorString();
 		CloseSocket(s);
 		return false;
 	}
 
-    _socket = s;
+	_socket = s;
 
 	// Ignore ICMP Unreachable
-    if (ignoreUnreachable) IgnoreUnreachable();
+	if (ignoreUnreachable)
+		IgnoreUnreachable();
 
-    // Bind the socket to a given port
-    if (!NetBind(s, port, onlySupportIPv4))
-    {
-        INANE("UDPEndpoint") << "Unable to bind to port: " << SocketGetLastErrorString();
-        CloseSocket(s);
-        _socket = SOCKET_ERROR;
-        return false;
-    }
+	// Bind the socket to a given port
+	if (!NetBind(s, port, onlySupportIPv4))
+	{
+		INANE("UDPEndpoint") << "Unable to bind to port: " << SocketGetLastErrorString();
+		CloseSocket(s);
+		_socket = SOCKET_ERROR;
+		return false;
+	}
 
-    // Prepare to receive completions in the worker threads
-    if (!ThreadPool::ref()->Associate((HANDLE)s, this) ||
-        !Read())
-    {
-        CloseSocket(s);
-        _socket = SOCKET_ERROR;
-        return false;
-    }
+	// Prepare to receive completions in the worker threads
+	if (!ThreadPool::ref()->Associate((HANDLE)s, this) ||
+		!Read())
+	{
+		CloseSocket(s);
+		_socket = SOCKET_ERROR;
+		return false;
+	}
 
-    _port = port;
+	_port = port;
 
-    INANE("UDPEndpoint") << "Open on port " << GetPort();
+	INANE("UDPEndpoint") << "Open on port " << GetPort();
 
-    return true;
+	return true;
 }
 
 Port UDPEndpoint::GetPort()
 {
-    // Get bound port if it was random
-    if (_port == 0)
-    {
+	// Get bound port if it was random
+	if (_port == 0)
+	{
 		_port = GetBoundPort(_socket);
 
 		if (!_port)
-        {
-            FATAL("UDPEndpoint") << "Unable to get own address: " << SocketGetLastErrorString();
-            return 0;
-        }
-    }
+		{
+			FATAL("UDPEndpoint") << "Unable to get own address: " << SocketGetLastErrorString();
+			return 0;
+		}
+	}
 
-    return _port;
+	return _port;
 }
-
 
 //// Begin Event
 
@@ -208,7 +208,7 @@ bool UDPEndpoint::Post(const NetAddr &addr, u8 *data, u32 data_bytes, u32 skip_b
 	}
 
 	WSABUF wsabuf;
-	wsabuf.buf = reinterpret_cast<CHAR*>( data + skip_bytes );
+	wsabuf.buf = reinterpret_cast<CHAR *>(data + skip_bytes);
 	wsabuf.len = data_bytes;
 
 	buffer->Reset(fastdelegate::MakeDelegate(this, &UDPEndpoint::OnWriteComplete));
@@ -217,7 +217,7 @@ bool UDPEndpoint::Post(const NetAddr &addr, u8 *data, u32 data_bytes, u32 skip_b
 
 	// Fire off a WSASendTo() and forget about it
 	int result = WSASendTo(_socket, &wsabuf, 1, 0, 0,
-						   reinterpret_cast<const sockaddr*>( &out_addr ),
+						   reinterpret_cast<const sockaddr *>(&out_addr),
 						   addr_len, buffer->GetOv(), 0);
 
 	// This overlapped operation will always complete unless
@@ -237,7 +237,8 @@ bool UDPEndpoint::Read(AsyncBuffer *buffer)
 {
 	if (_closing)
 	{
-		if (buffer) buffer->Release();
+		if (buffer)
+			buffer->Release();
 		return false;
 	}
 
@@ -255,7 +256,7 @@ bool UDPEndpoint::Read(AsyncBuffer *buffer)
 	tag->addrLen = sizeof(tag->addr);
 
 	WSABUF wsabuf;
-	wsabuf.buf = reinterpret_cast<CHAR*>( buffer->GetData() );
+	wsabuf.buf = reinterpret_cast<CHAR *>(buffer->GetData());
 	wsabuf.len = buffer->GetDataBytes();
 
 	AddRef();
@@ -263,8 +264,8 @@ bool UDPEndpoint::Read(AsyncBuffer *buffer)
 	// Queue up a WSARecvFrom()
 	DWORD flags = 0, bytes;
 	int result = WSARecvFrom(_socket, &wsabuf, 1, &bytes, &flags,
-							 reinterpret_cast<sockaddr*>( &tag->addr ),
-							 &tag->addrLen, buffer->GetOv(), 0); 
+							 reinterpret_cast<sockaddr *>(&tag->addr),
+							 &tag->addrLen, buffer->GetOv(), 0);
 
 	// This overlapped operation will always complete unless
 	// we get an error code other than ERROR_IO_PENDING.
@@ -278,7 +279,6 @@ bool UDPEndpoint::Read(AsyncBuffer *buffer)
 
 	return true;
 }
-
 
 //// Event Completion
 

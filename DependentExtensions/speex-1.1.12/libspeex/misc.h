@@ -7,18 +7,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -36,11 +36,11 @@
 #define MISC_H
 
 #ifndef SPEEX_VERSION
-#define SPEEX_MAJOR_VERSION 1         /**< Major Speex version. */
-#define SPEEX_MINOR_VERSION 1         /**< Minor Speex version. */
-#define SPEEX_MICRO_VERSION 12        /**< Micro Speex version. */
-#define SPEEX_EXTRA_VERSION ""        /**< Extra Speex version. */
-#define SPEEX_VERSION "speex-1.1.12"  /**< Speex version string. */
+#define SPEEX_MAJOR_VERSION 1        /**< Major Speex version. */
+#define SPEEX_MINOR_VERSION 1        /**< Minor Speex version. */
+#define SPEEX_MICRO_VERSION 12       /**< Micro Speex version. */
+#define SPEEX_EXTRA_VERSION ""       /**< Extra Speex version. */
+#define SPEEX_VERSION "speex-1.1.12" /**< Speex version string. */
 #endif
 
 #include "arch.h"
@@ -56,22 +56,22 @@ spx_uint32_t be_int(spx_uint32_t i);
 spx_uint32_t le_int(spx_uint32_t i);
 
 /** Speex wrapper for calloc. To do your own dynamic allocation, all you need to do is replace this function, speex_realloc and speex_free */
-void *speex_alloc (int size);
+void *speex_alloc(int size);
 
 /** Same as speex_alloc, except that the area is only needed inside a Speex call (might cause problem with wideband though) */
-void *speex_alloc_scratch (int size);
+void *speex_alloc_scratch(int size);
 
 /** Speex wrapper for realloc. To do your own dynamic allocation, all you need to do is replace this function, speex_alloc and speex_free */
-void *speex_realloc (void *ptr, int size);
+void *speex_realloc(void *ptr, int size);
 
 /** Speex wrapper for calloc. To do your own dynamic allocation, all you need to do is replace this function, speex_realloc and speex_alloc */
-void speex_free (void *ptr);
+void speex_free(void *ptr);
 
 /** Same as speex_alloc, except that the area is only needed inside a Speex call (might cause problem with wideband though) */
-void speex_free_scratch (void *ptr);
+void speex_free_scratch(void *ptr);
 
 /** Speex wrapper for mem_move */
-void *speex_move (void *dest, void *src, int n);
+void *speex_move(void *dest, void *src, int n);
 
 /** Speex wrapper for memcpy */
 void speex_memcpy_bytes(char *dst, char *src, int nbytes);

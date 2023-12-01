@@ -74,28 +74,38 @@ void CAT_FASTCALL BigRTL::Multiply(const Leg *in_a, const Leg *in_b, Leg *out)
 	// ICC improves performance of multiplication by about 15% over MSVC, and it compiles the template metaprogramming very fast
 	switch (library_legs)
 	{
-	// MSVC really grinds to build this, so I have limited the number of cases that use template metaprogramming
+		// MSVC really grinds to build this, so I have limited the number of cases that use template metaprogramming
 #if defined(CAT_WORD_64)
-	case 4: SchoolbookMultiply4(in_a, in_b, out); return;
-	case 6: CombaMul<6>(in_a, in_b, out); return;
+	case 4:
+		SchoolbookMultiply4(in_a, in_b, out);
+		return;
+	case 6:
+		CombaMul<6>(in_a, in_b, out);
+		return;
 #endif
-	case 8: CombaMul<8>(in_a, in_b, out); return;
+	case 8:
+		CombaMul<8>(in_a, in_b, out);
+		return;
 #if defined(CAT_WORD_32) && defined(CAT_UNROLL_OVER_256_BITS)
-	case 12: CombaMul<12>(in_a, in_b, out); return;
-	case 16: CombaMul<16>(in_a, in_b, out); return;
+	case 12:
+		CombaMul<12>(in_a, in_b, out);
+		return;
+	case 16:
+		CombaMul<16>(in_a, in_b, out);
+		return;
 #endif
 	}
 
-    out[library_legs] = MultiplyX(in_a, in_b[0], out);
+	out[library_legs] = MultiplyX(in_a, in_b[0], out);
 
-    for (int ii = 1; ii < library_legs; ++ii)
-        out[library_legs + ii] = MultiplyXAdd(in_a, in_b[ii], out + ii, out + ii);
+	for (int ii = 1; ii < library_legs; ++ii)
+		out[library_legs + ii] = MultiplyXAdd(in_a, in_b[ii], out + ii, out + ii);
 }
 
 void CAT_FASTCALL BigRTL::MultiplyLow(const Leg *in_a, const Leg *in_b, Leg *out)
 {
-    MultiplyX(in_a, in_b[0], out);
+	MultiplyX(in_a, in_b[0], out);
 
-    for (int ii = 1; ii < library_legs; ++ii)
-        MultiplyXAdd(library_legs - ii, in_a, in_b[ii], out + ii, out + ii);
+	for (int ii = 1; ii < library_legs; ++ii)
+		MultiplyXAdd(library_legs - ii, in_a, in_b[ii], out + ii, out + ii);
 }

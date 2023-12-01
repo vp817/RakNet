@@ -30,20 +30,18 @@
 using namespace std;
 using namespace cat;
 
-
 //// Conversion into Base64
 
 static const char TO_BASE64[64] = {
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
 	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
 	'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-	'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
-};
-
+	'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
 int cat::GetBase64LengthFromBinaryLength(int bytes)
 {
-	if (bytes <= 0) return 0;
+	if (bytes <= 0)
+		return 0;
 
 	return ((bytes + 2) / 3) * 4;
 }
@@ -55,15 +53,15 @@ int cat::WriteBase64(const void *buffer, int bytes, char *encoded_buffer, int en
 	if (bytes <= 0 || encoded_bytes < written_bytes)
 		return 0;
 
-	const u8 *data = reinterpret_cast<const u8*>( buffer );
+	const u8 *data = reinterpret_cast<const u8 *>(buffer);
 
 	int ii, jj, end;
 	for (ii = 0, jj = 0, end = bytes - 2; ii < end; ii += 3, jj += 4)
 	{
 		encoded_buffer[jj] = TO_BASE64[data[ii] >> 2];
-		encoded_buffer[jj+1] = TO_BASE64[((data[ii] << 4) | (data[ii+1] >> 4)) & 0x3f];
-		encoded_buffer[jj+2] = TO_BASE64[((data[ii+1] << 2) | (data[ii+2] >> 6)) & 0x3f];
-		encoded_buffer[jj+3] = TO_BASE64[data[ii+2] & 0x3f];
+		encoded_buffer[jj + 1] = TO_BASE64[((data[ii] << 4) | (data[ii + 1] >> 4)) & 0x3f];
+		encoded_buffer[jj + 2] = TO_BASE64[((data[ii + 1] << 2) | (data[ii + 2] >> 6)) & 0x3f];
+		encoded_buffer[jj + 3] = TO_BASE64[data[ii + 2] & 0x3f];
 	}
 
 	switch (ii - end)
@@ -73,17 +71,17 @@ int cat::WriteBase64(const void *buffer, int bytes, char *encoded_buffer, int en
 		break;
 
 	case 1: // Need to write final 1 byte
-		encoded_buffer[jj] = TO_BASE64[data[bytes-1] >> 2];
-		encoded_buffer[jj+1] = TO_BASE64[(data[bytes-1] << 4) & 0x3f];
-		encoded_buffer[jj+2] = '=';
-		encoded_buffer[jj+3] = '=';
+		encoded_buffer[jj] = TO_BASE64[data[bytes - 1] >> 2];
+		encoded_buffer[jj + 1] = TO_BASE64[(data[bytes - 1] << 4) & 0x3f];
+		encoded_buffer[jj + 2] = '=';
+		encoded_buffer[jj + 3] = '=';
 		break;
 
 	case 0: // Need to write final 2 bytes
-		encoded_buffer[jj] = TO_BASE64[data[bytes-2] >> 2];
-		encoded_buffer[jj+1] = TO_BASE64[((data[bytes-2] << 4) | (data[bytes-1] >> 4)) & 0x3f];
-		encoded_buffer[jj+2] = TO_BASE64[(data[bytes-1] << 2) & 0x3f];
-		encoded_buffer[jj+3] = '=';
+		encoded_buffer[jj] = TO_BASE64[data[bytes - 2] >> 2];
+		encoded_buffer[jj + 1] = TO_BASE64[((data[bytes - 2] << 4) | (data[bytes - 1] >> 4)) & 0x3f];
+		encoded_buffer[jj + 2] = TO_BASE64[(data[bytes - 1] << 2) & 0x3f];
+		encoded_buffer[jj + 3] = '=';
 		break;
 	}
 
@@ -102,17 +100,18 @@ int cat::WriteBase64Str(const void *buffer, int bytes, char *encoded_buffer, int
 
 int cat::WriteBase64(const void *buffer, int bytes, ostream &output)
 {
-	if (bytes <= 0) return 0;
+	if (bytes <= 0)
+		return 0;
 
-	const u8 *data = reinterpret_cast<const u8*>( buffer );
+	const u8 *data = reinterpret_cast<const u8 *>(buffer);
 
 	int ii, end;
 	for (ii = 0, end = bytes - 2; ii < end; ii += 3)
 	{
 		output << TO_BASE64[data[ii] >> 2];
-		output << TO_BASE64[((data[ii] << 4) | (data[ii+1] >> 4)) & 0x3f];
-		output << TO_BASE64[((data[ii+1] << 2) | (data[ii+2] >> 6)) & 0x3f];
-		output << TO_BASE64[data[ii+2] & 0x3f];
+		output << TO_BASE64[((data[ii] << 4) | (data[ii + 1] >> 4)) & 0x3f];
+		output << TO_BASE64[((data[ii + 1] << 2) | (data[ii + 2] >> 6)) & 0x3f];
+		output << TO_BASE64[data[ii + 2] & 0x3f];
 	}
 
 	switch (ii - end)
@@ -122,22 +121,21 @@ int cat::WriteBase64(const void *buffer, int bytes, ostream &output)
 		break;
 
 	case 1: // Need to write final 1 byte
-		output << TO_BASE64[data[bytes-1] >> 2];
-		output << TO_BASE64[(data[bytes-1] << 4) & 0x3f];
+		output << TO_BASE64[data[bytes - 1] >> 2];
+		output << TO_BASE64[(data[bytes - 1] << 4) & 0x3f];
 		output << "==";
 		break;
 
 	case 0: // Need to write final 2 bytes
-		output << TO_BASE64[data[bytes-2] >> 2];
-		output << TO_BASE64[((data[bytes-2] << 4) | (data[bytes-1] >> 4)) & 0x3f];
-		output << TO_BASE64[(data[bytes-1] << 2) & 0x3f];
+		output << TO_BASE64[data[bytes - 2] >> 2];
+		output << TO_BASE64[((data[bytes - 2] << 4) | (data[bytes - 1] >> 4)) & 0x3f];
+		output << TO_BASE64[(data[bytes - 1] << 2) & 0x3f];
 		output << '=';
 		break;
 	}
 
 	return ((bytes + 2) / 3) * 4;
 }
-
 
 //// Conversion from Base64
 
@@ -148,7 +146,7 @@ static const u8 FROM_BASE64[256] = {
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // 16-31
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, 62, DC, DC, DC, 63, // 32-47
 	52, 53, 54, 55, 56, 57, 58, 59, 60, 61, DC, DC, DC, DC, DC, DC, // 48-63
-	DC, 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 , 10, 11, 12, 13, 14, // 64-79
+	DC, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,			// 64-79
 	15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, DC, DC, DC, DC, DC, // 80-95
 	DC, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, // 96-111
 	41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, DC, DC, DC, DC, DC, // 112-127
@@ -159,15 +157,14 @@ static const u8 FROM_BASE64[256] = {
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // ASCII
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // Extended
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // ASCII
-	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC
-};
-
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC};
 
 int cat::GetBinaryLengthFromBase64Length(const char *encoded_buffer, int bytes)
 {
-	if (bytes <= 0) return 0;
+	if (bytes <= 0)
+		return 0;
 
-	while (bytes >= 1 && encoded_buffer[bytes-1] == '=')
+	while (bytes >= 1 && encoded_buffer[bytes - 1] == '=')
 		--bytes;
 
 	return (bytes * 3) / 4;
@@ -176,7 +173,7 @@ int cat::GetBinaryLengthFromBase64Length(const char *encoded_buffer, int bytes)
 int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decoded_buffer, int decoded_bytes)
 {
 	// Skip '=' characters at the end
-	while (encoded_bytes >= 1 && encoded_buffer[encoded_bytes-1] == '=')
+	while (encoded_bytes >= 1 && encoded_buffer[encoded_bytes - 1] == '=')
 		--encoded_bytes;
 
 	if (encoded_bytes <= 0 || decoded_bytes <= 0 ||
@@ -185,8 +182,8 @@ int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decoded
 		return 0;
 	}
 
-	const u8 *from = reinterpret_cast<const u8*>( encoded_buffer );
-	u8 *to = reinterpret_cast<u8*>( decoded_buffer );
+	const u8 *from = reinterpret_cast<const u8 *>(encoded_buffer);
+	u8 *to = reinterpret_cast<u8 *>(decoded_buffer);
 
 	u8 a, b, c, d;
 
@@ -194,32 +191,32 @@ int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decoded
 	for (ii = 0, jj = 0, end = encoded_bytes - 3; ii < end; ii += 4, jj += 3)
 	{
 		a = FROM_BASE64[from[ii]];
-		b = FROM_BASE64[from[ii+1]];
-		c = FROM_BASE64[from[ii+2]];
-		d = FROM_BASE64[from[ii+3]];
+		b = FROM_BASE64[from[ii + 1]];
+		c = FROM_BASE64[from[ii + 2]];
+		d = FROM_BASE64[from[ii + 3]];
 
 		to[jj] = (a << 2) | (b >> 4);
-		to[jj+1] = (b << 4) | (c >> 2);
-		to[jj+2] = (c << 6) | d;
+		to[jj + 1] = (b << 4) | (c >> 2);
+		to[jj + 2] = (c << 6) | d;
 	}
 
 	switch (encoded_bytes & 3)
 	{
 	case 3: // 3 characters left
 		a = FROM_BASE64[from[ii]];
-		b = FROM_BASE64[from[ii+1]];
-		c = FROM_BASE64[from[ii+2]];
+		b = FROM_BASE64[from[ii + 1]];
+		c = FROM_BASE64[from[ii + 2]];
 
 		to[jj] = (a << 2) | (b >> 4);
-		to[jj+1] = (b << 4) | (c >> 2);
-		return jj+2;
+		to[jj + 1] = (b << 4) | (c >> 2);
+		return jj + 2;
 
 	case 2: // 2 characters left
 		a = FROM_BASE64[from[ii]];
-		b = FROM_BASE64[from[ii+1]];
+		b = FROM_BASE64[from[ii + 1]];
 
 		to[jj] = (a << 2) | (b >> 4);
-		return jj+1;
+		return jj + 1;
 	}
 
 	return jj;
@@ -228,12 +225,13 @@ int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decoded
 int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, std::ostream &output)
 {
 	// Skip '=' characters at the end
-	while (encoded_bytes >= 1 && encoded_buffer[encoded_bytes-1] == '=')
+	while (encoded_bytes >= 1 && encoded_buffer[encoded_bytes - 1] == '=')
 		--encoded_bytes;
 
-	if (encoded_bytes <= 0) return 0;
+	if (encoded_bytes <= 0)
+		return 0;
 
-	const u8 *from = reinterpret_cast<const u8*>( encoded_buffer );
+	const u8 *from = reinterpret_cast<const u8 *>(encoded_buffer);
 
 	u8 a, b, c, d;
 
@@ -241,9 +239,9 @@ int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, std::ostream 
 	for (ii = 0, end = encoded_bytes - 3; ii < end; ii += 4)
 	{
 		a = FROM_BASE64[from[ii]];
-		b = FROM_BASE64[from[ii+1]];
-		c = FROM_BASE64[from[ii+2]];
-		d = FROM_BASE64[from[ii+3]];
+		b = FROM_BASE64[from[ii + 1]];
+		c = FROM_BASE64[from[ii + 2]];
+		d = FROM_BASE64[from[ii + 3]];
 
 		output << (u8)((a << 2) | (b >> 4));
 		output << (u8)((b << 4) | (c >> 2));
@@ -254,8 +252,8 @@ int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, std::ostream 
 	{
 	case 3: // 3 characters left
 		a = FROM_BASE64[from[ii]];
-		b = FROM_BASE64[from[ii+1]];
-		c = FROM_BASE64[from[ii+2]];
+		b = FROM_BASE64[from[ii + 1]];
+		c = FROM_BASE64[from[ii + 2]];
 
 		output << (u8)((a << 2) | (b >> 4));
 		output << (u8)((b << 4) | (c >> 2));
@@ -263,7 +261,7 @@ int cat::ReadBase64(const char *encoded_buffer, int encoded_bytes, std::ostream 
 
 	case 2: // 2 characters left
 		a = FROM_BASE64[from[ii]];
-		b = FROM_BASE64[from[ii+1]];
+		b = FROM_BASE64[from[ii + 1]];
 
 		output << (u8)((a << 2) | (b >> 4));
 		break;

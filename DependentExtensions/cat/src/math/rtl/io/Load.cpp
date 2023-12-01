@@ -32,28 +32,32 @@ using namespace cat;
 
 void CAT_FASTCALL BigRTL::Load(const void *in, int bytes, Leg *out_leg)
 {
-    // Prepare to copy
-    Leg *in_leg = (Leg*)in;
-    int ii, legs = bytes / sizeof(Leg);
-    if (legs > library_legs) legs = library_legs;
+	// Prepare to copy
+	Leg *in_leg = (Leg *)in;
+	int ii, legs = bytes / sizeof(Leg);
+	if (legs > library_legs)
+		legs = library_legs;
 
-    // Copy 4 legs at a time
-    for (ii = 4; ii <= legs; ii += 4)
-    {
-        out_leg[ii - 4] = getLE(in_leg[ii - 4]);
-        out_leg[ii - 3] = getLE(in_leg[ii - 3]);
-        out_leg[ii - 2] = getLE(in_leg[ii - 2]);
-        out_leg[ii - 1] = getLE(in_leg[ii - 1]);
-    }
+	// Copy 4 legs at a time
+	for (ii = 4; ii <= legs; ii += 4)
+	{
+		out_leg[ii - 4] = getLE(in_leg[ii - 4]);
+		out_leg[ii - 3] = getLE(in_leg[ii - 3]);
+		out_leg[ii - 2] = getLE(in_leg[ii - 2]);
+		out_leg[ii - 1] = getLE(in_leg[ii - 1]);
+	}
 
-    // Copy remaining legs
-    switch (legs % 4)
-    {
-    case 3: out_leg[legs - 3] = getLE(in_leg[legs - 3]);
-    case 2: out_leg[legs - 2] = getLE(in_leg[legs - 2]);
-    case 1: out_leg[legs - 1] = getLE(in_leg[legs - 1]);
-    }
+	// Copy remaining legs
+	switch (legs % 4)
+	{
+	case 3:
+		out_leg[legs - 3] = getLE(in_leg[legs - 3]);
+	case 2:
+		out_leg[legs - 2] = getLE(in_leg[legs - 2]);
+	case 1:
+		out_leg[legs - 1] = getLE(in_leg[legs - 1]);
+	}
 
-    // Zero remaining buffer bytes
-    memset(&out_leg[legs], 0, (library_legs - legs) * sizeof(Leg));
+	// Zero remaining buffer bytes
+	memset(&out_leg[legs], 0, (library_legs - legs) * sizeof(Leg));
 }

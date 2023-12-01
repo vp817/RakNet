@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/codec/RangeCoder.hpp>
@@ -41,12 +41,11 @@ const u64 MaxRange = (u64)1 << 48;
 #define SYMBOL_LUT_SHIFT (16 - SYMBOL_LUT_BITS)
 #define SYMBOL_LUT_BYTES (1 << SYMBOL_LUT_BITS)
 
-#define SYMBOL_BYTES(total) (SYMBOL_LUT_BYTES + (total) - 1)
+#define SYMBOL_BYTES(total) (SYMBOL_LUT_BYTES + (total)-1)
 #define STATIC_TABLE_BYTES(total) (4 + 2 + 2 + 256 + 256 + 2 * (total) * SYMBOL_BYTES(total) + (total) * (16 * 4))
 
 #define GET_SYMBOL_LUT(frequencies, total, index) ((const u8 *)((frequencies) + (index) * SYMBOL_BYTES(total)))
-#define GET_SYMBOL_BASE(frequencies, total, index) ((const u16 *)(GET_SYMBOL_LUT((frequencies), (total), (index)) + SYMBOL_LUT_BYTES*2))
-
+#define GET_SYMBOL_BASE(frequencies, total, index) ((const u16 *)(GET_SYMBOL_LUT((frequencies), (total), (index)) + SYMBOL_LUT_BYTES * 2))
 
 //// TextStatsCollector
 
@@ -78,7 +77,8 @@ void TextStatsCollector::Tally(u8 x)
             u32 &tm = frequencies[last][ii];
 
             // Divide the frequencies by two
-            if (tm > 1) tm >>= 1;
+            if (tm > 1)
+                tm >>= 1;
         }
     }
 
@@ -140,28 +140,29 @@ bool TextStatsCollector::GenerateMinimalStaticTable(const char *TableName, std::
             work[jj] = sum;
         }
 
-        char *dict = (char*)freq;
-        //memcpy(dict, frequent_words[table->index2char[ii]], DICTIONARY_WORDS * DICTIONARY_CHARS);
+        char *dict = (char *)freq;
+        // memcpy(dict, frequent_words[table->index2char[ii]], DICTIONARY_WORDS * DICTIONARY_CHARS);
 
-        //u8 *lut_low = (u8*)(dict + DICTIONARY_WORDS * DICTIONARY_CHARS);
-        u8 *lut_low = (u8*)freq;
+        // u8 *lut_low = (u8*)(dict + DICTIONARY_WORDS * DICTIONARY_CHARS);
+        u8 *lut_low = (u8 *)freq;
         u8 *lut_high = lut_low + SYMBOL_LUT_BYTES;
         freq += SYMBOL_LUT_BYTES;
 
         u16 *symbol_freqs = freq;
-        u32 smax = work[total-1];
+        u32 smax = work[total - 1];
 
-        for (jj = 0; jj < total-1; ++jj)
+        for (jj = 0; jj < total - 1; ++jj)
         {
             // Normalize the cumulative frequency to the range [0, 2^16)
             u32 adjcum_new;
             if (smax)
                 adjcum_new = (u32)(((u64)work[jj] << 32) / smax) >> 16;
             else
-                adjcum_new = (u32)(((u64)(jj+1) << 32) / total) >> 16;
+                adjcum_new = (u32)(((u64)(jj + 1) << 32) / total) >> 16;
 
             // Insure monotonic increase
-            if (adjcum >= adjcum_new) adjcum_new = adjcum + 1;
+            if (adjcum >= adjcum_new)
+                adjcum_new = adjcum + 1;
 
             adjcum = adjcum_new;
             *freq++ = (u16)adjcum_new;
@@ -176,7 +177,7 @@ bool TextStatsCollector::GenerateMinimalStaticTable(const char *TableName, std::
             u32 last = 0;
             u32 cumsub = 0;
 
-            for (jj = 0; jj < total-1; ++jj)
+            for (jj = 0; jj < total - 1; ++jj)
             {
                 u32 slack = symbol_freqs[jj] - last;
 
@@ -211,21 +212,22 @@ bool TextStatsCollector::GenerateMinimalStaticTable(const char *TableName, std::
 
     // Write header
     table->total = total;
-    table->log2total = (u16)(std::log((double)total)/std::log((double)2) * 32768.0f / 8.0f);
+    table->log2total = (u16)(std::log((double)total) / std::log((double)2) * 32768.0f / 8.0f);
     table->hash = MurmurHash32(output + 4, bytes - 4, 0);
 
     // Convert it to C code
     osout << "// To include this table, do something like this:" << endl;
-    osout << "// #include \"" << TableName << ".stats\"" << endl << endl;
+    osout << "// #include \"" << TableName << ".stats\"" << endl
+          << endl;
     osout << "static const u32 _" << TableName << "[] = {" << endl;
 
-    u32 words = (bytes + 3)/4;
-    u32 *output32 = (u32*)output;
+    u32 words = (bytes + 3) / 4;
+    u32 *output32 = (u32 *)output;
     int line = 0;
 
     while (words--)
     {
-        //if (!line) osout << "  ";
+        // if (!line) osout << "  ";
 
         osout << "0x" << hex << *output32++;
 
@@ -241,13 +243,14 @@ bool TextStatsCollector::GenerateMinimalStaticTable(const char *TableName, std::
         }
     }
 
-    osout << "};" << endl << endl;
+    osout << "};" << endl
+          << endl;
 
     osout << "static const TextStatsCollector::TableFormat *" << TableName
           << " = (const TextStatsCollector::TableFormat*)_" << TableName << ';' << endl;
 
     // Free memory from workspace
-    delete []output;
+    delete[] output;
 
     return true;
 }
@@ -280,7 +283,7 @@ bool TextStatsCollector::VerifyTableIntegrity(const TableFormat *table)
     if (used + 1 != (int)total)
         return false;
 
-    u16 flog = (u16)(std::log((double)total)/std::log((double)2) * 32768.0f / 8.0f);
+    u16 flog = (u16)(std::log((double)total) / std::log((double)2) * 32768.0f / 8.0f);
     if (flog != table->log2total)
         return false;
 
@@ -305,7 +308,7 @@ bool TextStatsCollector::VerifyTableIntegrity(const TableFormat *table)
             if (last >= x)
                 return false;
 
-            //u32 range = x - last;
+            // u32 range = x - last;
 
             last = x;
         }
@@ -329,13 +332,12 @@ bool TextStatsCollector::VerifyTableIntegrity(const TableFormat *table)
     return true;
 }
 
-
 //// RangeEncoder
 
 // Intializing constructor
 RangeEncoder::RangeEncoder(void *output_i, int limit_i)
 {
-    output = (u8*)output_i;
+    output = (u8 *)output_i;
     remaining = limit = limit_i;
 
     range = 0;
@@ -368,7 +370,7 @@ RangeEncoder &RangeEncoder::operator=(RangeEncoder &cp)
 void RangeEncoder::Normalize()
 {
     while ((low ^ (low + range)) < Top ||
-           range < MaxRange && ((range = -(s64)low & (MaxRange - 1)),1))
+           range < MaxRange && ((range = -(s64)low & (MaxRange - 1)), 1))
     {
         // If we're out of room, fail
         if (!remaining)
@@ -520,7 +522,8 @@ void RangeEncoder::Finish()
 
     Normalize();
 
-    if (!low) return;
+    if (!low)
+        return;
 
     if (!remaining)
         output = 0;
@@ -546,13 +549,12 @@ void RangeEncoder::Finish()
     }
 }
 
-
 //// RangeDecoder
 
 // Intializing constructor
 RangeDecoder::RangeDecoder(const void *message, int bytes)
 {
-    const u8 *m8 = (const u8*)message;
+    const u8 *m8 = (const u8 *)message;
 
     range = 0;
 
@@ -562,28 +564,42 @@ RangeDecoder::RangeDecoder(const void *message, int bytes)
         code = 0;
         remaining = 0;
 
-        u8 *code8 = (u8*)&code;
+        u8 *code8 = (u8 *)&code;
 
         switch (bytes)
         {
 #if defined(CAT_ENDIAN_LITTLE)
-        case 7: code8[1] = m8[6];
-        case 6: code8[2] = m8[5];
-        case 5: code8[3] = m8[4];
-        case 4: *(u32*)&code8[4] = getBE(*(u32*)m8);
+        case 7:
+            code8[1] = m8[6];
+        case 6:
+            code8[2] = m8[5];
+        case 5:
+            code8[3] = m8[4];
+        case 4:
+            *(u32 *)&code8[4] = getBE(*(u32 *)m8);
             break;
-        case 3: code8[5] = m8[2];
-        case 2: code8[6] = m8[1];
-        case 1: code8[7] = m8[0];
+        case 3:
+            code8[5] = m8[2];
+        case 2:
+            code8[6] = m8[1];
+        case 1:
+            code8[7] = m8[0];
 #elif defined(CAT_ENDIAN_BIG)
-        case 7: code8[6] = m8[6];
-        case 6: code8[5] = m8[5];
-        case 5: code8[4] = m8[4];
-        case 4: *(u32*)code8 = *(u32*)m8;
+        case 7:
+            code8[6] = m8[6];
+        case 6:
+            code8[5] = m8[5];
+        case 5:
+            code8[4] = m8[4];
+        case 4:
+            *(u32 *)code8 = *(u32 *)m8;
             break;
-        case 3: code8[2] = m8[2];
-        case 2: code8[1] = m8[1];
-        case 1: code8[0] = m8[0];
+        case 3:
+            code8[2] = m8[2];
+        case 2:
+            code8[1] = m8[1];
+        case 1:
+            code8[0] = m8[0];
 #else
 #error "Fix this you lazy bastard"
 #endif
@@ -591,7 +607,7 @@ RangeDecoder::RangeDecoder(const void *message, int bytes)
     }
     else
     {
-        code = getBE(*(u64*)m8);
+        code = getBE(*(u64 *)m8);
         input = m8 + 8;
         remaining = bytes - 8;
     }
@@ -601,7 +617,7 @@ RangeDecoder::RangeDecoder(const void *message, int bytes)
 void RangeDecoder::Normalize()
 {
     while ((low ^ (low + range)) < Top ||
-           range < MaxRange && ((range = -(s64)low & (MaxRange - 1)),1))
+           range < MaxRange && ((range = -(s64)low & (MaxRange - 1)), 1))
     {
         code <<= 8;
         if (remaining)
@@ -677,7 +693,8 @@ int RangeDecoder::Text(char *msg, int buffer_size, const TextStatsCollector::Tab
             u8 symbol = (u8)((code - low) / range);
             low += symbol * range;
             last = stats->index2char[symbol];
-            if (!last) break;
+            if (!last)
+                break;
             *msg++ = (char)last;
         }
     }
@@ -694,7 +711,8 @@ int RangeDecoder::Text(char *msg, int buffer_size, const TextStatsCollector::Tab
             u8 symbol = GetTableSymbol(stats, last, x, symbol_low, symbol_range);
             low += symbol_low * range;
             range *= symbol_range;
-            if (!symbol) break;
+            if (!symbol)
+                break;
             *msg++ = (char)stats->index2char[symbol];
             --buffer_size;
         }

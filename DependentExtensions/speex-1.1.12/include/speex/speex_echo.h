@@ -37,7 +37,8 @@
 #include "speex/speex_types.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /** Obtain frame size used by the AEC */
@@ -48,32 +49,31 @@ extern "C" {
 /** Get sampling rate */
 #define SPEEX_ECHO_GET_SAMPLING_RATE 25
 
+   /*struct drft_lookup;*/
+   struct SpeexEchoState_;
 
-/*struct drft_lookup;*/
-struct SpeexEchoState_;
+   typedef struct SpeexEchoState_ SpeexEchoState;
 
-typedef struct SpeexEchoState_ SpeexEchoState;
+   /** Creates a new echo canceller state */
+   SpeexEchoState *speex_echo_state_init(int frame_size, int filter_length);
 
-/** Creates a new echo canceller state */
-SpeexEchoState *speex_echo_state_init(int frame_size, int filter_length);
+   /** Destroys an echo canceller state */
+   void speex_echo_state_destroy(SpeexEchoState *st);
 
-/** Destroys an echo canceller state */
-void speex_echo_state_destroy(SpeexEchoState *st);
+   /** Performs echo cancellation a frame */
+   void speex_echo_cancel(SpeexEchoState *st, short *ref, short *echo, short *out, spx_int32_t *Y);
 
-/** Performs echo cancellation a frame */
-void speex_echo_cancel(SpeexEchoState *st, short *ref, short *echo, short *out, spx_int32_t *Y);
+   /** Reset the echo canceller state */
+   void speex_echo_state_reset(SpeexEchoState *st);
 
-/** Reset the echo canceller state */
-void speex_echo_state_reset(SpeexEchoState *st);
-
-/** Used like the ioctl function to control the echo canceller parameters
- *
- * @param state Encoder state
- * @param request ioctl-type request (one of the SPEEX_ECHO_* macros)
- * @param ptr Data exchanged to-from function
- * @return 0 if no error, -1 if request in unknown
- */
-int speex_echo_ctl(SpeexEchoState *st, int request, void *ptr);
+   /** Used like the ioctl function to control the echo canceller parameters
+    *
+    * @param state Encoder state
+    * @param request ioctl-type request (one of the SPEEX_ECHO_* macros)
+    * @param ptr Data exchanged to-from function
+    * @return 0 if no error, -1 if request in unknown
+    */
+   int speex_echo_ctl(SpeexEchoState *st, int request, void *ptr);
 
 #ifdef __cplusplus
 }

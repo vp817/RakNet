@@ -40,11 +40,10 @@ using namespace std;
 using namespace cat;
 using namespace sphynx;
 
-
 //// Client
 
 Client::Client()
-	: UDPEndpoint(REFOBJ_PRIO_0+4)
+	: UDPEndpoint(REFOBJ_PRIO_0 + 4)
 {
 	_connected = false;
 	_last_send_mstsc = 0;
@@ -60,7 +59,6 @@ Client::~Client()
 
 void Client::OnWrite(u32 bytes)
 {
-
 }
 
 bool Client::SetServerKey(ThreadPoolLocalStorage *tls, const void *server_key, int key_bytes, const char *session_key)
@@ -80,7 +78,7 @@ bool Client::SetServerKey(ThreadPoolLocalStorage *tls, const void *server_key, i
 	}
 
 	// Verify public key and initialize crypto library with it
-	if (!_key_agreement_initiator.Initialize(tls->math, reinterpret_cast<const u8*>( server_key ), key_bytes))
+	if (!_key_agreement_initiator.Initialize(tls->math, reinterpret_cast<const u8 *>(server_key), key_bytes))
 	{
 		WARN("Client") << "Failed to connect: Invalid server public key provided";
 		return false;
@@ -230,10 +228,10 @@ void Client::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 		}
 	}
 	// s2c 01 (cookie[4]) (public key[64])
-	else if (bytes == 1+4+PUBLIC_KEY_BYTES && data[0] == S2C_COOKIE)
+	else if (bytes == 1 + 4 + PUBLIC_KEY_BYTES && data[0] == S2C_COOKIE)
 	{
-		u32 *in_cookie = reinterpret_cast<u32*>( data + 1 );
-		u8 *in_public_key = data + 1+4;
+		u32 *in_cookie = reinterpret_cast<u32 *>(data + 1);
+		u8 *in_public_key = data + 1 + 4;
 
 		// Verify public key
 		if (!SecureEqual(in_public_key, _server_public_key, PUBLIC_KEY_BYTES))
@@ -244,7 +242,7 @@ void Client::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 		}
 
 		// Allocate a post buffer
-		static const int response_len = 1+4+CHALLENGE_BYTES;
+		static const int response_len = 1 + 4 + CHALLENGE_BYTES;
 		u8 *response = AsyncBuffer::Acquire(response_len);
 
 		if (!response)
@@ -255,8 +253,8 @@ void Client::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 		}
 
 		// Construct challenge packet
-		u32 *out_cookie = reinterpret_cast<u32*>( response + 1 );
-		u8 *out_challenge = response + 1+4;
+		u32 *out_cookie = reinterpret_cast<u32 *>(response + 1);
+		u8 *out_challenge = response + 1 + 4;
 
 		response[0] = C2S_CHALLENGE;
 		*out_cookie = *in_cookie;
@@ -280,9 +278,9 @@ void Client::OnRead(ThreadPoolLocalStorage *tls, const NetAddr &src, u8 *data, u
 		}
 	}
 	// s2c 03 (server session port[2]) (answer[128])
-	else if (bytes == 1+2+ANSWER_BYTES && data[0] == S2C_ANSWER)
+	else if (bytes == 1 + 2 + ANSWER_BYTES && data[0] == S2C_ANSWER)
 	{
-		Port *port = reinterpret_cast<Port*>( data + 1 );
+		Port *port = reinterpret_cast<Port *>(data + 1);
 		u8 *answer = data + 3;
 
 		Port server_session_port = getLE(*port);
@@ -324,7 +322,7 @@ bool Client::PostHello()
 	}
 
 	// Allocate space for a post buffer
-	static const int hello_len = 1+4;
+	static const int hello_len = 1 + 4;
 	u8 *hello = AsyncBuffer::Acquire(hello_len);
 
 	// If unable to allocate,

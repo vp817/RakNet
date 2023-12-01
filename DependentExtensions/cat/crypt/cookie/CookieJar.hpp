@@ -31,39 +31,38 @@
 
 #include <cat/crypt/rand/Fortuna.hpp>
 
-namespace cat {
-
-
-class CookieJar
+namespace cat
 {
-    static const int EXPIRE_TIME = 4000; // ms
-    static const int BIN_COUNT = 16; // power of 2
-    static const int BIN_TIME = EXPIRE_TIME / BIN_COUNT;
-    static const int BIN_MASK = BIN_COUNT - 1;
 
-    u32 key[16];
+	class CookieJar
+	{
+		static const int EXPIRE_TIME = 4000; // ms
+		static const int BIN_COUNT = 16;	 // power of 2
+		static const int BIN_TIME = EXPIRE_TIME / BIN_COUNT;
+		static const int BIN_MASK = BIN_COUNT - 1;
 
-    u32 Salsa6(u32 *x);
+		u32 key[16];
 
-    u32 Hash(u32 ip, u16 port, u32 epoch);
-    u32 Hash(const void *address_info, int bytes, u32 epoch);
+		u32 Salsa6(u32 *x);
 
-    u32 GetEpoch();
-    u32 ReconstructEpoch(u32 cookie);
+		u32 Hash(u32 ip, u16 port, u32 epoch);
+		u32 Hash(const void *address_info, int bytes, u32 epoch);
 
-public:
-    // Initialize to a random 512-bit key on startup
-    void Initialize(FortunaOutput *csprng);
+		u32 GetEpoch();
+		u32 ReconstructEpoch(u32 cookie);
 
-    // Thread-safe and lock-free
-    u32 Generate(u32 ip, u16 port);
-    u32 Generate(const void *address_info, int bytes); // bytes <= 48
+	public:
+		// Initialize to a random 512-bit key on startup
+		void Initialize(FortunaOutput *csprng);
 
-    // Thread-safe and lock-free
-    bool Verify(u32 ip, u16 port, u32 cookie);
-    bool Verify(const void *address_info, int bytes, u32 cookie); // bytes <= 48
-};
+		// Thread-safe and lock-free
+		u32 Generate(u32 ip, u16 port);
+		u32 Generate(const void *address_info, int bytes); // bytes <= 48
 
+		// Thread-safe and lock-free
+		bool Verify(u32 ip, u16 port, u32 cookie);
+		bool Verify(const void *address_info, int bytes, u32 cookie); // bytes <= 48
+	};
 
 } // namespace cat
 

@@ -46,50 +46,51 @@ bool FortunaFactory::ThreadFunction(void *)
 
 #endif // !defined(CAT_NO_ENTROPY_THREAD)
 
-
 bool FortunaFactory::InitializeEntropySources()
 {
-    // Initialize a session with the CryptoAPI using newer cryptoprimitives (AES)
-    if (!CryptAcquireContext(&hCryptProv, 0, 0, PROV_RSA_AES, CRYPT_VERIFYCONTEXT))
-        return false;
+	// Initialize a session with the CryptoAPI using newer cryptoprimitives (AES)
+	if (!CryptAcquireContext(&hCryptProv, 0, 0, PROV_RSA_AES, CRYPT_VERIFYCONTEXT))
+		return false;
 
-    // Fire poll for entropy all goes into pool 0
-    PollInvariantSources(0);
+	// Fire poll for entropy all goes into pool 0
+	PollInvariantSources(0);
 
-    return true;
+	return true;
 }
 
 void FortunaFactory::ShutdownEntropySources()
 {
-    if (hCryptProv) CryptReleaseContext(hCryptProv, 0);
+	if (hCryptProv)
+		CryptReleaseContext(hCryptProv, 0);
 }
 
 void FortunaFactory::PollInvariantSources(int pool_index)
 {
-    Skein &pool = Pool[pool_index];
+	Skein &pool = Pool[pool_index];
 
-	struct {
+	struct
+	{
 		u32 cycles_start;
-	    u8 system_prng[32];
-	    SYSTEM_INFO sys_info;
+		u8 system_prng[32];
+		SYSTEM_INFO sys_info;
 		DWORD win_ver;
 		u32 cycles_end;
 	} Sources;
 
-    // Cycles at the start
-    Sources.cycles_start = Clock::cycles();
+	// Cycles at the start
+	Sources.cycles_start = Clock::cycles();
 
-    // CryptoAPI PRNG: Large request
-    CryptGenRandom(hCryptProv, sizeof(Sources.system_prng), (BYTE*)Sources.system_prng);
+	// CryptoAPI PRNG: Large request
+	CryptGenRandom(hCryptProv, sizeof(Sources.system_prng), (BYTE *)Sources.system_prng);
 
-    // System info
-    GetSystemInfo(&Sources.sys_info);
+	// System info
+	GetSystemInfo(&Sources.sys_info);
 
-    // Windows version
-    Sources.win_ver = GetVersion();
+	// Windows version
+	Sources.win_ver = GetVersion();
 
-    // Cycles at the end
-    Sources.cycles_end = Clock::cycles();
+	// Cycles at the end
+	Sources.cycles_end = Clock::cycles();
 
 	pool.Crunch(&Sources, sizeof(Sources));
 }

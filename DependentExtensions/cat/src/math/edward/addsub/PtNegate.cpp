@@ -32,9 +32,9 @@ using namespace cat;
 // Extended Twisted Edwards Negation Formula
 void BigTwistedEdwards::PtNegate(const Leg *in, Leg *out)
 {
-    // -(X : Y : T : Z) = (-X : Y : -T : Z)
-    MrNegate(in+XOFF, out+XOFF);
-    Copy(in+YOFF, out+YOFF);
-    MrNegate(in+TOFF, out+TOFF);
-    Copy(in+ZOFF, out+ZOFF);
+	// -(X : Y : T : Z) = (-X : Y : -T : Z)
+	MrNegate(in + XOFF, out + XOFF);
+	Copy(in + YOFF, out + YOFF);
+	MrNegate(in + TOFF, out + TOFF);
+	Copy(in + ZOFF, out + ZOFF);
 }

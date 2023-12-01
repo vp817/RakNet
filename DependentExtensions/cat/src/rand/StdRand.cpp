@@ -35,14 +35,14 @@ static const s32 STDLIB_RANDU_MULTIPLIER = 65539;
 
 u16 StandardRand::rand()
 {
-    seed = STDLIB_RAND_MULTIPLIER * seed + STDLIB_RAND_ADDEND;
-    return (u16)((seed >> 16) & 0x7fff);
+	seed = STDLIB_RAND_MULTIPLIER * seed + STDLIB_RAND_ADDEND;
+	return (u16)((seed >> 16) & 0x7fff);
 }
 
 u16 StandardRand::randu()
 {
-    seed *= STDLIB_RANDU_MULTIPLIER;
-    return (u16)((seed >> 16) & 0x7fff);
+	seed *= STDLIB_RANDU_MULTIPLIER;
+	return (u16)((seed >> 16) & 0x7fff);
 }
 
 // Fast [-1.f,1.f] generator from Inigo Quilez (2005)
@@ -52,31 +52,30 @@ float StandardRand::sfrand()
 
 	seed *= 16807;
 
-	*( (u32*)&r ) = ( (u32)seed >> 9 ) | 0x40000000;
+	*((u32 *)&r) = ((u32)seed >> 9) | 0x40000000;
 
 	return r - 3.f;
 }
 
 u32 cat::NLCRand32(int x, int y, u32 seed)
 {
-    // Map 2D->1D
-    // To avoid repetitive output, adjust pitch constant (271) higher if needed
-    u32 n = x + y * 271 + seed;
+	// Map 2D->1D
+	// To avoid repetitive output, adjust pitch constant (271) higher if needed
+	u32 n = x + y * 271 + seed;
 
-    // Mixing step
-    n = (n << 13) ^ n;
+	// Mixing step
+	n = (n << 13) ^ n;
 
-    // Non-linear congruential mixing step
-    n *= (n * n * 15731 + 789221) + 1376312589;
+	// Non-linear congruential mixing step
+	n *= (n * n * 15731 + 789221) + 1376312589;
 
-    return n;
+	return n;
 }
-
 
 float cat::NLCRandNorm(int x, int y, u32 seed)
 {
-    u32 n = NLCRand32(x, y, seed);
+	u32 n = NLCRand32(x, y, seed);
 
-    // Clamp to -1..1 (mode preferred by my Perlin noise code)
-    return 1.0f - n / 2147483647.5f;
+	// Clamp to -1..1 (mode preferred by my Perlin noise code)
+	return 1.0f - n / 2147483647.5f;
 }

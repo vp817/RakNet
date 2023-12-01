@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -76,17 +76,17 @@ public:
 	static void EncodeQueryUpdate(const char *colName, const RakNet::RakString &str, RakNet::RakString &valueStr, int &numParams, char **paramData, int *paramLength, int *paramFormat, const char *type = "text");
 
 	// Standard query
-	PGresult * QueryVariadic( const char *input, ... );
+	PGresult *QueryVariadic(const char *input, ...);
 	static void ClearResult(PGresult *result);
 
 	// Pass queries to the server
 	bool ExecuteBlockingCommand(const char *command, PGresult **result, bool rollbackOnFailure);
 	bool IsResultSuccessful(PGresult *result, bool rollbackOnFailure);
 	void Rollback(void);
-	static void EndianSwapInPlace(char* data, int dataLength);
+	static void EndianSwapInPlace(char *data, int dataLength);
 	RakNet::RakString GetEscapedString(const char *input) const;
-protected:	
 
+protected:
 	PGconn *pgConn;
 	bool pgConnAllocatedHere;
 	bool isConnected;

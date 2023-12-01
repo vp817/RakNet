@@ -36,90 +36,88 @@
 	Do not include directly
 */
 
-namespace cat {
-
-
-/*
-    class TCPClient
-
-    Object that represents a TCPClient bound to a single port
-
-    ValidClient()      : Returns true if the client socket is valid
-
-    Connect()          : Connects to the given address
-    DisconnectServer() : Disconnects from the server
-    PostToServer()     : Send a message to the server (will fail if not connected)
-
-    OnConnectToServer()      : Called when connection is accepted
-    OnReadFromServer()       : Return false to disconnect the server in response to data
-    OnWriteToServer()        : Informs the derived class that data has been sent
-    OnDisconnectFromServer() : Informs the derived class that the server has disconnected
-*/
-class TCPClient : public ThreadRefObject
+namespace cat
 {
-	// Remembers if socket is IPv6 so that user-provided
-	// addresses can be promoted if necessary.
-	bool _ipv6;
-	Socket _socket;
-	volatile u32 _disconnecting; // Disconnect flag
 
-public:
-    TCPClient(int priorityLevel);
-    virtual ~TCPClient();
+	/*
+		class TCPClient
 
-	CAT_INLINE bool Valid() { return _socket != SOCKET_ERROR; }
+		Object that represents a TCPClient bound to a single port
 
-	void Disconnect();
-	bool Connect(bool onlySupportIPv4, const NetAddr &remoteServerAddress);
+		ValidClient()      : Returns true if the client socket is valid
 
-public:
-	bool Post(u8 *data, u32 data_bytes, u32 skip_bytes = 0);
+		Connect()          : Connects to the given address
+		DisconnectServer() : Disconnects from the server
+		PostToServer()     : Send a message to the server (will fail if not connected)
 
-private:
-	bool ConnectEx(const NetAddr &remoteServerAddress);
-	bool Read(AsyncBuffer *buffer = 0);
-	bool Disco(AsyncBuffer *buffer = 0);
+		OnConnectToServer()      : Called when connection is accepted
+		OnReadFromServer()       : Return false to disconnect the server in response to data
+		OnWriteToServer()        : Informs the derived class that data has been sent
+		OnDisconnectFromServer() : Informs the derived class that the server has disconnected
+	*/
+	class TCPClient : public ThreadRefObject
+	{
+		// Remembers if socket is IPv6 so that user-provided
+		// addresses can be promoted if necessary.
+		bool _ipv6;
+		Socket _socket;
+		volatile u32 _disconnecting; // Disconnect flag
 
-private:
-	bool OnConnectEx(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
-	bool OnRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
-	bool OnWrite(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
-	bool OnDisco(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
+	public:
+		TCPClient(int priorityLevel);
+		virtual ~TCPClient();
 
-protected:
-    virtual void OnConnectToServer(ThreadPoolLocalStorage *tls) = 0;
-    virtual bool OnReadFromServer(ThreadPoolLocalStorage *tls, u8 *data, u32 bytes) = 0; // false = disconnect
-    virtual bool OnWriteToServer(ThreadPoolLocalStorage *tls, AsyncBuffer *buffer, u32 bytes) = 0; // true = delete AsyncBuffer object
-    virtual void OnDisconnectFromServer() = 0;
-};
+		CAT_INLINE bool Valid() { return _socket != SOCKET_ERROR; }
 
+		void Disconnect();
+		bool Connect(bool onlySupportIPv4, const NetAddr &remoteServerAddress);
 
-/*
-    class TCPClientQueued
+	public:
+		bool Post(u8 *data, u32 data_bytes, u32 skip_bytes = 0);
 
-    Base class for a TCP client that needs to queue up data for sending before
-    a connection has been established.  e.g. Uplink for a proxy server.
+	private:
+		bool ConnectEx(const NetAddr &remoteServerAddress);
+		bool Read(AsyncBuffer *buffer = 0);
+		bool Disco(AsyncBuffer *buffer = 0);
 
-    PostQueuedToServer() : Call in OnConnectToServer() to post the queued messages.
-*/
-class TCPClientQueued : public TCPClient
-{
-private:
-    volatile bool _queuing;
+	private:
+		bool OnConnectEx(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
+		bool OnRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
+		bool OnWrite(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
+		bool OnDisco(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buffer, u32 bytes);
 
-    Mutex _queueLock;
-    AsyncBuffer *_queueBuffer;
+	protected:
+		virtual void OnConnectToServer(ThreadPoolLocalStorage *tls) = 0;
+		virtual bool OnReadFromServer(ThreadPoolLocalStorage *tls, u8 *data, u32 bytes) = 0;		   // false = disconnect
+		virtual bool OnWriteToServer(ThreadPoolLocalStorage *tls, AsyncBuffer *buffer, u32 bytes) = 0; // true = delete AsyncBuffer object
+		virtual void OnDisconnectFromServer() = 0;
+	};
 
-protected:
-    void PostQueuedToServer();
+	/*
+		class TCPClientQueued
 
-public:
-    TCPClientQueued(int priorityLevel);
-    virtual ~TCPClientQueued();
+		Base class for a TCP client that needs to queue up data for sending before
+		a connection has been established.  e.g. Uplink for a proxy server.
 
-    bool Post(u8 *data, u32 data_bytes, u32 skip_bytes = 0);
-};
+		PostQueuedToServer() : Call in OnConnectToServer() to post the queued messages.
+	*/
+	class TCPClientQueued : public TCPClient
+	{
+	private:
+		volatile bool _queuing;
 
+		Mutex _queueLock;
+		AsyncBuffer *_queueBuffer;
+
+	protected:
+		void PostQueuedToServer();
+
+	public:
+		TCPClientQueued(int priorityLevel);
+		virtual ~TCPClientQueued();
+
+		bool Post(u8 *data, u32 data_bytes, u32 skip_bytes = 0);
+	};
 
 } // namespace cat
 

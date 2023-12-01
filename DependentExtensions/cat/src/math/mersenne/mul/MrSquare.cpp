@@ -33,17 +33,17 @@ using namespace cat;
 void CAT_FASTCALL BigPseudoMersenne::MrSquare(const Leg *in, Leg *out)
 {
 #if defined(CAT_USE_LEGS_ASM64)
-    if (library_legs == 4)
-    {
-        bpm_sqr_4(modulus_c, in, out);
-        return;
-    }
+	if (library_legs == 4)
+	{
+		bpm_sqr_4(modulus_c, in, out);
+		return;
+	}
 #endif
 
-    Leg *T_hi = Get(pm_regs - 2);
-    Leg *T_lo = Get(pm_regs - 3);
+	Leg *T_hi = Get(pm_regs - 2);
+	Leg *T_lo = Get(pm_regs - 3);
 
-    Square(in, T_lo);
+	Square(in, T_lo);
 
-    MrReduceProduct(T_hi, T_lo, out);
+	MrReduceProduct(T_hi, T_lo, out);
 }

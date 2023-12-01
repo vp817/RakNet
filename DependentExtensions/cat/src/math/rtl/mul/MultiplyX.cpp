@@ -31,17 +31,17 @@ using namespace cat;
 
 Leg CAT_FASTCALL BigRTL::MultiplyX(const Leg *in_a, Leg in_b, Leg *out)
 {
-    return MultiplyX(library_legs, in_a, in_b, out);
+	return MultiplyX(library_legs, in_a, in_b, out);
 }
 
 Leg CAT_FASTCALL BigRTL::MultiplyX(int legs, const Leg *in_a, Leg in_b, Leg *output)
 {
-    Leg p_hi;
+	Leg p_hi;
 
-    CAT_LEG_MUL(in_a[0], in_b, p_hi, output[0]);
+	CAT_LEG_MUL(in_a[0], in_b, p_hi, output[0]);
 
-    for (int ii = 1; ii < legs; ++ii)
-        CAT_LEG_MULADD(in_a[ii], in_b, p_hi, p_hi, output[ii]);
+	for (int ii = 1; ii < legs; ++ii)
+		CAT_LEG_MULADD(in_a[ii], in_b, p_hi, p_hi, output[ii]);
 
-    return p_hi;
+	return p_hi;
 }

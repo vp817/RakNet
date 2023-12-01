@@ -32,8 +32,8 @@
 #include <cat/Platform.hpp>
 #include <cmath>
 
-namespace cat {
-
+namespace cat
+{
 
 // PI
 #define CAT_TWO_PI_64 6.283185307179586476925286766559
@@ -47,38 +47,36 @@ namespace cat {
 #define CAT_INV_PI_64 0.31830988618379067153776752674503
 #define CAT_INV_PI_32 0.3183098862f
 
+	// Angle conversion
+	inline f64 Deg2Rad(f64 angle)
+	{
+		return angle * CAT_TWO_PI_64 / 360.0;
+	}
+	inline f32 Deg2Rad(f32 angle)
+	{
+		return angle * CAT_TWO_PI_32 / 360.0f;
+	}
+	inline f64 Rad2Deg(f64 angle)
+	{
+		return angle * 360.0 / CAT_TWO_PI_64;
+	}
+	inline f32 Rad2Deg(f32 angle)
+	{
+		return angle * 360.0f / CAT_TWO_PI_32;
+	}
 
-// Angle conversion
-inline f64 Deg2Rad(f64 angle)
-{
-	return angle * CAT_TWO_PI_64 / 360.0;
-}
-inline f32 Deg2Rad(f32 angle)
-{
-	return angle * CAT_TWO_PI_32 / 360.0f;
-}
-inline f64 Rad2Deg(f64 angle)
-{
-	return angle * 360.0 / CAT_TWO_PI_64;
-}
-inline f32 Rad2Deg(f32 angle)
-{
-	return angle * 360.0f / CAT_TWO_PI_32;
-}
+	// Generic clamp() function
+	template <class Scalar>
+	void Clamp(Scalar &x, Scalar low, Scalar high)
+	{
+		if (x < low)
+			x = low;
+		else if (x > high)
+			x = high;
+	}
 
-
-// Generic clamp() function
-template<class Scalar>
-void Clamp(Scalar &x, Scalar low, Scalar high)
-{
-	if (x < low) x = low;
-	else if (x > high) x = high;
-}
-
-
-// Fast inverse square root
-f32 InvSqrt(f32 x);
-
+	// Fast inverse square root
+	f32 InvSqrt(f32 x);
 
 } // namespace cat
 

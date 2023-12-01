@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -11,7 +11,6 @@
 /// \file
 /// \brief Contains utility functions to write logs, which are then sent to a connected instance of SQLite3ServerLoggerPlugin
 ///
-
 
 #ifndef ___SQLITE_CLIENT_LOGGER_PLUGIN_H
 #define ___SQLITE_CLIENT_LOGGER_PLUGIN_H
@@ -27,7 +26,6 @@
 // 2. You forgot to put the parameter list in parenthesis
 #define rakSqlLog(TABLE_DESCRIPTOR, COLUMN_NAMES, PARAMETER_LIST) RakNet::SQLiteClientLoggerPlugin::__sqlLogInternal(false, TABLE_DESCRIPTOR, COLUMN_NAMES, _FILE_AND_LINE_, RakNet::SQLiteClientLoggerPlugin::ParameterListHelper PARAMETER_LIST)
 #define rakFnLog(TABLE_DESCRIPTOR, PARAMETER_LIST) RakNet::SQLiteClientLoggerPlugin::__sqlLogInternal(true, TABLE_DESCRIPTOR, 0, _FILE_AND_LINE_, RakNet::SQLiteClientLoggerPlugin::ParameterListHelper PARAMETER_LIST)
-
 
 namespace RakNet
 {
@@ -129,10 +127,10 @@ namespace RakNet
 
 			template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12>
 			ParameterListHelper(const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const T10 &t10, const T11 &t11, const T12 &t12) : p0(t1), p1(t2), p2(t3), p3(t4), p4(t5), p5(t6), p6(t7), p7(t8), p8(t9), p9(t10), p10(t11), p11(t12), paramCount(12) {}
-			
+
 			template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13>
 			ParameterListHelper(const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const T10 &t10, const T11 &t11, const T12 &t12, const T13 &t13) : p0(t1), p1(t2), p2(t3), p3(t4), p4(t5), p5(t6), p6(t7), p7(t8), p8(t9), p9(t10), p10(t11), p11(t12), p12(t13), paramCount(13) {}
-			
+
 			template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class T11, class T12, class T13, class T14>
 			ParameterListHelper(const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const T10 &t10, const T11 &t11, const T12 &t12, const T13 &t13, const T14 &t14) : p0(t1), p1(t2), p2(t3), p3(t4), p4(t5), p5(t6), p6(t7), p7(t8), p8(t9), p9(t10), p10(t11), p11(t12), p12(t13), p13(t14), paramCount(14) {}
 
@@ -140,13 +138,12 @@ namespace RakNet
 			ParameterListHelper(const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const T10 &t10, const T11 &t11, const T12 &t12, const T13 &t13, const T14 &t14, const T15 &t15) : p0(t1), p1(t2), p2(t3), p3(t4), p4(t5), p5(t6), p6(t7), p7(t8), p8(t9), p9(t10), p10(t11), p11(t12), p12(t13), p13(t14), p14(t15), paramCount(15) {}
 
 			// Array doesn't work - no constructor initialization
-			//const LogParameter parms[12];
-			const LogParameter p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14;
+			// const LogParameter parms[12];
+			const LogParameter p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14;
 			const int paramCount;
 		};
 
-
-		SQLLogResult SqlLog( bool isFunctionCall, const char *tableName, const char *columnNames, const char *file, const int line, const ParameterListHelper &parameterList );
+		SQLLogResult SqlLog(bool isFunctionCall, const char *tableName, const char *columnNames, const char *file, const int line, const ParameterListHelper &parameterList);
 
 		/*
 		SQLLogResult SqlLog( bool isFunctionCall, const char *tableName, const char *columnNames, const char *file, const int line );
@@ -164,10 +161,13 @@ namespace RakNet
 		SQLLogResult SqlLog( bool isFunctionCall, const char *tableName, const char *columnNames, const char *file, const int line, const LogParameter *p1, const LogParameter *p2, const LogParameter *p3, const LogParameter *p4, const LogParameter *p5, const LogParameter *p6, const LogParameter *p7, const LogParameter *p8, const LogParameter *p9, const LogParameter *p10, const LogParameter *p11, const LogParameter *p12  );
 		*/
 
-		static RakNet::SQLLogResult __sqlLogInternal(bool isFunction, const char *tableName, const char *columnNames, const char *file, const int line, const ParameterListHelper &parameterList )
+		static RakNet::SQLLogResult __sqlLogInternal(bool isFunction, const char *tableName, const char *columnNames, const char *file, const int line, const ParameterListHelper &parameterList)
 		{
-			if (logger==0) return SQLLR_NOT_INSTANTIATED;
-			SQLLogResult r = logger->CheckQuery(isFunction, tableName, columnNames,parameterList.paramCount); if (r!=SQLLR_OK) return r;
+			if (logger == 0)
+				return SQLLR_NOT_INSTANTIATED;
+			SQLLogResult r = logger->CheckQuery(isFunction, tableName, columnNames, parameterList.paramCount);
+			if (r != SQLLR_OK)
+				return r;
 			r = logger->SqlLog(isFunction, tableName, columnNames, file, line, parameterList);
 			return r;
 		}
@@ -357,11 +357,10 @@ namespace RakNet
 
 		virtual void Update(void);
 
-		static SQLiteClientLoggerPlugin* logger;
-
+		static SQLiteClientLoggerPlugin *logger;
 
 	protected:
-		void SerializeHeader(RakNet::BitStream *bitStream, bool isFunctionCall, const char *tableName, const char *columnNames, const char *file, const int line, unsigned char parameterCount ) const;
+		void SerializeHeader(RakNet::BitStream *bitStream, bool isFunctionCall, const char *tableName, const char *columnNames, const char *file, const int line, unsigned char parameterCount) const;
 
 		SystemAddress serverAddress;
 		RakNet::RakString dbIdentifier;

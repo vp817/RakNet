@@ -31,10 +31,11 @@ using namespace cat;
 
 void CAT_FASTCALL BigPseudoMersenne::MrReduce(Leg *inout)
 {
-    // Subtract the modulus once if the input is greater or equal to it
-    for (int ii = 1; ii < library_legs; ++ii)
-        if (~inout[ii]) return;
+	// Subtract the modulus once if the input is greater or equal to it
+	for (int ii = 1; ii < library_legs; ++ii)
+		if (~inout[ii])
+			return;
 
-    if (inout[0] >= (0 - modulus_c))
-        AddX(inout, modulus_c);
+	if (inout[0] >= (0 - modulus_c))
+		AddX(inout, modulus_c);
 }

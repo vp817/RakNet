@@ -46,7 +46,7 @@ static CAT_INLINE u32 GetHash64(u64 key)
 }
 
 Table::Table(const char *file_path, u32 record_bytes, u32 cache_bytes, ShutdownObserver *shutdown_observer)
-	: AsyncFile(REFOBJ_PRIO_0+16)
+	: AsyncFile(REFOBJ_PRIO_0 + 16)
 {
 	_shutdown_observer = shutdown_observer;
 	if (shutdown_observer)
@@ -107,14 +107,15 @@ bool Table::AllocateCache()
 	INFO("Table") << "Allocating a " << _hash_table_size << "-element hash table for " << _file_path << ", and " << _cache_bytes << " bytes of cache memory";
 
 	// Allocate hash table memory
-	_cache_hash_table = new CacheNode*[_hash_table_size];
-	if (!_cache_hash_table) return false;
+	_cache_hash_table = new CacheNode *[_hash_table_size];
+	if (!_cache_hash_table)
+		return false;
 
 	// Clear hash table memory
-	CAT_CLR(_cache_hash_table, _hash_table_size * sizeof(CacheNode*));
+	CAT_CLR(_cache_hash_table, _hash_table_size * sizeof(CacheNode *));
 
 	// Allocate cache memory
-	_cache = (u8*)LargeAligned::Acquire(_cache_bytes);
+	_cache = (u8 *)LargeAligned::Acquire(_cache_bytes);
 	return _cache != 0;
 }
 
@@ -122,7 +123,7 @@ void Table::FreeCache()
 {
 	if (_cache_hash_table)
 	{
-		delete []_cache_hash_table;
+		delete[] _cache_hash_table;
 		_cache_hash_table = 0;
 	}
 
@@ -170,13 +171,15 @@ void Table::UnlinkNode(CacheNode *node)
 			{
 				// Re-link the higher child tree to its parent
 				parent->lower = higher;
-				if (higher) higher->parent = parent;
+				if (higher)
+					higher->parent = parent;
 			}
 			else if (!higher)
 			{
 				// Re-link the lower child tree to its parent
 				parent->lower = lower;
-				if (lower) lower->parent = parent;
+				if (lower)
+					lower->parent = parent;
 			}
 			else
 			{
@@ -186,7 +189,8 @@ void Table::UnlinkNode(CacheNode *node)
 
 				// Move the lower child tree to the far left in the higher child tree
 				CacheNode *leftmost = higher;
-				while (leftmost->lower) leftmost = leftmost->lower;
+				while (leftmost->lower)
+					leftmost = leftmost->lower;
 				leftmost->lower = lower;
 				lower->parent = leftmost;
 			}
@@ -197,13 +201,15 @@ void Table::UnlinkNode(CacheNode *node)
 			{
 				// Re-link the higher child tree to its parent
 				parent->higher = higher;
-				if (higher) higher->parent = parent;
+				if (higher)
+					higher->parent = parent;
 			}
 			else if (!higher)
 			{
 				// Re-link the lower child tree to its parent
 				parent->higher = lower;
-				if (lower) lower->parent = parent;
+				if (lower)
+					lower->parent = parent;
 			}
 			else
 			{
@@ -213,7 +219,8 @@ void Table::UnlinkNode(CacheNode *node)
 
 				// Move the lower child tree to the far left in the higher child tree
 				CacheNode *rightmost = lower;
-				while (rightmost->higher) rightmost = rightmost->higher;
+				while (rightmost->higher)
+					rightmost = rightmost->higher;
 				rightmost->higher = higher;
 				higher->parent = rightmost;
 			}
@@ -227,13 +234,15 @@ void Table::UnlinkNode(CacheNode *node)
 		{
 			// Re-link the higher child tree to its parent
 			_cache_hash_table[old_key] = higher;
-			if (higher) higher->parent = 0;
+			if (higher)
+				higher->parent = 0;
 		}
 		else if (!higher)
 		{
 			// Re-link the lower child tree to its parent
 			_cache_hash_table[old_key] = lower;
-			if (lower) lower->parent = 0;
+			if (lower)
+				lower->parent = 0;
 		}
 		else
 		{
@@ -243,7 +252,8 @@ void Table::UnlinkNode(CacheNode *node)
 
 			// Move the lower child tree to the far left in the higher child tree
 			CacheNode *leftmost = higher;
-			while (leftmost->lower) leftmost = leftmost->lower;
+			while (leftmost->lower)
+				leftmost = leftmost->lower;
 			leftmost->lower = lower;
 			lower->parent = leftmost;
 		}
@@ -318,13 +328,15 @@ u8 *Table::SetOffset(u64 offset)
 		else if (offset > insert->offset)
 		{
 			CacheNode *higher = insert->higher;
-			if (!higher) break;
+			if (!higher)
+				break;
 			insert = higher;
 		}
 		else
 		{
 			CacheNode *lower = insert->lower;
-			if (!lower) break;
+			if (!lower)
+				break;
 			insert = lower;
 		}
 	}
@@ -333,20 +345,25 @@ u8 *Table::SetOffset(u64 offset)
 
 	// Grab memory for the node
 	u32 next = _next_cache_slot;
-	CacheNode *node = reinterpret_cast<CacheNode*>( &_cache[next] );
+	CacheNode *node = reinterpret_cast<CacheNode *>(&_cache[next]);
 
 	// If node is already used, unlink it!
 	if (node->offset != INVALID_RECORD_OFFSET && _cache_full)
 	{
 		// If the parent happens to be the one we're replacing, use parent instead
-		if (insert == node) insert = insert->parent;
+		if (insert == node)
+			insert = insert->parent;
 
 		UnlinkNode(node);
 	}
 
 	// Mark next cache slot
 	next += sizeof(CacheNode) + _record_bytes;
-	if (next >= _cache_bytes) { next = 0; _cache_full = true; }
+	if (next >= _cache_bytes)
+	{
+		next = 0;
+		_cache_full = true;
+	}
 	_next_cache_slot = next;
 
 	InsertNode(offset, key, insert, node);
@@ -360,7 +377,7 @@ u8 *Table::InsertOffset(u64 offset)
 
 	// Grab memory for the node
 	u32 next = _next_cache_slot;
-	CacheNode *node = reinterpret_cast<CacheNode*>( &_cache[next] );
+	CacheNode *node = reinterpret_cast<CacheNode *>(&_cache[next]);
 
 	// If node is already used, unlink it!
 	if (_cache_full && node->offset != INVALID_RECORD_OFFSET)
@@ -370,7 +387,11 @@ u8 *Table::InsertOffset(u64 offset)
 
 	// Mark next cache slot
 	next += sizeof(CacheNode) + _record_bytes;
-	if (next >= _cache_bytes) { next = 0; _cache_full = true; }
+	if (next >= _cache_bytes)
+	{
+		next = 0;
+		_cache_full = true;
+	}
 	_next_cache_slot = next;
 
 	// Get root node for this offset
@@ -385,7 +406,8 @@ u8 *Table::InsertOffset(u64 offset)
 u8 *Table::PeekOffset(u64 offset)
 {
 	CacheNode *node = FindNode(offset);
-	if (!node) return 0;
+	if (!node)
+		return 0;
 
 	return GetTrailingBytes(node);
 }
@@ -393,7 +415,8 @@ u8 *Table::PeekOffset(u64 offset)
 bool Table::RemoveOffset(u64 offset)
 {
 	CacheNode *node = FindNode(offset);
-	if (!node) return false;
+	if (!node)
+		return false;
 
 	UnlinkNode(node);
 
@@ -405,10 +428,12 @@ bool Table::RemoveOffset(u64 offset)
 
 TableIndex *Table::MakeIndex(const char *index_file_path, IHash *hash_function, bool unique)
 {
-	if (!hash_function) return 0;
+	if (!hash_function)
+		return 0;
 
 	TableIndex *index = new TableIndex(this, index_file_path, hash_function, _shutdown_observer);
-	if (!index) return 0;
+	if (!index)
+		return 0;
 
 	if (!index->Initialize())
 	{
@@ -448,7 +473,6 @@ bool Table::Initialize()
 
 	return true;
 }
-
 
 //// Indexing
 
@@ -671,7 +695,7 @@ bool Table::OnQueryRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buf
 	// Update cache immediately
 	AutoWriteLock lock(_lock);
 
-		memcpy(SetOffset(buffer->GetOffset()), buffer->GetData(), bytes);
+	memcpy(SetOffset(buffer->GetOffset()), buffer->GetData(), bytes);
 
 	lock.Release();
 
@@ -686,7 +710,6 @@ bool Table::OnQueryRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buf
 	return result;
 }
 
-
 //// User Interface
 
 u64 Table::Insert(void *data)
@@ -697,27 +720,27 @@ u64 Table::Insert(void *data)
 	// Update cache immediately
 	AutoWriteLock lock(_lock);
 
-		// If it already exists,
-		if (INVALID_RECORD_OFFSET != UniqueIndexLookup(data))
-		{
-			buffer->Release();
-			return INVALID_RECORD_OFFSET;
-		}
+	// If it already exists,
+	if (INVALID_RECORD_OFFSET != UniqueIndexLookup(data))
+	{
+		buffer->Release();
+		return INVALID_RECORD_OFFSET;
+	}
 
-		// Get next offset
-		u64 offset = _next_record;
-		_next_record = offset + record_bytes;
+	// Get next offset
+	u64 offset = _next_record;
+	_next_record = offset + record_bytes;
 
-		INANE("Table") << "Insert " << offset << " in " << _file_path;
+	INANE("Table") << "Insert " << offset << " in " << _file_path;
 
-		u8 *cache = InsertOffset(offset);
-		memcpy(cache, data, record_bytes);
+	u8 *cache = InsertOffset(offset);
+	memcpy(cache, data, record_bytes);
 
-		// For each index,
-		for (TableIndex *index = _head_index; index; index = index->_next)
-		{
-			index->InsertComplete(data, offset);
-		}
+	// For each index,
+	for (TableIndex *index = _head_index; index; index = index->_next)
+	{
+		index->InsertComplete(data, offset);
+	}
 
 	lock.Release();
 
@@ -741,7 +764,7 @@ bool Table::Update(void *data, u64 offset)
 	// Update cache immediately
 	AutoWriteLock lock(_lock);
 
-		memcpy(SetOffset(offset), data, record_bytes);
+	memcpy(SetOffset(offset), data, record_bytes);
 
 	lock.Release();
 
@@ -758,24 +781,24 @@ bool Table::Query(u64 offset, AsyncBuffer *buffer)
 	// Check cache first
 	AutoReadLock lock(_lock);
 
-		u8 *cache = PeekOffset(offset);
+	u8 *cache = PeekOffset(offset);
 
-		if (cache)
-		{
-			memcpy(buffer->GetData(), cache, record_bytes);
+	if (cache)
+	{
+		memcpy(buffer->GetData(), cache, record_bytes);
 
-			lock.Release();
+		lock.Release();
 
-			AsyncQueryRead *tag;
-			buffer->GetTag(tag);
+		AsyncQueryRead *tag;
+		buffer->GetTag(tag);
 
-			if (tag->_callback(0, 0, buffer, record_bytes))
-				buffer->Release();
-			if (tag->_reference)
-				tag->_reference->ReleaseRef();
+		if (tag->_callback(0, 0, buffer, record_bytes))
+			buffer->Release();
+		if (tag->_reference)
+			tag->_reference->ReleaseRef();
 
-			return true;
-		}
+		return true;
+	}
 
 	lock.Release();
 

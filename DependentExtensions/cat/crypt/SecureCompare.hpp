@@ -31,14 +31,13 @@
 
 #include <cat/Platform.hpp>
 
-namespace cat {
+namespace cat
+{
 
-
-// Binary comparison function that is resistant to timing attack
-// Note that memcmp() and strcmp() are both vulnerable
-// Returns true if they are equal
-bool SecureEqual(const void *A, const void *B, int bytes);
-
+	// Binary comparison function that is resistant to timing attack
+	// Note that memcmp() and strcmp() are both vulnerable
+	// Returns true if they are equal
+	bool SecureEqual(const void *A, const void *B, int bytes);
 
 } // namespace cat
 

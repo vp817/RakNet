@@ -32,36 +32,35 @@
 #include <cat/Platform.hpp>
 
 #include <cstddef> // size_t
-#include <vector> // std::_Construct and std::_Destroy
+#include <vector>  // std::_Construct and std::_Destroy
 
-
-namespace cat {
-
-
-// Small to medium -size aligned heap allocator
-class Aligned
+namespace cat
 {
-public:
-	CAT_INLINE Aligned() {}
 
-	// Acquires memory aligned to a CPU cache-line byte boundary from the heap
-    static void *Acquire(u32 bytes);
+	// Small to medium -size aligned heap allocator
+	class Aligned
+	{
+	public:
+		CAT_INLINE Aligned() {}
 
-	// Resizes an aligned pointer
-	static void *Resize(void *ptr, u32 bytes);
+		// Acquires memory aligned to a CPU cache-line byte boundary from the heap
+		static void *Acquire(u32 bytes);
 
-    // Release an aligned pointer
-    static void Release(void *ptr);
+		// Resizes an aligned pointer
+		static void *Resize(void *ptr, u32 bytes);
 
-    template<class T>
-    static inline void Delete(T *ptr)
-    {
-        ptr->~T();
-        Release(ptr);
-    }
+		// Release an aligned pointer
+		static void Release(void *ptr);
 
-	static Aligned ii;
-};
+		template <class T>
+		static inline void Delete(T *ptr)
+		{
+			ptr->~T();
+			Release(ptr);
+		}
+
+		static Aligned ii;
+	};
 
 #if 0
 // Use STLAlignedAllocator in place of the standard STL allocator
@@ -148,17 +147,16 @@ public:
 };
 #endif
 
+	// Large-size aligned heap allocator
+	class LargeAligned
+	{
+	public:
+		// Acquires memory aligned to a CPU cache-line byte boundary from the heap
+		static void *Acquire(u32 bytes);
 
-// Large-size aligned heap allocator
-class LargeAligned
-{
-public:
-	// Acquires memory aligned to a CPU cache-line byte boundary from the heap
-    static void *Acquire(u32 bytes);
-
-    // Release an aligned pointer
-    static void Release(void *ptr);
-};
+		// Release an aligned pointer
+		static void Release(void *ptr);
+	};
 
 #if 0
 // Use STLAlignedAllocator in place of the standard STL allocator
@@ -245,9 +243,7 @@ public:
 };
 #endif
 
-
-u32 GetCacheLineBytes();
-
+	u32 GetCacheLineBytes();
 
 } // namespace cat
 

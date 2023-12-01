@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -11,8 +11,6 @@
 /// \file
 /// \brief Extends SQLite3ServerPlugin to support logging functions, including compressing images.
 ///
-
-
 
 #ifndef ___SQLITE_SERVER_LOGGER_PLUGIN_H
 #define ___SQLITE_SERVER_LOGGER_PLUGIN_H
@@ -62,7 +60,7 @@ namespace RakNet
 			/// A new database is created only if the sessionId is different. Two users using the same sessionId will write to the same database
 			CREATE_SHARED_NAMED_DB_HANDLE,
 		};
-		
+
 		/// \brief Determine if and how to automatically create databases, rather than call SQLite3ServerPlugin::AddDBHandle()
 		/// \details Typically you want one database to hold the events of a single application session, rather than one database for all sessions over all time.
 		/// A user of SQLiteClientLoggerPlugin can optionally call SQLiteClientLoggerPlugin::StartSession() in order to join a session to enable this.
@@ -101,7 +99,7 @@ namespace RakNet
 		/// \internal For plugin handling
 		virtual PluginReceiveResult OnReceive(Packet *packet);
 		/// \internal For plugin handling
-		virtual void OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
+		virtual void OnClosedConnection(const SystemAddress &systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason);
 		/// \internal For plugin handling
 		virtual void OnShutdown(void);
 		virtual void OnAttach(void);
@@ -113,7 +111,7 @@ namespace RakNet
 			SystemAddress systemAddress;
 			sqlite3 *referencedPointer;
 			RakNet::TimeMS timestampDelta;
-//			RakNet::TimeMS dbAgeWhenCreated;
+			//			RakNet::TimeMS dbAgeWhenCreated;
 		};
 		DataStructures::List<SessionNameAndSystemAddress> loggedInSessions;
 
@@ -121,7 +119,7 @@ namespace RakNet
 		struct CPUThreadInputNode
 		{
 			RakNet::Packet *packet;
-		//	RakNet::TimeMS whenMessageArrived;
+			//	RakNet::TimeMS whenMessageArrived;
 			// Time difference from their time to server time, plus the age of the database at the time the session was created
 			// Applied to CPUThreadOutputNode::clientSendingTime before being passed to SQL
 			RakNet::TimeMS timestampDelta;
@@ -141,8 +139,8 @@ namespace RakNet
 		// Images are now in compressed format, should the parameter list indeed have a query
 		struct CPUThreadOutputNode
 		{
-			RakNet::Packet *packet; // Passthrough
-//			RakNet::TimeMS whenMessageArrived; // Passthrough
+			RakNet::Packet *packet;			// Passthrough
+											//			RakNet::TimeMS whenMessageArrived; // Passthrough
 			RakNet::RakString dbIdentifier; // Passthrough
 			// SystemAddress systemAddress;
 			char ipAddressString[32];
@@ -183,7 +181,7 @@ namespace RakNet
 		bool createDirectoryForFile;
 		RakNet::RakString newDatabaseFilePath;
 
-		ThreadPool<CPUThreadInput*, CPUThreadOutput*> cpuLoggerThreadPool;
+		ThreadPool<CPUThreadInput *, CPUThreadOutput *> cpuLoggerThreadPool;
 		ThreadPool<SQLThreadInput, SQLThreadOutput> sqlLoggerThreadPool;
 
 		CPUThreadInput *LockCpuThreadInput(void);
@@ -197,7 +195,6 @@ namespace RakNet
 		CPUThreadInput *cpuThreadInput;
 		RakNet::TimeMS whenCpuThreadInputAllocated;
 		bool dxtCompressionEnabled;
-
 	};
 };
 

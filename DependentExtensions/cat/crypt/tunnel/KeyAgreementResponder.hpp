@@ -34,63 +34,62 @@
 #include <cat/threads/Atomic.hpp>
 
 #if defined(CAT_NO_ATOMIC_ADD) || defined(CAT_NO_ATOMIC_SET)
-# include <cat/threads/Mutex.hpp>
-# define CAT_NO_ATOMIC_RESPONDER
+#include <cat/threads/Mutex.hpp>
+#define CAT_NO_ATOMIC_RESPONDER
 #endif
 
-namespace cat {
-
-
-class CAT_EXPORT KeyAgreementResponder : public KeyAgreementCommon
+namespace cat
 {
-    Leg *b; // Responder's private key (kept secret)
-    Leg *B; // Responder's public key (pre-shared with initiator)
-	Leg *B_neutral; // Endian-neutral B
-    Leg *G_MultPrecomp; // 8-bit table for multiplication
-    Leg *y[2]; // Responder's ephemeral private key (kept secret)
-    Leg *Y_neutral[2]; // Responder's ephemeral public key (shared online with initiator)
+
+	class CAT_EXPORT KeyAgreementResponder : public KeyAgreementCommon
+	{
+		Leg *b;				// Responder's private key (kept secret)
+		Leg *B;				// Responder's public key (pre-shared with initiator)
+		Leg *B_neutral;		// Endian-neutral B
+		Leg *G_MultPrecomp; // 8-bit table for multiplication
+		Leg *y[2];			// Responder's ephemeral private key (kept secret)
+		Leg *Y_neutral[2];	// Responder's ephemeral public key (shared online with initiator)
 
 #if defined(CAT_NO_ATOMIC_RESPONDER)
-	Mutex m_thread_id_mutex;
+		Mutex m_thread_id_mutex;
 #endif // CAT_NO_ATOMIC_RESPONDER
 
-	volatile u32 ChallengeCount;
-	volatile u32 ActiveY;
+		volatile u32 ChallengeCount;
+		volatile u32 ActiveY;
 
-	void Rekey(BigTwistedEdwards *math, FortunaOutput *csprng);
-    bool AllocateMemory();
-    void FreeMemory();
+		void Rekey(BigTwistedEdwards *math, FortunaOutput *csprng);
+		bool AllocateMemory();
+		void FreeMemory();
 
-public:
-    KeyAgreementResponder();
-    ~KeyAgreementResponder();
+	public:
+		KeyAgreementResponder();
+		~KeyAgreementResponder();
 
-    bool Initialize(BigTwistedEdwards *math, FortunaOutput *csprng,
-					const u8 *responder_public_key, int public_bytes,
-                    const u8 *responder_private_key, int private_bytes);
+		bool Initialize(BigTwistedEdwards *math, FortunaOutput *csprng,
+						const u8 *responder_public_key, int public_bytes,
+						const u8 *responder_private_key, int private_bytes);
 
-public:
-    bool ProcessChallenge(BigTwistedEdwards *math, FortunaOutput *csprng,
-						  const u8 *initiator_challenge, int challenge_bytes,
-                          u8 *responder_answer, int answer_bytes, Skein *key_hash);
+	public:
+		bool ProcessChallenge(BigTwistedEdwards *math, FortunaOutput *csprng,
+							  const u8 *initiator_challenge, int challenge_bytes,
+							  u8 *responder_answer, int answer_bytes, Skein *key_hash);
 
-	inline bool KeyEncryption(Skein *key_hash, AuthenticatedEncryption *auth_enc, const char *key_name)
-	{
-		return auth_enc->SetKey(KeyBytes, key_hash, false, key_name);
-	}
+		inline bool KeyEncryption(Skein *key_hash, AuthenticatedEncryption *auth_enc, const char *key_name)
+		{
+			return auth_enc->SetKey(KeyBytes, key_hash, false, key_name);
+		}
 
-	// Public key is filled if proof succeeds, and will return true
-	bool VerifyInitiatorIdentity(BigTwistedEdwards *math,
-								 const u8 *responder_answer, int answer_bytes,
-								 const u8 *proof, int proof_bytes,
-								 u8 *public_key, int public_bytes);
+		// Public key is filled if proof succeeds, and will return true
+		bool VerifyInitiatorIdentity(BigTwistedEdwards *math,
+									 const u8 *responder_answer, int answer_bytes,
+									 const u8 *proof, int proof_bytes,
+									 u8 *public_key, int public_bytes);
 
-public:
-    bool Sign(BigTwistedEdwards *math, FortunaOutput *csprng,
-			  const u8 *message, int message_bytes,
-			  u8 *signature, int signature_bytes);
-};
-
+	public:
+		bool Sign(BigTwistedEdwards *math, FortunaOutput *csprng,
+				  const u8 *message, int message_bytes,
+				  u8 *signature, int signature_bytes);
+	};
 
 } // namespace cat
 

@@ -3,7 +3,7 @@
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant 
+ *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
@@ -13,7 +13,7 @@
 
 #include "NativeFeatureIncludes.h"
 
-#if  _RAKNET_SUPPORT_TCPInterface==1
+#if _RAKNET_SUPPORT_TCPInterface == 1
 
 #include "Export.h"
 #include "RakNetTypes.h"
@@ -48,11 +48,11 @@ namespace RakNet
 	class RAK_DLL_EXPORT Rackspace2EventCallback
 	{
 	public:
-		virtual void OnTCPFailure(void)=0;
-		virtual void OnTransmissionFailed(HTTPConnection2 *httpConnection2, RakString postStr, RakString authURLDomain)=0;
-		virtual void OnResponse(Rackspace2ResponseCode r2rc, RakString responseReceived, int contentOffset)=0;
-		virtual void OnEmptyResponse(RakString stringTransmitted)=0;
-		virtual void OnMessage(const char *message, RakString responseReceived, RakString stringTransmitted, int contentOffset)=0;
+		virtual void OnTCPFailure(void) = 0;
+		virtual void OnTransmissionFailed(HTTPConnection2 *httpConnection2, RakString postStr, RakString authURLDomain) = 0;
+		virtual void OnResponse(Rackspace2ResponseCode r2rc, RakString responseReceived, int contentOffset) = 0;
+		virtual void OnEmptyResponse(RakString stringTransmitted) = 0;
+		virtual void OnMessage(const char *message, RakString responseReceived, RakString stringTransmitted, int contentOffset) = 0;
 	};
 
 	/// \brief Version 2 of the code that uses the TCPInterface class to communicate with the Rackspace API servers
@@ -119,11 +119,10 @@ namespace RakNet
 		RakString lastApiAccessKey;
 		bool reexecuteLastRequestOnAuth;
 
-		//SystemAddress serverAddress;
+		// SystemAddress serverAddress;
 		RakString __addOpLast_URL;
 		OpType __addOpLast_isPost;
 		RakString __addOpLast_dataAsStr;
-
 	};
 
 } // namespace RakNet

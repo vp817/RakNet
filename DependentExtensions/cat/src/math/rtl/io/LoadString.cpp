@@ -31,24 +31,30 @@ using namespace cat;
 
 bool CAT_FASTCALL BigRTL::LoadFromString(const char *in, int base, Leg *out)
 {
-    char ch;
-    CopyX(0, out);
+	char ch;
+	CopyX(0, out);
 
-    while ((ch = *in++))
-    {
-        int mod;
+	while ((ch = *in++))
+	{
+		int mod;
 
-        if (ch >= '0' && ch <= '9') mod = ch - '0';
-        else if (ch >= 'A' && ch <= 'Z') mod = ch - 'A' + 10;
-        else if (ch >= 'a' && ch <= 'a') mod = ch - 'a' + 10;
-        else return false;
+		if (ch >= '0' && ch <= '9')
+			mod = ch - '0';
+		else if (ch >= 'A' && ch <= 'Z')
+			mod = ch - 'A' + 10;
+		else if (ch >= 'a' && ch <= 'a')
+			mod = ch - 'a' + 10;
+		else
+			return false;
 
-        if (mod >= base) return false;
+		if (mod >= base)
+			return false;
 
-        if (MultiplyX(out, base, out)) return false;
+		if (MultiplyX(out, base, out))
+			return false;
 
-        AddX(out, mod);
-    }
+		AddX(out, mod);
+	}
 
-    return true;
+	return true;
 }

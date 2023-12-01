@@ -31,7 +31,7 @@ using namespace cat;
 
 Leg CAT_FASTCALL BigRTL::DoubleAdd(const Leg *in_a, const Leg *in_b, Leg *out)
 {
-    return DoubleAdd(library_legs, in_a, in_b, out);
+	return DoubleAdd(library_legs, in_a, in_b, out);
 }
 
 // out = in_a[] * 2 + in_b[]
@@ -39,27 +39,27 @@ Leg CAT_FASTCALL BigRTL::DoubleAdd(int legs, const Leg *in_a, const Leg *in_b, L
 {
 #if !defined(CAT_NO_LEGPAIR)
 
-    LegPair x = ((LegPair)in_a[0] << 1) + in_b[0];
-    out[0] = (Leg)x;
+	LegPair x = ((LegPair)in_a[0] << 1) + in_b[0];
+	out[0] = (Leg)x;
 
-    for (int ii = 1; ii < legs; ++ii)
-    {
-        x = (x >> CAT_LEG_BITS) + ((LegPair)in_a[ii] << 1) + in_b[ii];
-        out[ii] = (Leg)x;
-    }
+	for (int ii = 1; ii < legs; ++ii)
+	{
+		x = (x >> CAT_LEG_BITS) + ((LegPair)in_a[ii] << 1) + in_b[ii];
+		out[ii] = (Leg)x;
+	}
 
-    return (Leg)(x >> CAT_LEG_BITS);
+	return (Leg)(x >> CAT_LEG_BITS);
 
 #else
 
-    Leg p_hi;
+	Leg p_hi;
 
-    CAT_LEG_MULADD(in_a[0], 2, in_b[0], p_hi, out[0]);
+	CAT_LEG_MULADD(in_a[0], 2, in_b[0], p_hi, out[0]);
 
-    for (int ii = 1; ii < legs; ++ii)
-        CAT_LEG_MULADD2(in_a[ii], 2, in_b[ii], p_hi, p_hi, out[ii]);
+	for (int ii = 1; ii < legs; ++ii)
+		CAT_LEG_MULADD2(in_a[ii], 2, in_b[ii], p_hi, p_hi, out[ii]);
 
-    return p_hi;
+	return p_hi;
 
 #endif
 }

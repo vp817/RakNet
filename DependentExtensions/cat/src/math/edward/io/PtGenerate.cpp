@@ -32,15 +32,16 @@ using namespace cat;
 // Generate a random point on the curve that is not part of a small subgroup
 void BigTwistedEdwards::PtGenerate(IRandom *prng, Leg *out)
 {
-    // Generate affine (x,y) point on the curve
-    do {
-        PtFillRandomX(prng, out);
-        PtSolveAffineY(out);
-    } while (!PtValidAffine(out));
+	// Generate affine (x,y) point on the curve
+	do
+	{
+		PtFillRandomX(prng, out);
+		PtSolveAffineY(out);
+	} while (!PtValidAffine(out));
 
-    // #E(Fp) = large prime * cofactor h
-    // Assumes cofactor h = 4
-    // P = hP, to insure it is in the large prime-order subgroup
-    PtDoubleZ1(out, out);
-    PtEDouble(out, out);
+	// #E(Fp) = large prime * cofactor h
+	// Assumes cofactor h = 4
+	// P = hP, to insure it is in the large prime-order subgroup
+	PtDoubleZ1(out, out);
+	PtEDouble(out, out);
 }

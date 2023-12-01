@@ -31,7 +31,8 @@ using namespace cat;
 
 void BigMontgomery::MonSubtract(const Leg *in_a, const Leg *in_b, Leg *out)
 {
-    // If the subtraction overflowed, add modulus
-    if (Subtract(in_a, in_b, out))
-        while (Add(out, CachedModulus, out));
+	// If the subtraction overflowed, add modulus
+	if (Subtract(in_a, in_b, out))
+		while (Add(out, CachedModulus, out))
+			;
 }

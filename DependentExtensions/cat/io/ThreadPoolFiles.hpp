@@ -33,49 +33,48 @@
 #include <cat/port/FastDelegate.h>
 
 #if defined(CAT_OS_WINDOWS)
-# include <cat/port/WindowsInclude.hpp>
+#include <cat/port/WindowsInclude.hpp>
 #endif
 
-namespace cat {
-
-
-enum AsyncFileModes
+namespace cat
 {
-	ASYNCFILE_READ = 1,
-	ASYNCFILE_WRITE = 2,
-	ASYNCFILE_RANDOM = 4
-};
 
-class AsyncFile : public ThreadRefObject
-{
-	HANDLE _file;
+	enum AsyncFileModes
+	{
+		ASYNCFILE_READ = 1,
+		ASYNCFILE_WRITE = 2,
+		ASYNCFILE_RANDOM = 4
+	};
 
-protected:
-	char _file_path[MAX_PATH+1];
+	class AsyncFile : public ThreadRefObject
+	{
+		HANDLE _file;
 
-public:
-	AsyncFile(int priorityLevel);
-	virtual ~AsyncFile();
+	protected:
+		char _file_path[MAX_PATH + 1];
 
-public:
-	bool Valid();
-	const char *GetFilePath();
+	public:
+		AsyncFile(int priorityLevel);
+		virtual ~AsyncFile();
 
-public:
-	/*
-		In read mode, Open() will fail if the file does not exist.
-		In write mode, Open() will create the file if it does not exist.
-	*/
-	bool Open(const char *file_path, u32 async_file_modes);
-	void Close();
+	public:
+		bool Valid();
+		const char *GetFilePath();
 
-	bool SetSize(u64 bytes);
-	u64 GetSize();
+	public:
+		/*
+			In read mode, Open() will fail if the file does not exist.
+			In write mode, Open() will create the file if it does not exist.
+		*/
+		bool Open(const char *file_path, u32 async_file_modes);
+		void Close();
 
-	bool Read(AsyncBuffer *buffer, u64 offset, const AsyncCallback &callback);
-	bool Write(AsyncBuffer *buffer, u64 offset, const AsyncCallback &callback = 0);
-};
+		bool SetSize(u64 bytes);
+		u64 GetSize();
 
+		bool Read(AsyncBuffer *buffer, u64 offset, const AsyncCallback &callback);
+		bool Write(AsyncBuffer *buffer, u64 offset, const AsyncCallback &callback = 0);
+	};
 
 } // namespace cat
 

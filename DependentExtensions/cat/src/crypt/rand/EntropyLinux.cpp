@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/crypt/rand/Fortuna.hpp>
@@ -75,11 +75,10 @@ bool FortunaFactory::ThreadFunction(void *)
         fast_pool = (fast_pool + 1) % 32;
     }
 
-	return true;
+    return true;
 }
 
 #endif // !defined(CAT_NO_ENTROPY_THREAD)
-
 
 bool FortunaFactory::InitializeEntropySources()
 {
@@ -91,19 +90,19 @@ bool FortunaFactory::InitializeEntropySources()
     PollFastEntropySources(0);
 
 #if defined(CAT_NO_ENTROPY_THREAD)
-	return true;
+    return true;
 #else
-	return StartThread();
+    return StartThread();
 #endif
 }
 
 void FortunaFactory::ShutdownEntropySources()
 {
 #if !defined(CAT_NO_ENTROPY_THREAD)
-	_kill_flag.Set();
+    _kill_flag.Set();
 
-	if (!WaitForThread(ENTROPY_THREAD_KILL_TIMEOUT))
-		AbortThread();
+    if (!WaitForThread(ENTROPY_THREAD_KILL_TIMEOUT))
+        AbortThread();
 #endif
 
     if (urandom_fd >= 0)
@@ -112,46 +111,53 @@ void FortunaFactory::ShutdownEntropySources()
 
 static void PollVMStat(Skein &pool)
 {
-	const char *PATH = "vmstat -s";
+    const char *PATH = "vmstat -s";
 
-	fd_set fds;
-	FD_ZERO(&fds);
+    fd_set fds;
+    FD_ZERO(&fds);
 
-	if (!access(PATH, F_OK)) return;
+    if (!access(PATH, F_OK))
+        return;
 
-	FILE *fp = popen(PATH, "r");
-	if (!fp) return;
+    FILE *fp = popen(PATH, "r");
+    if (!fp)
+        return;
 
-	int fd = fileno(fp);
-	if (fd < 0) return;
+    int fd = fileno(fp);
+    if (fd < 0)
+        return;
 
-	FD_SET(fd, &fds);
+    FD_SET(fd, &fds);
 
-	timeval tv;
-	tv.tv_sec = 5;
-	tv.tv_usec = 0;
+    timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
 
-	int r;
-	while ((r = select(1 + fd, &fds, 0, 0, &tv)))
-	{
-		if (r == -1 || !FD_ISSET(fd, &fds)) break;
+    int r;
+    while ((r = select(1 + fd, &fds, 0, 0, &tv)))
+    {
+        if (r == -1 || !FD_ISSET(fd, &fds))
+            break;
 
-		static u8 buffer[4096];
-		int count = read(fd, buffer, sizeof(buffer));
+        static u8 buffer[4096];
+        int count = read(fd, buffer, sizeof(buffer));
 
-		if (count > 0) pool.Crunch(buffer, count);
-		else break;
-	}
+        if (count > 0)
+            pool.Crunch(buffer, count);
+        else
+            break;
+    }
 
-	pclose(fp);
-	FD_CLR(fd, &fds);
+    pclose(fp);
+    FD_CLR(fd, &fds);
 }
 
 void FortunaFactory::PollInvariantSources(int pool_index)
 {
     Skein &pool = Pool[pool_index];
 
-    struct {
+    struct
+    {
         u32 cycles_start;
         u8 system_prng[32];
         u32 pid;
@@ -168,8 +174,8 @@ void FortunaFactory::PollInvariantSources(int pool_index)
     // pid
     Sources.pid = (u32)getpid();
 
-	// Poll vmstat -s
-	PollVMStat(pool);
+    // Poll vmstat -s
+    PollVMStat(pool);
 
     // Cycles at the end
     Sources.cycles_end = Clock::cycles();
@@ -181,7 +187,8 @@ void FortunaFactory::PollSlowEntropySources(int pool_index)
 {
     Skein &pool = Pool[pool_index];
 
-    struct {
+    struct
+    {
         u32 cycles_start;
         u8 system_prng[8];
         double this_request;
@@ -214,7 +221,8 @@ void FortunaFactory::PollFastEntropySources(int pool_index)
 {
     Skein &pool = Pool[pool_index];
 
-    struct {
+    struct
+    {
         u32 cycles_start;
         double this_request;
         double request_diff;

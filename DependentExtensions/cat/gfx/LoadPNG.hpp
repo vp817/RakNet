@@ -34,7 +34,8 @@
 using namespace std;
 #include "zlib-1.2.4/zlib.h"
 
-namespace cat {
+namespace cat
+{
 
 #include "CRC32.hpp"
 
@@ -76,7 +77,6 @@ namespace cat {
 #pragma pack(pop)
 #endif
 
-
 	class PNGSkeletonTokenizer
 	{
 	protected:
@@ -95,7 +95,6 @@ namespace cat {
 		// return true only if section is valid (no exceptions please)
 		virtual bool onSection(char type[4], u8 data[], u32 len) = 0;
 	};
-
 
 	class PNGTokenizer : public PNGSkeletonTokenizer
 	{
@@ -155,7 +154,6 @@ namespace cat {
 		void onHIST();
 		void onTIME();
 	};
-
 
 } // namespace cat
 

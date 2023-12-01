@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/crypt/rand/Fortuna.hpp>
@@ -85,25 +85,24 @@ bool FortunaFactory::ThreadFunction(void *)
         fast_pool = (fast_pool + 1) % 32;
     }
 
-	return true;
+    return true;
 }
 
 #endif // !defined(CAT_NO_ENTROPY_THREAD)
 
-
 bool FortunaFactory::InitializeEntropySources()
 {
-	NtQuerySystemInformation = 0;
-	NTDLL = 0;
+    NtQuerySystemInformation = 0;
+    NTDLL = 0;
 
     // Initialize a session with the CryptoAPI using newer cryptoprimitives (AES)
     CurrentProcess = GetCurrentProcess();
     if (!CryptAcquireContext(&hCryptProv, 0, 0, PROV_RSA_AES, CRYPT_VERIFYCONTEXT))
         return false;
 
-	NTDLL = LoadLibrary("NtDll.dll");
-	if (NTDLL)
-		NtQuerySystemInformation = (PtNtQuerySystemInformation)GetProcAddress(NTDLL, "NtQuerySystemInformation");
+    NTDLL = LoadLibrary("NtDll.dll");
+    if (NTDLL)
+        NtQuerySystemInformation = (PtNtQuerySystemInformation)GetProcAddress(NTDLL, "NtQuerySystemInformation");
 
     // Fire poll for entropy all goes into pool 0
     PollInvariantSources(0);
@@ -111,59 +110,62 @@ bool FortunaFactory::InitializeEntropySources()
     PollFastEntropySources(0);
 
 #if defined(CAT_NO_ENTROPY_THREAD)
-	return true;
+    return true;
 #else
-	return StartThread();
+    return StartThread();
 #endif
 }
 
 void FortunaFactory::ShutdownEntropySources()
 {
 #if !defined(CAT_NO_ENTROPY_THREAD)
-	_kill_flag.Set();
+    _kill_flag.Set();
 
-	if (!WaitForThread(ENTROPY_THREAD_KILL_TIMEOUT))
-		AbortThread();
+    if (!WaitForThread(ENTROPY_THREAD_KILL_TIMEOUT))
+        AbortThread();
 #endif
 
-    if (hCryptProv) CryptReleaseContext(hCryptProv, 0);
-	if (NTDLL) FreeLibrary(NTDLL);
+    if (hCryptProv)
+        CryptReleaseContext(hCryptProv, 0);
+    if (NTDLL)
+        FreeLibrary(NTDLL);
 }
 
 void FortunaFactory::PollInvariantSources(int pool_index)
 {
     Skein &pool = Pool[pool_index];
 
-	struct {
-		u32 cycles_start;
-	    u8 system_prng[32];
-	    SYSTEM_INFO sys_info;
-	    TCHAR computer_name[MAX_COMPUTERNAME_LENGTH + 1];
-	    HW_PROFILE_INFO hw_profile;
-		DWORD win_ver;
-	    DWORD reg_quota[2];
-	    STARTUPINFO startup_info;
-	    MEMORYSTATUS mem_status;
-		u32 cycles_end;
-	} Sources;
+    struct
+    {
+        u32 cycles_start;
+        u8 system_prng[32];
+        SYSTEM_INFO sys_info;
+        TCHAR computer_name[MAX_COMPUTERNAME_LENGTH + 1];
+        HW_PROFILE_INFO hw_profile;
+        DWORD win_ver;
+        DWORD reg_quota[2];
+        STARTUPINFO startup_info;
+        MEMORYSTATUS mem_status;
+        u32 cycles_end;
+    } Sources;
 
     // Cycles at the start
     Sources.cycles_start = Clock::cycles();
 
-	// System information
-	if (NtQuerySystemInformation)
-	{
-		u8 sysbuf[640];
-		for (int ii = 0; ii < 128; ++ii)
-		{
-			ULONG retlen = 0;
-			if (NtQuerySystemInformation(ii, sysbuf, sizeof(sysbuf), &retlen) == 0 && retlen > 0)
-				pool.Crunch(sysbuf, retlen);
-		}
-	}
+    // System information
+    if (NtQuerySystemInformation)
+    {
+        u8 sysbuf[640];
+        for (int ii = 0; ii < 128; ++ii)
+        {
+            ULONG retlen = 0;
+            if (NtQuerySystemInformation(ii, sysbuf, sizeof(sysbuf), &retlen) == 0 && retlen > 0)
+                pool.Crunch(sysbuf, retlen);
+        }
+    }
 
     // CryptoAPI PRNG: Large request
-    CryptGenRandom(hCryptProv, sizeof(Sources.system_prng), (BYTE*)Sources.system_prng);
+    CryptGenRandom(hCryptProv, sizeof(Sources.system_prng), (BYTE *)Sources.system_prng);
 
     // System info
     GetSystemInfo(&Sources.sys_info);
@@ -176,7 +178,7 @@ void FortunaFactory::PollInvariantSources(int pool_index)
     TCHAR user_name[UNLEN + 1];
     DWORD user_len = sizeof(user_name) / sizeof(TCHAR);
     if (GetUserName(user_name, &user_len))
-		pool.Crunch(user_name, user_len * sizeof(TCHAR));
+        pool.Crunch(user_name, user_len * sizeof(TCHAR));
 
     // Hardware profile
     GetCurrentHwProfileA(&Sources.hw_profile);
@@ -206,49 +208,50 @@ void FortunaFactory::PollInvariantSources(int pool_index)
     // Cycles at the end
     Sources.cycles_end = Clock::cycles();
 
-	pool.Crunch(&Sources, sizeof(Sources));
+    pool.Crunch(&Sources, sizeof(Sources));
 }
 
 void FortunaFactory::PollSlowEntropySources(int pool_index)
 {
     Skein &pool = Pool[pool_index];
 
-	struct {
-		u32 cycles_start;
-		POINT cursor_pos;
-		u8 system_prng[8];
-		double this_request;
-		double request_diff;
-	    FILETIME ft_creation, ft_exit, ft_kernel, ft_user;
-	    FILETIME ft_idle, ft_sys_kernel, ft_sys_user;
-	    MEMORYSTATUSEX mem_stats;
-		u32 cycles_end;
-	} Sources;
+    struct
+    {
+        u32 cycles_start;
+        POINT cursor_pos;
+        u8 system_prng[8];
+        double this_request;
+        double request_diff;
+        FILETIME ft_creation, ft_exit, ft_kernel, ft_user;
+        FILETIME ft_idle, ft_sys_kernel, ft_sys_user;
+        MEMORYSTATUSEX mem_stats;
+        u32 cycles_end;
+    } Sources;
 
-	ULONG retlen;
-	u8 sysbuf[640];
+    ULONG retlen;
+    u8 sysbuf[640];
 
     // Cycles at the start
     Sources.cycles_start = Clock::cycles();
 
-	if (NtQuerySystemInformation)
-	{
-		// System performance info
-		retlen = 0;
-		if (NtQuerySystemInformation(2, sysbuf, sizeof(sysbuf), &retlen) == 0 && retlen > 0)
-			pool.Crunch(sysbuf, retlen);
+    if (NtQuerySystemInformation)
+    {
+        // System performance info
+        retlen = 0;
+        if (NtQuerySystemInformation(2, sysbuf, sizeof(sysbuf), &retlen) == 0 && retlen > 0)
+            pool.Crunch(sysbuf, retlen);
 
-		// System interrupt info
-		retlen = 0;
-		if (NtQuerySystemInformation(23, sysbuf, sizeof(sysbuf), &retlen) == 0 && retlen > 0)
-			pool.Crunch(sysbuf, retlen);
-	}
+        // System interrupt info
+        retlen = 0;
+        if (NtQuerySystemInformation(23, sysbuf, sizeof(sysbuf), &retlen) == 0 && retlen > 0)
+            pool.Crunch(sysbuf, retlen);
+    }
 
     // Cursor position
     GetCursorPos(&Sources.cursor_pos);
 
     // CryptoAPI PRNG: Small request
-    CryptGenRandom(hCryptProv, sizeof(Sources.system_prng), (BYTE*)Sources.system_prng);
+    CryptGenRandom(hCryptProv, sizeof(Sources.system_prng), (BYTE *)Sources.system_prng);
 
     // Poll time in microseconds
     Sources.this_request = Clock::usec();
@@ -261,11 +264,11 @@ void FortunaFactory::PollSlowEntropySources(int pool_index)
     // Process times
     GetProcessTimes(CurrentProcess, &Sources.ft_creation, &Sources.ft_exit, &Sources.ft_kernel, &Sources.ft_user);
 
-	// System times
-	GetSystemTimes(&Sources.ft_idle, &Sources.ft_sys_kernel, &Sources.ft_sys_user);
+    // System times
+    GetSystemTimes(&Sources.ft_idle, &Sources.ft_sys_kernel, &Sources.ft_sys_user);
 
     // Global memory status
-	GlobalMemoryStatusEx(&Sources.mem_stats);
+    GlobalMemoryStatusEx(&Sources.mem_stats);
 
     // Cycles at the end
     Sources.cycles_end = Clock::cycles();
@@ -277,12 +280,13 @@ void FortunaFactory::PollFastEntropySources(int pool_index)
 {
     Skein &pool = Pool[pool_index];
 
-	struct {
-		u32 cycles_start;
-		double this_request;
-		double request_diff;
-		u32 cycles_end;
-	} Sources;
+    struct
+    {
+        u32 cycles_start;
+        double this_request;
+        double request_diff;
+        u32 cycles_end;
+    } Sources;
 
     // Cycles at the start
     Sources.cycles_start = Clock::cycles();

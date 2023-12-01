@@ -32,12 +32,11 @@
 using namespace std;
 using namespace cat;
 
-
 #if defined(CAT_OS_WINDOWS)
 #include <cat/port/WindowsInclude.hpp>
 
-typedef BOOL (WINAPI *PtGetLogicalProcessorInformation)(
-	PSYSTEM_LOGICAL_PROCESSOR_INFORMATION, 
+typedef BOOL(WINAPI *PtGetLogicalProcessorInformation)(
+	PSYSTEM_LOGICAL_PROCESSOR_INFORMATION,
 	PDWORD);
 
 #elif defined(CAT_OS_APPLE)
@@ -45,10 +44,8 @@ typedef BOOL (WINAPI *PtGetLogicalProcessorInformation)(
 #else
 #endif
 
-
 // Object for placement new
 Aligned Aligned::ii;
-
 
 //// Cache line size determination
 
@@ -155,15 +152,14 @@ u32 cat::GetCacheLineBytes()
 	return _cacheline_bytes;
 }
 
-
 //// Small to medium -size aligned heap allocator
 
 static CAT_INLINE u8 DetermineOffset(void *ptr)
 {
 #if defined(CAT_WORD_64)
-	return (u8)( _cacheline_bytes - ((u32)*(u64*)&ptr & (_cacheline_bytes-1)) );
+	return (u8)(_cacheline_bytes - ((u32) * (u64 *)&ptr & (_cacheline_bytes - 1)));
 #else
-	return (u8)( _cacheline_bytes - (*(u32*)&ptr & (_cacheline_bytes-1)) );
+	return (u8)(_cacheline_bytes - (*(u32 *)&ptr & (_cacheline_bytes - 1)));
 #endif
 }
 
@@ -175,30 +171,33 @@ void *Aligned::Acquire(u32 bytes)
 		_cacheline_bytes = DetermineCacheLineBytes();
 	}
 
-    u8 *buffer = (u8*)malloc(_cacheline_bytes + bytes);
-    if (!buffer) return 0;
+	u8 *buffer = (u8 *)malloc(_cacheline_bytes + bytes);
+	if (!buffer)
+		return 0;
 
 	// Get buffer aligned address
 	u8 offset = DetermineOffset(buffer);
-    buffer += offset;
-    buffer[-1] = offset;
+	buffer += offset;
+	buffer[-1] = offset;
 
-    return buffer;
+	return buffer;
 }
 
 // Resizes an aligned pointer
 void *Aligned::Resize(void *ptr, u32 bytes)
 {
-	if (!ptr) return Acquire(bytes);
+	if (!ptr)
+		return Acquire(bytes);
 
 	// Can assume here that cacheline bytes has been determined
 
 	// Get buffer base address
-	u8 *buffer = reinterpret_cast<u8*>( ptr );
+	u8 *buffer = reinterpret_cast<u8 *>(ptr);
 	buffer -= buffer[-1];
 
-	buffer = (u8*)realloc(buffer, _cacheline_bytes + bytes);
-	if (!buffer) return 0;
+	buffer = (u8 *)realloc(buffer, _cacheline_bytes + bytes);
+	if (!buffer)
+		return 0;
 
 	// Get buffer aligned address
 	u8 offset = DetermineOffset(buffer);
@@ -211,16 +210,15 @@ void *Aligned::Resize(void *ptr, u32 bytes)
 // Frees an aligned pointer
 void Aligned::Release(void *ptr)
 {
-    if (ptr)
-    {
+	if (ptr)
+	{
 		// Get buffer base address
-        u8 *buffer = reinterpret_cast<u8*>( ptr );
-        buffer -= buffer[-1];
+		u8 *buffer = reinterpret_cast<u8 *>(ptr);
+		buffer -= buffer[-1];
 
-        free(buffer);
-    }
+		free(buffer);
+	}
 }
-
 
 //// Large-size aligned heap allocator
 

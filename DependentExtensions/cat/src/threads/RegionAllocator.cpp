@@ -1,29 +1,29 @@
 /*
-	Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
+    Copyright (c) 2009-2010 Christopher A. Taylor.  All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice,
-	  this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
-	* Neither the name of LibCat nor the names of its contributors may be used
-	  to endorse or promote products derived from this software without
-	  specific prior written permission.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of LibCat nor the names of its contributors may be used
+      to endorse or promote products derived from this software without
+      specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cat/threads/RegionAllocator.hpp>
@@ -34,16 +34,13 @@
 #include <cat/port/AlignedAlloc.hpp>
 using namespace cat;
 
-
 const u32 RegionAllocator::BLOCK_SIZE[REGION_COUNT] = {
     64,
     128,
     256,
     512,
     1024,
-    2048
-};
-
+    2048};
 
 RegionAllocator::RegionAllocator()
 {
@@ -70,8 +67,9 @@ RegionAllocator::RegionAllocator()
     }
 
     // Pre-allocate all the memory required
-	u8 *base = (u8*)LargeAligned::Acquire(bytes_overall);
-    if (!base) return;
+    u8 *base = (u8 *)LargeAligned::Acquire(bytes_overall);
+    if (!base)
+        return;
 
     // Set the region pointers
     for (u32 ii = 0; ii < REGION_COUNT; ++ii)
@@ -90,9 +88,9 @@ RegionAllocator::RegionAllocator()
     // Zero region info memory (just in case) since I noticed that
     // sometimes the allocated pages are not zeroed as the MSDN
     // documentation had led me to believe.
-    CAT_CLR(region_info[0], base - (u8*)region_info[0]);
+    CAT_CLR(region_info[0], base - (u8 *)region_info[0]);
 
-    //errors = 0;
+    // errors = 0;
 }
 
 void RegionAllocator::Shutdown()
@@ -109,12 +107,12 @@ bool RegionAllocator::Valid()
     return regions[0] != 0;
 }
 
-
 void *RegionAllocator::Acquire(u32 bytes)
 {
     // Determine smallest region from byte count
     u32 region = (bytes - 1) >> 5;
-    if (region) region = BSR32(region);
+    if (region)
+        region = BSR32(region);
 
     // Scan for a region that might be free
     for (; region < REGION_COUNT; ++region)
@@ -126,7 +124,8 @@ void *RegionAllocator::Acquire(u32 bytes)
         u32 bitmask_start = info->next_bitmap_entry;
         u32 bitmask_index = bitmask_start;
 
-        do {
+        do
+        {
             // Loop through all the unset bits in this bitmask dword
             // Until the bitmask has no unset bits
             volatile u32 *bmptr = &info->bitmap[bitmask_index];
@@ -157,25 +156,26 @@ void *RegionAllocator::Acquire(u32 bytes)
     }
 
     // Fall back to malloc if the request is too large.
-	return Aligned::Acquire(bytes);
+    return Aligned::Acquire(bytes);
 }
 
 void RegionAllocator::Release(void *ptr)
 {
-    if (!ptr) return;
+    if (!ptr)
+        return;
 
     if (ptr >= region_info[0])
     {
-		Aligned::Release(ptr);
+        Aligned::Release(ptr);
         return;
     }
 
-    for (int ii = REGION_COUNT-1; ii >= 0; --ii)
+    for (int ii = REGION_COUNT - 1; ii >= 0; --ii)
     {
         if (ptr >= regions[ii])
         {
             // Find block index
-            size_t offset = (u8*)ptr - regions[ii];
+            size_t offset = (u8 *)ptr - regions[ii];
             u32 block = (u32)(offset / BLOCK_SIZE[ii]);
             RegionInfo *info = region_info[ii];
 
@@ -196,7 +196,7 @@ void *RegionAllocator::Resize(void *ptr, u32 bytes)
     if (ptr >= region_info[0])
         return Aligned::Resize(ptr, bytes);
 
-    for (int ii = REGION_COUNT-1; ii >= 0; --ii)
+    for (int ii = REGION_COUNT - 1; ii >= 0; --ii)
     {
         if (ptr >= regions[ii])
         {
@@ -212,7 +212,7 @@ void *RegionAllocator::Resize(void *ptr, u32 bytes)
                 memcpy(new_region, ptr, BLOCK_SIZE[ii]);
 
             // Find block index
-            size_t offset = (u8*)ptr - regions[ii];
+            size_t offset = (u8 *)ptr - regions[ii];
             u32 block = (u32)(offset / BLOCK_SIZE[ii]);
             RegionInfo *info = region_info[ii];
 

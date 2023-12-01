@@ -35,7 +35,7 @@ using namespace bombay;
 
 TableIndex::TableIndex(Table *parent, const char *file_path,
 					   IHash *hash_function, ShutdownObserver *shutdown_observer)
-	: AsyncFile(REFOBJ_PRIO_0+17)
+	: AsyncFile(REFOBJ_PRIO_0 + 17)
 {
 	_shutdown_observer = shutdown_observer;
 	if (shutdown_observer)
@@ -59,11 +59,11 @@ TableIndex::~TableIndex()
 {
 	FreeTable();
 
-	if (_index_hash) delete _index_hash;
+	if (_index_hash)
+		delete _index_hash;
 
 	ThreadRefObject::SafeRelease(_shutdown_observer);
 }
-
 
 //// Table Management
 
@@ -71,7 +71,7 @@ bool TableIndex::AllocateTable()
 {
 	static const u32 MIN_BYTES = (MIN_ELEMENTS << 4) + TABLE_FOOTER_BYTES;
 
-	u64 *page = (u64*)LargeAligned::Acquire(MIN_BYTES);
+	u64 *page = (u64 *)LargeAligned::Acquire(MIN_BYTES);
 	if (!page)
 	{
 		FATAL("TableIndex") << "Out of memory: Unable to allocate minimum size table for " << _file_path;
@@ -95,8 +95,9 @@ bool TableIndex::DoubleTable()
 	u32 bytes = (target_size << 4) + TABLE_FOOTER_BYTES;
 
 	// Allocate that amount of memory
-	u64 *page = (u64*)LargeAligned::Acquire(bytes);
-	if (!page) return false;
+	u64 *page = (u64 *)LargeAligned::Acquire(bytes);
+	if (!page)
+		return false;
 
 	// Zero it
 	CAT_CLR(page, bytes - TABLE_FOOTER_BYTES);
@@ -156,12 +157,12 @@ void TableIndex::FreeTable()
 	}
 }
 
-
 //// Access
 
 void TableIndex::Save()
 {
-	if (!_table) return;
+	if (!_table)
+		return;
 
 	INFO("TableIndex") << "Saving index file for " << _file_path;
 
@@ -207,7 +208,7 @@ bool TableIndex::Initialize()
 		_table_elements = table_elements;
 		_table_raw_bytes = size;
 
-		_table = (u64*)LargeAligned::Acquire(size);
+		_table = (u64 *)LargeAligned::Acquire(size);
 		if (!_table)
 		{
 			FATAL("TableIndex") << "Out of memory: Unable to allocate table index " << _file_path;
@@ -260,12 +261,12 @@ bool TableIndex::OnRead(ThreadPoolLocalStorage *tls, int error, AsyncBuffer *buf
 	return true;
 }
 
-
 //// User Interface
 
 u64 TableIndex::Lookup(u64 hash)
 {
-	if (!hash) return INVALID_RECORD_OFFSET;
+	if (!hash)
+		return INVALID_RECORD_OFFSET;
 
 	u32 mask = _table_elements - 1;
 	u32 key = (hash - 1) & mask;
@@ -280,10 +281,12 @@ u64 TableIndex::Lookup(u64 hash)
 		u64 existing = table[(key << 1) + 1];
 
 		// If we found it,
-		if (hash == existing) return (offset & OFFSET_MASK) - 1;
+		if (hash == existing)
+			return (offset & OFFSET_MASK) - 1;
 
 		// Break on a break in the collision list
-		if (!(offset & COLLIDE_MASK)) break;
+		if (!(offset & COLLIDE_MASK))
+			break;
 
 		// LCG with period equal to the table size
 		key = (key * COLLISION_MULTIPLIER + COLLISION_INCREMENTER) & mask;
@@ -294,7 +297,8 @@ u64 TableIndex::Lookup(u64 hash)
 
 void TableIndex::Insert(u64 hash, u64 offset)
 {
-	if (!hash) return;
+	if (!hash)
+		return;
 
 	u32 mask = _table_elements - 1;
 	u32 key = (hash - 1) & mask;
@@ -331,7 +335,8 @@ void TableIndex::Insert(u64 hash, u64 offset)
 
 void TableIndex::Remove(u64 hash)
 {
-	if (!hash) return;
+	if (!hash)
+		return;
 
 	u32 mask = _table_elements - 1;
 	u32 key = (hash - 1) & mask;
@@ -368,7 +373,8 @@ void TableIndex::Remove(u64 hash)
 					// LCG with period equal to the table size
 					last = (last * COLLISION_MULTIPLIER + COLLISION_INCREMENTER) & mask;
 
-					if (last == key) break;
+					if (last == key)
+						break;
 
 					table[last << 1] = 0;
 				}
@@ -378,7 +384,8 @@ void TableIndex::Remove(u64 hash)
 		}
 
 		// Break on a break in the collision list
-		if (!(offset & COLLIDE_MASK)) break;
+		if (!(offset & COLLIDE_MASK))
+			break;
 
 		// If offset is set,
 		if (offset & OFFSET_MASK)

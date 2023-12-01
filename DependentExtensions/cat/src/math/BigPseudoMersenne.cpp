@@ -31,21 +31,21 @@
 using namespace cat;
 
 BigPseudoMersenne::BigPseudoMersenne(int regs, int bits, int C)
-    : BigRTL(regs + PM_OVERHEAD, bits)
+	: BigRTL(regs + PM_OVERHEAD, bits)
 {
-    pm_regs = regs + PM_OVERHEAD;
-    modulus_c = C;
+	pm_regs = regs + PM_OVERHEAD;
+	modulus_c = C;
 
-    // Reserve a register to contain the full modulus
-    CachedModulus = Get(pm_regs - 1);
-    CopyModulus(CachedModulus);
+	// Reserve a register to contain the full modulus
+	CachedModulus = Get(pm_regs - 1);
+	CopyModulus(CachedModulus);
 }
 
 void CAT_FASTCALL BigPseudoMersenne::CopyModulus(Leg *out)
 {
-    // Set low leg to -C, set all bits on the rest
-    out[0] = 0 - modulus_c;
-    memset(&out[1], 0xFF, (library_legs-1) * sizeof(Leg));
+	// Set low leg to -C, set all bits on the rest
+	out[0] = 0 - modulus_c;
+	memset(&out[1], 0xFF, (library_legs - 1) * sizeof(Leg));
 }
 
 // Strangely enough, including these all in the same source file improves performance

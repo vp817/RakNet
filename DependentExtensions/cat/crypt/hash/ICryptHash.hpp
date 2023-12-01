@@ -34,45 +34,44 @@
 #include <cat/Platform.hpp>
 #include <cstring>
 
-namespace cat {
-
-
-// Cryptographic hash functions of any size will derive from ICryptoHash and implement its public methods
-class CAT_EXPORT ICryptHash
+namespace cat
 {
-protected:
-    int digest_bytes;
 
-public:
-    virtual ~ICryptHash() {}
+	// Cryptographic hash functions of any size will derive from ICryptoHash and implement its public methods
+	class CAT_EXPORT ICryptHash
+	{
+	protected:
+		int digest_bytes;
 
-    // Returns the number of bytes in a message digest produced by this hash
-    CAT_INLINE int GetDigestByteCount() { return digest_bytes; }
+	public:
+		virtual ~ICryptHash() {}
 
-	CAT_INLINE void CrunchString(const char *s) { Crunch(s, (int)std::strlen(s) + 1); }
+		// Returns the number of bytes in a message digest produced by this hash
+		CAT_INLINE int GetDigestByteCount() { return digest_bytes; }
 
-public:
-    // Begin a new key
-    virtual bool BeginKey(int bits) = 0;
+		CAT_INLINE void CrunchString(const char *s) { Crunch(s, (int)std::strlen(s) + 1); }
 
-    // Start from an existing key
-    virtual bool SetKey(ICryptHash *parent) = 0;
+	public:
+		// Begin a new key
+		virtual bool BeginKey(int bits) = 0;
 
-    // Begin hash function in MAC, KDF, or PRNG mode
-    virtual bool BeginMAC() = 0;
-    virtual bool BeginKDF() = 0;
-    virtual bool BeginPRNG() = 0;
+		// Start from an existing key
+		virtual bool SetKey(ICryptHash *parent) = 0;
 
-    // Crunch some message bytes
-    virtual void Crunch(const void *message, int bytes) = 0;
+		// Begin hash function in MAC, KDF, or PRNG mode
+		virtual bool BeginMAC() = 0;
+		virtual bool BeginKDF() = 0;
+		virtual bool BeginPRNG() = 0;
 
-    // Finalize the hash and prepare to generate output
-    virtual void End() = 0;
+		// Crunch some message bytes
+		virtual void Crunch(const void *message, int bytes) = 0;
 
-    // Extended hash output mode
-    virtual void Generate(void *out, int bytes, int strengthening_rounds = 0) = 0;
-};
+		// Finalize the hash and prepare to generate output
+		virtual void End() = 0;
 
+		// Extended hash output mode
+		virtual void Generate(void *out, int bytes, int strengthening_rounds = 0) = 0;
+	};
 
 } // namespace cat
 

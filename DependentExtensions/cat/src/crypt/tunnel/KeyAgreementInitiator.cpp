@@ -33,32 +33,32 @@ using namespace cat;
 
 bool KeyAgreementInitiator::AllocateMemory()
 {
-    FreeMemory();
+	FreeMemory();
 
-    B = new (Aligned::ii) Leg[KeyLegs * 17];
-    a = B + KeyLegs*4;
-    A = a + KeyLegs;
-    hB = A + KeyLegs*4;
-	A_neutral = hB + KeyLegs*4;
-	B_neutral = A_neutral + KeyLegs*2;
+	B = new (Aligned::ii) Leg[KeyLegs * 17];
+	a = B + KeyLegs * 4;
+	A = a + KeyLegs;
+	hB = A + KeyLegs * 4;
+	A_neutral = hB + KeyLegs * 4;
+	B_neutral = A_neutral + KeyLegs * 2;
 
-    return !!B;
+	return !!B;
 }
 
 void KeyAgreementInitiator::FreeMemory()
 {
-    if (B)
-    {
-        CAT_CLR(a, KeyBytes);
-        Aligned::Delete(B);
-        B = 0;
-    }
+	if (B)
+	{
+		CAT_CLR(a, KeyBytes);
+		Aligned::Delete(B);
+		B = 0;
+	}
 
 	if (G_MultPrecomp)
 	{
 		Aligned::Delete(G_MultPrecomp);
 		G_MultPrecomp = 0;
- 	}
+	}
 
 	if (B_MultPrecomp)
 	{
@@ -87,69 +87,74 @@ void KeyAgreementInitiator::FreeMemory()
 
 KeyAgreementInitiator::KeyAgreementInitiator()
 {
-    B = 0;
-    G_MultPrecomp = 0;
-    B_MultPrecomp = 0;
-    Y_MultPrecomp = 0;
+	B = 0;
+	G_MultPrecomp = 0;
+	B_MultPrecomp = 0;
+	Y_MultPrecomp = 0;
 	I_private = 0;
 	I_public = 0;
 }
 
 KeyAgreementInitiator::~KeyAgreementInitiator()
 {
-    FreeMemory();
+	FreeMemory();
 }
 
 void KeyAgreementInitiator::SecureErasePrivateKey()
 {
-	if (B) CAT_CLR(a, KeyBytes);
+	if (B)
+		CAT_CLR(a, KeyBytes);
 }
 
 bool KeyAgreementInitiator::Initialize(BigTwistedEdwards *math, const u8 *responder_public_key, int public_bytes)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
-	if (!math) return false;
+	if (!math)
+		return false;
 #endif
 
 	int bits = math->RegBytes() * 8;
 
-    // Validate and accept number of bits
-    if (!KeyAgreementCommon::Initialize(bits))
-        return false;
+	// Validate and accept number of bits
+	if (!KeyAgreementCommon::Initialize(bits))
+		return false;
 
-    // Allocate memory space for the responder's key pair and generator point
-    if (!AllocateMemory())
-        return false;
+	// Allocate memory space for the responder's key pair and generator point
+	if (!AllocateMemory())
+		return false;
 
-    // Verify that inputs are of the correct length
-    if (public_bytes != KeyBytes*2) return false;
+	// Verify that inputs are of the correct length
+	if (public_bytes != KeyBytes * 2)
+		return false;
 
 	// Precompute a table for multiplication
 	G_MultPrecomp = math->PtMultiplyPrecompAlloc(6);
-    if (!G_MultPrecomp) return false;
-    math->PtMultiplyPrecomp(math->GetGenerator(), 6, G_MultPrecomp);
+	if (!G_MultPrecomp)
+		return false;
+	math->PtMultiplyPrecomp(math->GetGenerator(), 6, G_MultPrecomp);
 
-    // Unpack the responder's public key
-    if (!math->LoadVerifyAffineXY(responder_public_key, responder_public_key + KeyBytes, B))
-        return false;
+	// Unpack the responder's public key
+	if (!math->LoadVerifyAffineXY(responder_public_key, responder_public_key + KeyBytes, B))
+		return false;
 
 	// Verify public point is not identity element
 	if (math->IsAffineIdentity(B))
 		return false;
 
-	memcpy(B_neutral, responder_public_key, KeyBytes*2);
+	memcpy(B_neutral, responder_public_key, KeyBytes * 2);
 
 	// Precompute a table for multiplication
 	B_MultPrecomp = math->PtMultiplyPrecompAlloc(6);
-	if (!B_MultPrecomp) return false;
+	if (!B_MultPrecomp)
+		return false;
 	math->PtUnpack(B);
-    math->PtMultiplyPrecomp(B, 6, B_MultPrecomp);
+	math->PtMultiplyPrecomp(B, 6, B_MultPrecomp);
 
-    // hB = h * B for small subgroup attack resistance
-    math->PtDoubleZ1(B, hB);
-    math->PtEDouble(hB, hB);
+	// hB = h * B for small subgroup attack resistance
+	math->PtDoubleZ1(B, hB);
+	math->PtEDouble(hB, hB);
 
-    return true;
+	return true;
 }
 
 bool KeyAgreementInitiator::SetIdentity(BigTwistedEdwards *math,
@@ -157,7 +162,8 @@ bool KeyAgreementInitiator::SetIdentity(BigTwistedEdwards *math,
 										const u8 *initiator_private_key, int private_bytes)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
-	if (!math || public_bytes != KeyBytes*2 || private_bytes != KeyBytes) return false;
+	if (!math || public_bytes != KeyBytes * 2 || private_bytes != KeyBytes)
+		return false;
 #endif
 
 	Leg *I_temp = math->Get(0);
@@ -173,19 +179,21 @@ bool KeyAgreementInitiator::SetIdentity(BigTwistedEdwards *math,
 	// Allocate space for private key if needed
 	if (!I_private)
 	{
-		I_private = (Leg*)Aligned::Acquire(KeyBytes);
-		if (!I_private) return false;
+		I_private = (Leg *)Aligned::Acquire(KeyBytes);
+		if (!I_private)
+			return false;
 	}
 
 	// Allocate space for public key if needed
 	if (!I_public)
 	{
-		I_public = (Leg*)Aligned::Acquire(KeyBytes*2);
-		if (!I_public) return false;
+		I_public = (Leg *)Aligned::Acquire(KeyBytes * 2);
+		if (!I_public)
+			return false;
 	}
 
 	// Copy the endian-neutral public key
-	memcpy(I_public, initiator_public_key, KeyBytes*2);
+	memcpy(I_public, initiator_public_key, KeyBytes * 2);
 
 	// Load the private key
 	math->Load(initiator_private_key, KeyBytes, I_private);
@@ -198,63 +206,66 @@ bool KeyAgreementInitiator::GenerateChallenge(BigTwistedEdwards *math, FortunaOu
 {
 #if defined(CAT_USER_ERROR_CHECKING)
 	// Verify that inputs are of the correct length
-	if (!math || !csprng || challenge_bytes != KeyBytes*2) return false;
+	if (!math || !csprng || challenge_bytes != KeyBytes * 2)
+		return false;
 #endif
 
-    // a = initiator private key
+	// a = initiator private key
 	GenerateKey(math, csprng, a);
 
-    // A = a * G
-    math->PtMultiply(G_MultPrecomp, 6, a, 0, A);
-    math->PtNormalize(A, A);
+	// A = a * G
+	math->PtMultiply(G_MultPrecomp, 6, a, 0, A);
+	math->PtNormalize(A, A);
 
-    math->SaveAffineXY(A, initiator_challenge, initiator_challenge + KeyBytes);
+	math->SaveAffineXY(A, initiator_challenge, initiator_challenge + KeyBytes);
 
-	memcpy(A_neutral, initiator_challenge, KeyBytes*2);
+	memcpy(A_neutral, initiator_challenge, KeyBytes * 2);
 
-    return true;
+	return true;
 }
 
 bool KeyAgreementInitiator::ProcessAnswer(BigTwistedEdwards *math,
 										  const u8 *responder_answer, int answer_bytes,
-                                          Skein *key_hash)
+										  Skein *key_hash)
 {
 #if defined(CAT_USER_ERROR_CHECKING)
 	// Verify that inputs are of the correct length
-	if (!math || answer_bytes < KeyBytes*3) return false;
+	if (!math || answer_bytes < KeyBytes * 3)
+		return false;
 #endif
 
-    Leg *Y = math->Get(0);
-    Leg *S = math->Get(4);
-    Leg *T = math->Get(8);
-    Leg *hY = math->Get(12);
-    Leg *ah = math->Get(16);
+	Leg *Y = math->Get(0);
+	Leg *S = math->Get(4);
+	Leg *T = math->Get(8);
+	Leg *hY = math->Get(12);
+	Leg *ah = math->Get(16);
 
-    // Load the responder's affine point Y
-    if (!math->LoadVerifyAffineXY(responder_answer, responder_answer + KeyBytes, Y))
-        return false;
+	// Load the responder's affine point Y
+	if (!math->LoadVerifyAffineXY(responder_answer, responder_answer + KeyBytes, Y))
+		return false;
 
 	// Verify the point is not the additive identity (will never happen unless being attacked)
 	if (math->IsAffineIdentity(Y))
 		return false;
 
-    // hY = h * Y for small subgroup attack resistance
-    math->PtDoubleZ1(Y, hY);
-    math->PtEDouble(hY, hY);
+	// hY = h * Y for small subgroup attack resistance
+	math->PtDoubleZ1(Y, hY);
+	math->PtEDouble(hY, hY);
 
 	// Precompute a table for multiplication
 	if (!Y_MultPrecomp)
 	{
 		Y_MultPrecomp = math->PtMultiplyPrecompAlloc(6);
-		if (!Y_MultPrecomp) return false;
+		if (!Y_MultPrecomp)
+			return false;
 	}
 
 	// S = H(A,B,Y,r)
 	if (!key_hash->BeginKey(KeyBits))
 		return false;
-	key_hash->Crunch(A_neutral, KeyBytes*2); // A
-	key_hash->Crunch(B_neutral, KeyBytes*2); // B
-	key_hash->Crunch(responder_answer, KeyBytes*3); // Y,r
+	key_hash->Crunch(A_neutral, KeyBytes * 2);		  // A
+	key_hash->Crunch(B_neutral, KeyBytes * 2);		  // B
+	key_hash->Crunch(responder_answer, KeyBytes * 3); // Y,r
 	key_hash->End();
 	key_hash->Generate(S, KeyBytes);
 	math->Load(S, KeyBytes, S);
@@ -284,7 +295,8 @@ bool KeyAgreementInitiator::ProcessAnswer(BigTwistedEdwards *math,
 	// Verify initiator proof of key
 	Skein mac;
 
-	if (!mac.SetKey(key_hash) || !mac.BeginMAC()) return false;
+	if (!mac.SetKey(key_hash) || !mac.BeginMAC())
+		return false;
 	mac.CrunchString("shfolder.dll");
 	mac.End();
 
@@ -305,7 +317,8 @@ bool KeyAgreementInitiator::ProcessAnswerWithIdentity(BigTwistedEdwards *math, F
 
 #if defined(CAT_USER_ERROR_CHECKING)
 	// Verify that inputs are of the correct length
-	if (!csprng || proof_bytes != KeyBytes*5) return false;
+	if (!csprng || proof_bytes != KeyBytes * 5)
+		return false;
 #endif
 
 	// Fill endian-neutral public key for initiator
@@ -321,9 +334,11 @@ bool KeyAgreementInitiator::ProcessAnswerWithIdentity(BigTwistedEdwards *math, F
 	Leg *e = math->Get(5);
 	Leg *s = math->Get(6);
 
-	do {
+	do
+	{
 
-		do {
+		do
+		{
 
 			// k = ephemeral key
 			GenerateKey(math, csprng, k);
@@ -335,8 +350,9 @@ bool KeyAgreementInitiator::ProcessAnswerWithIdentity(BigTwistedEdwards *math, F
 			// e = H(IRN || RRN || K)
 			Skein H;
 
-			if (!H.BeginKey(KeyBits)) return false;
-			H.Crunch(identity_proof + KeyBytes * 2, KeyBytes); // client random number
+			if (!H.BeginKey(KeyBits))
+				return false;
+			H.Crunch(identity_proof + KeyBytes * 2, KeyBytes);	 // client random number
 			H.Crunch(responder_answer + KeyBytes * 2, KeyBytes); // server random number
 			H.Crunch(K, KeyBytes);
 			H.End();
@@ -354,11 +370,13 @@ bool KeyAgreementInitiator::ProcessAnswerWithIdentity(BigTwistedEdwards *math, F
 		math->MulMod(I_private, e, math->GetCurveQ(), s);
 
 		// s = -s (mod q)
-		if (!math->IsZero(s)) math->Subtract(math->GetCurveQ(), s, s);
+		if (!math->IsZero(s))
+			math->Subtract(math->GetCurveQ(), s, s);
 
 		// s = s + k (mod q)
 		if (math->Add(s, k, s))
-			while (!math->Subtract(s, math->GetCurveQ(), s));
+			while (!math->Subtract(s, math->GetCurveQ(), s))
+				;
 		while (!math->Less(s, math->GetCurveQ()))
 			math->Subtract(s, math->GetCurveQ(), s);
 
@@ -384,13 +402,14 @@ bool KeyAgreementInitiator::Verify(BigTwistedEdwards *math,
 {
 #if defined(CAT_USER_ERROR_CHECKING)
 	// Verify that inputs are of the correct length
-	if (!math || signature_bytes != KeyBytes*2) return false;
+	if (!math || signature_bytes != KeyBytes * 2)
+		return false;
 #endif
 
-    Leg *e = math->Get(0);
-    Leg *s = math->Get(1);
-    Leg *Kp = math->Get(2);
-    Leg *ep = math->Get(6);
+	Leg *e = math->Get(0);
+	Leg *s = math->Get(1);
+	Leg *Kp = math->Get(2);
+	Leg *ep = math->Get(6);
 
 	// Load e, s from signature
 	math->Load(signature, KeyBytes, e);
@@ -414,7 +433,8 @@ bool KeyAgreementInitiator::Verify(BigTwistedEdwards *math,
 
 	// e' = H(M || K')
 	Skein H;
-	if (!H.BeginKey(KeyBits)) return false;
+	if (!H.BeginKey(KeyBits))
+		return false;
 	H.Crunch(message, message_bytes);
 	H.Crunch(Kp, KeyBytes);
 	H.End();

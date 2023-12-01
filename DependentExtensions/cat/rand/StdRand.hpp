@@ -31,35 +31,32 @@
 
 #include <cat/Platform.hpp>
 
-namespace cat {
-
-
-// Microsoft VC++ 7.0 stdlib srand(), rand(), old RANDU()
-class StandardRand
+namespace cat
 {
-protected:
-    s32 seed;
 
-public:
-    StandardRand(u32 ns = 0) { seed = ns; }
+	// Microsoft VC++ 7.0 stdlib srand(), rand(), old RANDU()
+	class StandardRand
+	{
+	protected:
+		s32 seed;
 
-    inline void srand32(u32 ns) { seed = ns; } // 32-bit version
-    inline void srand16(u16 ns) { seed = ns; } // 16-bit version (yup)
+	public:
+		StandardRand(u32 ns = 0) { seed = ns; }
 
-    u16 rand();		// Linear Congruential Generator: X = X * M + A (mod N)
-    u16 randu();	// RANDU LCG: X = X * M (mod N)
-	float sfrand();	// Fast [-1.f,1.f] generator from Inigo Quilez (2005)
-};
+		inline void srand32(u32 ns) { seed = ns; } // 32-bit version
+		inline void srand16(u16 ns) { seed = ns; } // 16-bit version (yup)
 
+		u16 rand();		// Linear Congruential Generator: X = X * M + A (mod N)
+		u16 randu();	// RANDU LCG: X = X * M (mod N)
+		float sfrand(); // Fast [-1.f,1.f] generator from Inigo Quilez (2005)
+	};
 
-// Non-linear congruential 32-bit random mixing function for given x, y and seed
-// This function is used in every example of Perlin noise I found online for some reason!
-u32 NLCRand32(int x, int y, u32 seed);
+	// Non-linear congruential 32-bit random mixing function for given x, y and seed
+	// This function is used in every example of Perlin noise I found online for some reason!
+	u32 NLCRand32(int x, int y, u32 seed);
 
-// Uses NLCRand32 as a front-end, and then maps the output to a number between -1 and 1
-float NLCRandNorm(int x, int y, u32 seed);
-
-
+	// Uses NLCRand32 as a front-end, and then maps the output to a number between -1 and 1
+	float NLCRandNorm(int x, int y, u32 seed);
 
 } // namespace cat
 

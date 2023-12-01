@@ -31,7 +31,6 @@
 #include <string.h>
 using namespace cat;
 
-
 //// ChaChaKey
 
 ChaChaKey::~ChaChaKey()
@@ -44,14 +43,14 @@ static u32 InitialState[12] = {
 	// These are from BLAKE-32:
 	0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
 	// Took the rest of these from the SHA-256 SBOX constants:
-	0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13
-};
+	0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13};
 
 // Key up to 384 bits
 void ChaChaKey::Set(const void *key, int bytes)
 {
 	// Precondition: Bytes must be a multiple of 4
-	if (bytes > 48) bytes = 48;
+	if (bytes > 48)
+		bytes = 48;
 
 	memcpy(state, InitialState, sizeof(InitialState));
 
@@ -64,19 +63,23 @@ void ChaChaKey::Set(const void *key, int bytes)
 	}
 }
 
-
 //// ChaChaOutput
 
-#define QUARTERROUND(a,b,c,d) \
-	x[a] += x[b]; x[d] = CAT_ROL32(x[d] ^ x[a], 16); \
-	x[c] += x[d]; x[b] = CAT_ROL32(x[b] ^ x[c], 12); \
-	x[a] += x[b]; x[d] = CAT_ROL32(x[d] ^ x[a], 8); \
-	x[c] += x[d]; x[b] = CAT_ROL32(x[b] ^ x[c], 7);
+#define QUARTERROUND(a, b, c, d)       \
+	x[a] += x[b];                      \
+	x[d] = CAT_ROL32(x[d] ^ x[a], 16); \
+	x[c] += x[d];                      \
+	x[b] = CAT_ROL32(x[b] ^ x[c], 12); \
+	x[a] += x[b];                      \
+	x[d] = CAT_ROL32(x[d] ^ x[a], 8);  \
+	x[c] += x[d];                      \
+	x[b] = CAT_ROL32(x[b] ^ x[c], 7);
 
 void ChaChaOutput::GenerateKeyStream(u32 *out_words)
 {
 	// Update block counter
-	if (!++state[12]) state[13]++;
+	if (!++state[12])
+		state[13]++;
 
 	register u32 x[16];
 
@@ -87,14 +90,14 @@ void ChaChaOutput::GenerateKeyStream(u32 *out_words)
 	// Mix state for 12 rounds
 	for (int round = 12; round > 0; round -= 2)
 	{
-		QUARTERROUND(0, 4, 8,  12)
-		QUARTERROUND(1, 5, 9,  13)
+		QUARTERROUND(0, 4, 8, 12)
+		QUARTERROUND(1, 5, 9, 13)
 		QUARTERROUND(2, 6, 10, 14)
 		QUARTERROUND(3, 7, 11, 15)
 		QUARTERROUND(0, 5, 10, 15)
 		QUARTERROUND(1, 6, 11, 12)
-		QUARTERROUND(2, 7, 8,  13)
-		QUARTERROUND(3, 4, 9,  14)
+		QUARTERROUND(2, 7, 8, 13)
+		QUARTERROUND(3, 4, 9, 14)
 	}
 
 	// Add state to mixed state, little-endian
@@ -131,7 +134,7 @@ void ChaChaOutput::Crypt(const void *in_bytes, void *out_bytes, int bytes)
 	printf("AUDIT: ChaCha input ");
 	for (int ii = 0; ii < bytes; ++ii)
 	{
-		printf("%02x", ((cat::u8*)in_bytes)[ii]);
+		printf("%02x", ((cat::u8 *)in_bytes)[ii]);
 	}
 	printf("\n");
 #endif
@@ -164,9 +167,12 @@ void ChaChaOutput::Crypt(const void *in_bytes, void *out_bytes, int bytes)
 
 		switch (bytes % 4)
 		{
-		case 3: out8[2] = in8[2] ^ key8[2];
-		case 2: out8[1] = in8[1] ^ key8[1];
-		case 1: out8[0] = in8[0] ^ key8[0];
+		case 3:
+			out8[2] = in8[2] ^ key8[2];
+		case 2:
+			out8[1] = in8[1] ^ key8[1];
+		case 1:
+			out8[0] = in8[0] ^ key8[0];
 		}
 	}
 
@@ -174,7 +180,7 @@ void ChaChaOutput::Crypt(const void *in_bytes, void *out_bytes, int bytes)
 	printf("AUDIT: ChaCha output ");
 	for (int ii = 0; ii < initial_bytes; ++ii)
 	{
-		printf("%02x", ((cat::u8*)out_bytes)[ii]);
+		printf("%02x", ((cat::u8 *)out_bytes)[ii]);
 	}
 	printf("\n");
 #endif
