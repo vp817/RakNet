@@ -1,0 +1,11 @@
+project(MySQLInterface)
+
+if(NOT WIN32 AND UNIX)
+	FILE(GLOB ALL_HEADER_SRCS *.h)
+	FILE(GLOB ALL_CPP_SRCS *.cpp)
+	FINDMYSQL()
+	include_directories(${RAKNET_ACTUAL_INCLUDE_DIR_PATH} ${MYSQL_INCLUDE_DIR}) 
+	add_library(LibMySQLInterface STATIC ${ALL_CPP_SRCS} ${ALL_HEADER_SRCS})
+	target_link_libraries (LibMySQLInterface ${RAKNET_COMMON_LIBS} ${MYSQL_LIBRARIES})
+	VSUBFOLDER(LibMySQLInterface "libs")
+endif()

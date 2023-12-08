@@ -1,0 +1,12 @@
+[submodule "libs/libcatid"]
+	path = libs/libcatid
+	url = https://github.com/catid/libcatid.git
+[submodule "libs/bzip2"]
+	path = libs/bzip2
+	url = https://github.com/libarchive/bzip2.git
+[submodule "libs/portaudio"]
+	path = libs/portaudio
+	url = https://github.com/vp817/portaudio.git
+[submodule "libs/speex"]
+	path = libs/speex
+	url = https://github.com/xiph/speex.git

@@ -37,7 +37,7 @@ You might have to copy `*.dll` from `cygwin\bin` as well.
 Linux users
 -----------------------------------------
 Use `cmake`, or `g++ -lpthread -g *.cpp` in the /Source directory.
-With libcat, use `g++ -pthread -g -I./../DependentExtensions *.cpp` in the /Source directory.
+With libcat, use `g++ -pthread -g -I./../libs *.cpp` in the /Source directory.
 
 64 bit use -m64 command line
 Sometimes you need -pthread instead of -lpthread
@@ -52,7 +52,7 @@ Command to build NATCompleteServer from the Samples/NATCompleteServer directory:
 
 Command to build autopatcher server from /Source directory:
 
-    g++ -lpthread -lpq -lssl -lbz2 -lssl -lcrypto -L/opt/PostgreSQL/9.0/lib -L../DependentExtensions/bzip2-1.0.6 -I/opt/PostgreSQL/9.0/include -I../DependentExtensions/bzip2-1.0.6 -I./ -I../DependentExtensions/Autopatcher -I../DependentExtensions/Autopatcher/AutopatcherPostgreRepository -I../DependentExtensions/PostgreSQLInterface -g *.cpp ../DependentExtensions/Autopatcher/AutopatcherServer.cpp ../DependentExtensions/Autopatcher/CreatePatch.cpp ../DependentExtensions/Autopatcher/MemoryCompressor.cpp ../DependentExtensions/Autopatcher/AutopatcherPostgreRepository/AutopatcherPostgreRepository.cpp ../DependentExtensions/PostgreSQLInterface/PostgreSQLInterface.cpp ../Samples/AutopatcherServer/AutopatcherServerTest.cpp
+    g++ -lpthread -lpq -lssl -lbz2 -lssl -lcrypto -L/opt/PostgreSQL/9.0/lib -L../libs/bzip2 -I/opt/PostgreSQL/9.0/include -I../libs/bzip2 -I./ -I../libs/Autopatcher -I../libs/Autopatcher/AutopatcherPostgreRepository -I../libs/PostgreSQLInterface -g *.cpp ../libs/Autopatcher/AutopatcherServer.cpp ../libs/Autopatcher/CreatePatch.cpp ../libs/Autopatcher/MemoryCompressor.cpp ../libs/Autopatcher/AutopatcherPostgreRepository/AutopatcherPostgreRepository.cpp ../libs/PostgreSQLInterface/PostgreSQLInterface.cpp ../Samples/AutopatcherServer/AutopatcherServerTest.cpp
 
 Command to build NATCompleteServer from /Source directory:
 
@@ -225,14 +225,14 @@ See Samples\nacl_sdk\RakNet_NativeClient_VS2010\HowToSetup.txt for detailed inst
 
 Windows Phone 8
 -----------------------------------------
-Add to your project DependentExtensions\WinPhone8\ThreadEmulation.cpp
-Add DependentExtensions\WinPhone8\ to your include paths
+Add to your project libs\WinPhone8\ThreadEmulation.cpp
+Add libs\WinPhone8\ to your include paths
 Define _CRT_SECURE_NO_WARNINGS and WINDOWS_PHONE_8
 
 Windows Store 8
 -----------------------------------------
-Add to your project DependentExtensions\WinPhone8\ThreadEmulation.cpp
-Add DependentExtensions\WinPhone8\ and DependentExtensions\WinRT to your include paths
+Add to your project libs\WinPhone8\ThreadEmulation.cpp
+Add libs\WinPhone8\ and libs\WinRT to your include paths
 TCP is not supported, only UDP (RakPeer).
 IPV4 only (not hard to also add IPV6 upon request).
 Define:
