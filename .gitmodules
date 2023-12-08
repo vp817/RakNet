@@ -7,6 +7,9 @@
 [submodule "libs/portaudio"]
 	path = libs/portaudio
 	url = https://github.com/vp817/portaudio.git
+[submodule "libs/jansson"]
+	path = libs/jansson
+	url = https://github.com/akheron/jansson.git
 [submodule "libs/speex"]
 	path = libs/speex
 	url = https://github.com/xiph/speex.git
