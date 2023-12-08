@@ -17,7 +17,7 @@ mkdir D:\nacl_sdk\pepper_canary\include\ppapi\cpp\private
 copy D:\chromiumtrunk\src\ppapi\c\private\*.h D:\nacl_sdk\pepper_canary\include\ppapi\c\private
 copy D:\chromiumtrunk\src\ppapi\cpp\private\*.h D:\nacl_sdk\pepper_canary\include\ppapi\cpp\private
 
-4) Enable the experimental UDP apis in Chrome
+4. Enable the experimental UDP apis in Chrome
 go to about:flags and enable "NaCl Socket API"
 
 5. Install the visual studio update
