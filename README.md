@@ -21,8 +21,8 @@ Copyright © 2014 Oculus VR, Inc.
 1. Open a terminal window.
 2. Navigate to the `RakNet` directory.
 3. Run one of the following commands:
-    * `g++ -lpthread -g -Iinclude/RakNet src/*.cpp`: Builds RakNet with debugging information.
-    * `g++ -m64 -g -lpthread -I./include/RakNet "../Samples/Chat Example/Chat Example Server.cpp" *.cpp`: Builds a 64-bit Chat Example server.
+    * `g++ -lpthread -g -I./include/RakNet ./src/*.cpp`: Builds RakNet with debugging information.
+    * `g++ -m64 -g -lpthread -I./include/RakNet "./Samples/Chat Example/Chat Example Server.cpp" ./src/*.cpp`: Builds a 64-bit Chat Example server.
 4. The resulting executable will be named `a.out`.
 
 ### Windows
@@ -37,9 +37,9 @@ Copyright © 2014 Oculus VR, Inc.
 1. Open a terminal window.
 2. Navigate to the `RakNet` directory.
 3. Run the following commands:
-    * `g++ -c -DNDEBUG -I -isysroot /Developer/SDKs/MacOSX10.5u.sdk/ -arch i386 -Iinclude/RakNet src/*.cpp`: Builds PowerPC binaries.
+    * `g++ -c -DNDEBUG -I -isysroot /Developer/SDKs/MacOSX10.5u.sdk/ -arch i386 -I./include/RakNet ./src/*.cpp`: Builds PowerPC binaries.
     * `libtool -static -o raknetppc.a *.o`: Creates a static library for PowerPC.
-    * `gcc -c -I ../Include -isysroot /Developer/SDKs/MacOSX10.4u.sdk/ -arch i386 -Iinclude/RakNet src/*.cpp`: Builds Intel binaries.
+    * `gcc -c -I ../Include -isysroot /Developer/SDKs/MacOSX10.4u.sdk/ -arch i386 -I./include/RakNet ./src/*.cpp`: Builds Intel binaries.
     * `libtool -static -o rakneti386.a *.o`: Creates a static library for Intel.
     * `lipo -create *.a -o libraknet.a`: Creates a universal binary for both architectures.
 
