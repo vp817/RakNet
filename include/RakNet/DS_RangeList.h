@@ -60,47 +60,52 @@ namespace DataStructures
 		RakNet::BitSize_t Serialize(RakNet::BitStream *in, RakNet::BitSize_t maxBits, bool clearSerialized);
 		bool Deserialize(RakNet::BitStream *out);
 
-		DataStructures::OrderedList<range_type, RangeNode<range_type>, RangeNodeComp<range_type> > ranges;
+		DataStructures::OrderedList<range_type, RangeNode<range_type>, RangeNodeComp<range_type>> ranges;
 	};
 
 	template <class range_type>
 	RakNet::BitSize_t RangeList<range_type>::Serialize(RakNet::BitStream *in, RakNet::BitSize_t maxBits, bool clearSerialized)
 	{
 		RakAssert(ranges.Size() < (unsigned short)-1);
+
 		RakNet::BitStream tempBS;
 		RakNet::BitSize_t bitsWritten = 0;
 		unsigned short countWritten = 0;
-		unsigned i;
 
-		for (i = 0; i < ranges.Size(); i++)
+		for (unsigned int i = 0; i < ranges.Size(); ++i)
 		{
-			if ((int)sizeof(unsigned short) * 8 + bitsWritten + (int)sizeof(range_type) * 8 * 2 + 1 > maxBits)
-				break;
+			auto range = ranges[i];
 
-			bool minEqualsMax = ranges[i].minIndex == ranges[i].maxIndex;
-			tempBS.Write<unsigned char>(minEqualsMax ? 1 : 0); // Use one byte, intead of one bit, for speed, as this is done a lot
-			tempBS.Write<range_type>(ranges[i].minIndex);
-			bitsWritten += sizeof(range_type) * 8 + 8;
-			if (!minEqualsMax)
+			if ((sizeof(unsigned short) * 8 + bitsWritten + sizeof(range_type) * 8 * 2 + 1) > maxBits)
 			{
-				tempBS.Write<range_type>(ranges[i].maxIndex);
+				break;
+			}
+
+			tempBS.Write<unsigned char>(range.minIndex == range.maxIndex);
+
+			tempBS.Write<range_type>(range.minIndex);
+			bitsWritten += sizeof(range_type) * 8 + 8;
+
+			if (range.minIndex != range.maxIndex)
+			{
+				tempBS.Write(range.maxIndex);
 				bitsWritten += sizeof(range_type) * 8;
 			}
+
 			countWritten++;
 		}
 
 		in->AlignWriteToByteBoundary();
-		RakNet::BitSize_t before = in->GetWriteOffset();
+		const auto before = in->GetWriteOffset();
 		in->Write(countWritten);
 		bitsWritten += in->GetWriteOffset() - before;
-		//	RAKNET_DEBUG_PRINTF("%i ", in->GetNumberOfBitsUsed());
+
 		in->Write(&tempBS, tempBS.GetNumberOfBitsUsed());
-		//	RAKNET_DEBUG_PRINTF("%i %i \n", tempBS.GetNumberOfBitsUsed(),in->GetNumberOfBitsUsed());
 
 		if (clearSerialized && countWritten)
 		{
 			unsigned rangeSize = ranges.Size();
-			for (i = 0; i < rangeSize - countWritten; i++)
+			for (unsigned i = 0; i < rangeSize - countWritten; ++i)
 			{
 				ranges[i] = ranges[i + countWritten];
 			}
@@ -114,30 +119,50 @@ namespace DataStructures
 	bool RangeList<range_type>::Deserialize(RakNet::BitStream *out)
 	{
 		ranges.Clear(true, _FILE_AND_LINE_);
-		unsigned short count;
-		out->AlignReadToByteBoundary();
-		out->Read<unsigned short>(count);
-		unsigned short i;
-		range_type min, max;
-		unsigned char maxEqualToMin = 0;
 
-		for (i = 0; i < count; i++)
+		out->AlignReadToByteBoundary();
+
+		unsigned short count;
+		if (!out->Read<unsigned short>(count))
 		{
-			out->Read<unsigned char>(maxEqualToMin);
-			if (out->Read<range_type>(min) == false)
+			return false;
+		}
+
+		for (unsigned short i = 0; i < count; ++i)
+		{
+			unsigned char maxEqualToMin;
+			if (!out->Read<unsigned char>(maxEqualToMin))
+			{
 				return false;
+			}
+
+			range_type min;
+			if (!out->Read<range_type>(min))
+			{
+				return false;
+			}
+
+			range_type max;
 			if (!maxEqualToMin)
 			{
-				if (out->Read<range_type>(max) == false)
+				if (!out->Read<range_type>(max))
+				{
 					return false;
+				}
+
 				if (max < min)
+				{
 					return false;
+				}
 			}
 			else
+			{
 				max = min;
+			}
 
-			ranges.InsertAtEnd(RangeNode<range_type>(min, max), _FILE_AND_LINE_);
+			ranges.InsertAtEnd({min, max}, _FILE_AND_LINE_);
 		}
+
 		return true;
 	}
 
