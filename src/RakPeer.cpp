@@ -91,12 +91,6 @@ static const unsigned int MAX_OFFLINE_DATA_LENGTH = 400;
 // Make sure highest bit is 0, so isValid in DatagramHeaderFormat is false
 static const uint8_t OFFLINE_MESSAGE_DATA_ID[16] = {0x00, 0xFF, 0xFF, 0x00, 0xFE, 0xFE, 0xFE, 0xFE, 0xFD, 0xFD, 0xFD, 0xFD, 0x12, 0x34, 0x56, 0x78};
 
-struct PacketFollowedByData
-{
-	Packet p;
-	uint8_t data[1];
-};
-
 Packet *RakPeer::AllocPacket(unsigned dataSize, const char *file, unsigned int line)
 {
 	RakNet::Packet *p;
@@ -235,10 +229,10 @@ StartupResult RakPeer::Startup(unsigned int maxConnections, SocketDescriptor *so
 	if (IsActive())
 		return RAKNET_ALREADY_STARTED;
 
-	// If getting the guid failed in the constructor, try again
 	if (myGuid.g == 0)
 	{
 		GenerateGUID();
+
 		if (myGuid.g == 0)
 		{
 			return COULD_NOT_GENERATE_GUID;
@@ -247,7 +241,7 @@ StartupResult RakPeer::Startup(unsigned int maxConnections, SocketDescriptor *so
 
 	if (threadPriority == -99999)
 	{
-#if defined(_WIN32)
+#ifdef _WIN32
 		threadPriority = 0;
 #else
 		threadPriority = 1000;
