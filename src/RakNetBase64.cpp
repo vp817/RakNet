@@ -12,6 +12,23 @@
 #include "RakMemoryOverride.h"
 
 const char *Base64Map(void) { return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; }
+unsigned char base64Index[256] = {
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 62, 255, 255, 255, 63,
+	52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 255, 255, 255, 255, 255, 255,
+	255, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+	15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 255, 255, 255, 255, 255,
+	255, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+	41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255};
 
 // 3/17/2013 must be unsigned char or else it will use negative indices
 int Base64Encoding(const unsigned char *inputData, int dataLength, char *outputData)
@@ -137,28 +154,10 @@ int Base64Decoding(const unsigned char *inputData, int dataLength, unsigned char
 	if (dataLength <= 0)
 		return 0;
 
-	unsigned char base64Index[256] = {
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 62, 255, 255, 255, 63,
-		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 255, 255, 255, 255, 255, 255,
-		255, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 255, 255, 255, 255, 255,
-		255, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255};
-
 	int outputLengthBits = 6 * dataLength / 8;
 	int outputLength = outputLengthBits;
 
-	// Check if padding is present
+	// check if there is padding
 	if (dataLength > 1 && inputData[dataLength - 1] == '=')
 	{
 		outputLength--;
@@ -182,11 +181,11 @@ int Base64Decoding(const unsigned char *inputData, int dataLength, unsigned char
 		unsigned char index = base64Index[inChar];
 		if (index != 255)
 		{
-			// Valid base64 character
+			// is valid base64 character
 			inTuple[inTupleCount++] = index;
 			if (inTupleCount == 4)
 			{
-				// Decode the 4-tuple
+				// decode the 4-tuple
 				(*outputData)[outputDataOffset++] = (inTuple[0] << 2) | (inTuple[1] >> 4);
 				(*outputData)[outputDataOffset++] = (inTuple[1] << 4) | (inTuple[2] >> 2);
 				(*outputData)[outputDataOffset++] = (inTuple[2] << 6) | inTuple[3];
@@ -197,7 +196,6 @@ int Base64Decoding(const unsigned char *inputData, int dataLength, unsigned char
 
 	if (inTupleCount > 1)
 	{
-		// The remaining base64 characters form a valid tuple
 		(*outputData)[outputDataOffset++] = (inTuple[0] << 2) | (inTuple[1] >> 4);
 	}
 	if (inTupleCount > 2)
